@@ -38,6 +38,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  LabelList,
 } from 'recharts';
 
 // ─── Static dummy data templates ─────────────────────────────────────────────
@@ -175,6 +176,7 @@ function HorizontalChart({ data, color = '#266210', customColors = null }) {
           cursor={{ fill: 'rgba(0,0,0,0.04)' }}
         />
         <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16}>
+          <LabelList dataKey="value" position="insideRight" fill="#fff" fontSize={10} />
           {data.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
@@ -187,6 +189,28 @@ function HorizontalChart({ data, color = '#266210', customColors = null }) {
     </ResponsiveContainer>
   );
 }
+
+const LiveDateTime = () => {
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentDateTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formattedDateTime = currentDateTime.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }) + ' ' + currentDateTime.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+
+  return <div className="date-text">{formattedDateTime}</div>;
+};
 
 // ─── Main Dashboard Component ─────────────────────────────────────────────────
 const Dashboard = () => {
@@ -209,24 +233,6 @@ const Dashboard = () => {
 
   const showNavbar = true;
   const showSidebar = false;
-
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentDateTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formattedDateTime = currentDateTime.toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }) + ' ' + currentDateTime.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
 
   // Data State
   const [summaryData, setSummaryData] = useState(DEFAULT_SUMMARY);
@@ -401,7 +407,7 @@ const Dashboard = () => {
 
               <div className="topbar-right">
                 <div className="live-data-indicator">
-                  <div className="date-text">{formattedDateTime}</div>
+                  <LiveDateTime />
                   <div className="status"><span className="dot"></span> LIVE DATA</div>
                 </div>
 
