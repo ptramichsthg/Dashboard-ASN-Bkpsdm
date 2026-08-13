@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/axios';
+import bgLogin from '../assets/bg-login.png';
+import bgCard from '../assets/bg-card.png';
 import {
   LogOut,
   LayoutDashboard,
@@ -16,7 +19,16 @@ import {
   RefreshCw,
   Activity,
   Database,
-  Filter
+  Filter,
+  UserCheck,
+  GraduationCap,
+  BarChart2,
+  ClipboardList,
+  Building2,
+  Award,
+  ShieldCheck,
+  BookOpen,
+  ChevronRight
 } from 'lucide-react';
 import {
   BarChart,
@@ -149,12 +161,12 @@ function HorizontalChart({ data, color = '#266210', customColors = null }) {
         layout="vertical"
         margin={{ top: 0, right: 30, left: 0, bottom: 0 }}
       >
-        <XAxis type="number" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+        <XAxis type="number" tick={{ fontSize: 11, fill: '#475569' }} tickLine={false} axisLine={false} />
         <YAxis
           type="category"
           dataKey="name"
           width={90}
-          tick={{ fontSize: 11, fill: '#6b7280' }}
+          tick={{ fontSize: 11, fill: '#475569' }}
           tickLine={false}
           axisLine={false}
         />
@@ -191,6 +203,30 @@ const Dashboard = () => {
 
   // UI State
   const [profileOpen, setProfileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const showNavbar = true;
+  const showSidebar = false;
+
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentDateTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formattedDateTime = currentDateTime.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }) + ' ' + currentDateTime.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
 
   // Data State
   const [summaryData, setSummaryData] = useState(DEFAULT_SUMMARY);
@@ -201,7 +237,6 @@ const Dashboard = () => {
   const [golonganPPPKData, setGolonganPPPKData] = useState(DEFAULT_GOLONGAN_PPPK);
   const [eselonData, setEselonData] = useState(DEFAULT_ESELON_DATA);
 
-  // Update data when satker changes
   useEffect(() => {
     const simData = generateSimulatedData(satker);
     if (simData) {
@@ -236,6 +271,34 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    setErrorMsg('');
+
+    try {
+      // Ambil ulang data Dashboard Admin dari API Laravel
+      const response = await api.get('/dashboard', {
+        params: { satker }
+      });
+      const data = response.data;
+
+      if (data) {
+        setSummaryData(data.summary || DEFAULT_SUMMARY);
+        setStatusPegawaiData(data.statusPegawai || DEFAULT_STATUS_PEGAWAI);
+        setJenisJabatanData(data.jenisJabatan || DEFAULT_JENIS_JABATAN);
+        setJenisJFTData(data.jenisJFT || DEFAULT_JENIS_JFT);
+        setGolonganPNSData(data.golonganPNS || DEFAULT_GOLONGAN_PNS);
+        setGolonganPPPKData(data.golonganPPPK || DEFAULT_GOLONGAN_PPPK);
+        setEselonData(data.eselonData || DEFAULT_ESELON_DATA);
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Gagal mengambil data dari server. Silakan coba lagi.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const getInitials = (name) => (name ? name.charAt(0).toUpperCase() : 'U');
 
   const filteredGolonganPNSData = golonganPNSData.filter(item => {
@@ -260,82 +323,150 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-layout">
+      {/* Sidebar Overlay for Mobile */}
+      {showSidebar && sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} style={{ display: 'block' }}></div>
+      )}
+
+      {/* Sidebar */}
+      {showSidebar && (
+        <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-header">
+            <div className="sidebar-brand">
+              <Activity size={24} />
+              <span>BKPSDM</span>
+              <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+          <div className="sidebar-nav">
+            <div className="nav-section-title">Menu Utama</div>
+            <a href="#" className="nav-item active">
+              <LayoutDashboard size={18} />
+              <span>Dashboard</span>
+            </a>
+            <a href="#" className="nav-item">
+              <Users size={18} />
+              <span>Data Pegawai</span>
+            </a>
+            <a href="#" className="nav-item">
+              <Briefcase size={18} />
+              <span>Jabatan</span>
+            </a>
+            <a href="#" className="nav-item">
+              <FileText size={18} />
+              <span>Laporan</span>
+            </a>
+          </div>
+          <div className="sidebar-footer">
+            <button onClick={handleLogout} className="btn-logout">
+              <LogOut size={18} />
+              <span>Logout</span>
+            </button>
+          </div>
+        </aside>
+      )}
+
       {/* Main Content */}
-      <main className="main-content" style={{ marginLeft: 0 }}>
+      <main className="main-content" style={!showSidebar ? { marginLeft: 0 } : {}}>
         {/* Topbar */}
-        <header className="topbar">
-          <div className="topbar-inner">
-            <div className="topbar-left">
-              <div className="topbar-brand">
-                <Activity size={28} className="brand-icon" />
-                <div className="brand-text">
-                  <h2>BKPSDM PANEL</h2>
-                  <span>SISTEM INFORMASI ASN</span>
+        {showNavbar && (
+          <header className="topbar">
+            <div className="topbar-inner">
+              <div className="topbar-left">
+                <button
+                  className="sidebar-toggle-btn"
+                  onClick={() => setSidebarOpen(true)}
+                  style={{ marginRight: '1rem' }}
+                >
+                  <Menu size={24} />
+                </button>
+                <div className="topbar-brand">
+                  <Activity size={28} className="brand-icon" />
+                  <div className="brand-text">
+                    <h2>BKPSDM PANEL</h2>
+                    <span>SISTEM INFORMASI ASN</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Filter di topbar disembunyikan sesuai instruksi */}
-            {/* 
+              {/* Filter di topbar disembunyikan sesuai instruksi */}
+              {/* 
           <div className="topbar-filters">
             ... 
           </div> 
           */
-            }
+              }
 
-            <div className="topbar-right">
-              <div className="live-data-indicator">
-                <div className="date-text">Selasa, 11 Agustus 2026</div>
-                <div className="status"><span className="dot"></span> LIVE DATA</div>
-              </div>
-
-              <button className="btn-refresh" title="Muat Ulang Data">
-                <RefreshCw size={18} />
-              </button>
-
-              <button className="btn-notification">
-                <Bell size={20} />
-              </button>
-
-              <div className="profile-container" style={{ position: 'relative' }}>
-                <div
-                  className="user-profile"
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)', transition: 'background-color 0.2s' }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--input-bg)'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <div className="user-info">
-                    <div className="user-name">{user?.name || 'Administrator'}</div>
-                  </div>
-                  <div className="avatar">{getInitials(user?.name)}</div>
+              <div className="topbar-right">
+                <div className="live-data-indicator">
+                  <div className="date-text">{formattedDateTime}</div>
+                  <div className="status"><span className="dot"></span> LIVE DATA</div>
                 </div>
 
-                {/* Profile Dropdown */}
-                {profileOpen && (
-                  <div className="profile-dropdown">
-                    <div className="dropdown-header">
-                      <strong>{user?.name || 'Administrator'}</strong>
-                      <span>{user?.nip || '198001012010011001'}</span>
+                <button
+                  className="btn-refresh"
+                  title="Muat Ulang Data"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  style={{ cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.7 : 1 }}
+                >
+                  <RefreshCw size={18} className={isRefreshing ? 'spinner' : ''} />
+                </button>
+
+                <button className="btn-notification">
+                  <Bell size={20} />
+                </button>
+
+                <div className="profile-container" style={{ position: 'relative' }}>
+                  <div
+                    className="user-profile"
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)', transition: 'background-color 0.2s' }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--input-bg)'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div className="user-info">
+                      <div className="user-name">{user?.name || 'Administrator'}</div>
                     </div>
-                    <hr className="dropdown-divider" />
-                    <button className="dropdown-item">
-                      <Settings size={16} />
-                      Pengaturan Akun
-                    </button>
-                    <button onClick={handleLogout} className="dropdown-item logout-text">
-                      <LogOut size={16} />
-                      Logout
-                    </button>
+                    <div className="avatar">{getInitials(user?.name)}</div>
                   </div>
-                )}
+
+                  {/* Profile Dropdown */}
+                  {profileOpen && (
+                    <div className="profile-dropdown">
+                      <div className="dropdown-header">
+                        <strong>{user?.name || 'Administrator'}</strong>
+                        <span>{user?.nip || '198001012010011001'}</span>
+                      </div>
+                      <hr className="dropdown-divider" />
+                      <button className="dropdown-item">
+                        <Settings size={16} />
+                        Pengaturan Akun
+                      </button>
+                      <button onClick={handleLogout} className="dropdown-item logout-text">
+                        <LogOut size={16} />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
         {/* Content */}
         <div className="content-area">
+          {errorMsg && (
+            <div style={{ padding: '0.75rem 1.25rem', backgroundColor: '#fef2f2', color: '#ef4444', borderRadius: '8px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>{errorMsg}</span>
+              <button onClick={() => setErrorMsg('')} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <X size={16} />
+              </button>
+            </div>
+          )}
 
           {/* ── HERO BANNER ── */}
           <div className="hero-banner">
@@ -365,14 +496,11 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="hero-banner-decor">
-              {/* Using a stylized SVG to mimic the background logo pattern */}
-              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="decor-svg">
-                <rect x="140" y="0" width="60" height="200" fill="rgba(255,255,255,0.08)" />
-                <path d="M140 40 L160 40 L160 60 L180 60 L180 80 L200 80" stroke="rgba(255,255,255,0.2)" strokeWidth="4" />
-                <path d="M140 80 L160 80 L160 100 L180 100 L180 120 L200 120" stroke="rgba(255,255,255,0.2)" strokeWidth="4" />
-                {/* Wheat/leaf icon approximation */}
-                <path d="M170 180 L170 120 M170 160 L150 140 M170 140 L150 120 M170 150 L190 130 M170 130 L190 110" stroke="rgba(255,255,255,0.25)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <img
+                src={bgCard}
+                alt="Logo Kabupaten Bandung"
+                className="hero-banner-logo"
+              />
             </div>
           </div>
 
@@ -487,6 +615,102 @@ const Dashboard = () => {
             </span>
           </div>
 
+          {/* ── QUICK ACCESS MENU ── */}
+          <div className="quick-menu-section">
+            <div className="section-title" style={{ marginTop: 0 }}>Akses Cepat</div>
+            <div className="quick-menu-grid">
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#10b981', '--card-bg': '#ecfdf5' }}>
+                <div className="quick-menu-icon-wrap">
+                  <Users size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Data Pegawai</span>
+                  <span className="quick-menu-desc">Kelola seluruh data ASN</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#3b82f6', '--card-bg': '#eff6ff' }}>
+                <div className="quick-menu-icon-wrap">
+                  <Briefcase size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Data Jabatan</span>
+                  <span className="quick-menu-desc">Struktural & fungsional</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#8b5cf6', '--card-bg': '#f5f3ff' }}>
+                <div className="quick-menu-icon-wrap">
+                  <GraduationCap size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Pendidikan</span>
+                  <span className="quick-menu-desc">Riwayat pendidikan ASN</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#f59e0b', '--card-bg': '#fffbeb' }}>
+                <div className="quick-menu-icon-wrap">
+                  <Award size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Golongan</span>
+                  <span className="quick-menu-desc">Pangkat & golongan</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#ec4899', '--card-bg': '#fdf2f8' }}>
+                <div className="quick-menu-icon-wrap">
+                  <UserCheck size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Kehadiran</span>
+                  <span className="quick-menu-desc">Absensi & kinerja</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#0d9488', '--card-bg': '#f0fdfa' }}>
+                <div className="quick-menu-icon-wrap">
+                  <Building2 size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Satuan Kerja</span>
+                  <span className="quick-menu-desc">Unit & organisasi</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#ef4444', '--card-bg': '#fef2f2' }}>
+                <div className="quick-menu-icon-wrap">
+                  <ShieldCheck size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Kompetensi</span>
+                  <span className="quick-menu-desc">Sertifikasi & skill</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#6366f1', '--card-bg': '#eef2ff' }}>
+                <div className="quick-menu-icon-wrap">
+                  <ClipboardList size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Laporan</span>
+                  <span className="quick-menu-desc">Cetak & ekspor data</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+            </div>
+          </div>
+
           {/* ── CHARTS ── */}
           <div className="chart-section">
             <div className="grid-3">
@@ -498,10 +722,12 @@ const Dashboard = () => {
                     <option>Semua</option>
                     <option>Gol IV</option>
                     <option>Gol III</option>
+                    <option>Gol II</option>
+                    <option>Gol I</option>
                   </select>
                 </div>
                 <HorizontalChart
-                  data={golonganPNSData}
+                  data={filteredGolonganPNSData}
                   customColors={['#064e66', '#136384', '#8dbfc2', '#0eb981', '#d4a329']}
                 />
               </div>
@@ -514,9 +740,15 @@ const Dashboard = () => {
                     <option>Semua</option>
                     <option>Ahli Utama</option>
                     <option>Ahli Madya</option>
+                    <option>Ahli Muda</option>
+                    <option>Ahli Pertama</option>
+                    <option>Penyelia</option>
+                    <option>Mahir</option>
+                    <option>Terampil</option>
+                    <option>Pemula</option>
                   </select>
                 </div>
-                <HorizontalChart data={golonganPPPKData} color="#90B800" />
+                <HorizontalChart data={filteredGolonganPPPKData} color="#90B800" />
               </div>
 
               {/* Eselon */}
@@ -526,9 +758,14 @@ const Dashboard = () => {
                   <select className="filter-select" value={eselonFilter} onChange={e => setEselonFilter(e.target.value)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
                     <option>Semua</option>
                     <option>Struktural</option>
+                    <option>Eselon I</option>
+                    <option>Eselon II</option>
+                    <option>Eselon III</option>
+                    <option>Eselon IV</option>
+                    <option>Non Eselon</option>
                   </select>
                 </div>
-                <HorizontalChart data={eselonData} color="#063B00" />
+                <HorizontalChart data={filteredEselonData} color="#063B00" />
               </div>
             </div>
           </div>
