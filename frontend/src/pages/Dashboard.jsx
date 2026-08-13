@@ -28,7 +28,8 @@ import {
   Award,
   ShieldCheck,
   BookOpen,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 import {
   BarChart,
@@ -39,6 +40,9 @@ import {
   ResponsiveContainer,
   Cell,
   LabelList,
+  PieChart,
+  Pie,
+  Legend,
 } from 'recharts';
 
 // ─── Static dummy data templates ─────────────────────────────────────────────
@@ -76,15 +80,77 @@ const DEFAULT_ESELON_DATA = [
   { name: 'Non Eselon', value: 390 },
 ];
 
+const DEFAULT_OPD_DATA = [
+  { name: 'Disdik', value: 1450 },
+  { name: 'Dinkes', value: 920 },
+  { name: 'Kecamatan', value: 850 },
+  { name: 'RSUD', value: 620 },
+  { name: 'Setda', value: 340 },
+  { name: 'Satpol PP', value: 280 },
+  { name: 'DPUTR', value: 210 },
+  { name: 'BKPSDM', value: 150 },
+  { name: 'Bapenda', value: 145 },
+  { name: 'Disdukcapil', value: 130 },
+  { name: 'Dishub', value: 125 },
+  { name: 'Disdamkar', value: 120 },
+  { name: 'Dinsos', value: 110 },
+  { name: 'BKAD', value: 105 },
+  { name: 'Disperkimtan', value: 105 },
+  { name: 'DP2KBP3A', value: 95 },
+  { name: 'Disperta', value: 95 },
+  { name: 'Diskominfo', value: 90 },
+  { name: 'Disnaker', value: 85 },
+  { name: 'DLH', value: 85 },
+  { name: 'Bapperida', value: 80 },
+  { name: 'Inspektorat', value: 75 },
+  { name: 'Disperdagin', value: 75 },
+  { name: 'DPMD', value: 70 },
+  { name: 'DKPP', value: 65 },
+  { name: 'Disparbud', value: 65 },
+  { name: 'DPMPTSP', value: 60 },
+  { name: 'BPBD', value: 60 },
+  { name: 'Diskop UKM', value: 55 },
+  { name: 'Setwan', value: 50 },
+  { name: 'Dispusip', value: 50 },
+  { name: 'Dispora', value: 45 },
+  { name: 'Bakesbangpol', value: 40 },
+];
+
 const SATUAN_KERJA_LIST = [
   'Semua Satuan Kerja',
-  'Dinas Pendidikan',
-  'Dinas Kesehatan',
-  'Dinas PUPR',
-  'Sekretariat Daerah',
-  'Badan Keuangan Daerah',
-  'Dinas Pertanian',
-  'Dinas Sosial',
+  'Sekretariat Daerah (Setda)',
+  'Sekretariat DPRD (Setwan)',
+  'Inspektorat Daerah',
+  'Dinas Pendidikan (Disdik)',
+  'Dinas Kesehatan (Dinkes)',
+  'Dinas Pekerjaan Umum dan Tata Ruang (DPUTR)',
+  'Dinas Perkimtan',
+  'Satpol PP',
+  'Dinas Pemadam Kebakaran (Disdamkar)',
+  'Dinas Sosial (Dinsos)',
+  'Dinas Ketenagakerjaan (Disnaker)',
+  'DP2KBP3A',
+  'Dinas Ketahanan Pangan dan Perikanan (DKPP)',
+  'Dinas Lingkungan Hidup (DLH)',
+  'Dinas Kependudukan dan Pencatatan Sipil (Disdukcapil)',
+  'Dinas Pemberdayaan Masyarakat dan Desa (DPMD)',
+  'Dinas Perhubungan (Dishub)',
+  'Diskominfo',
+  'Dinas Koperasi dan UKM',
+  'DPMPTSP',
+  'Dinas Kepemudaan dan Olahraga (Dispora)',
+  'Dinas Perpustakaan dan Arsip (Dispusip)',
+  'Dinas Pariwisata dan Kebudayaan (Disparbud)',
+  'Dinas Pertanian (Disperta)',
+  'Dinas Perdagangan dan Perindustrian (Disperdagin)',
+  'Bapperida',
+  'BKAD',
+  'Bapenda',
+  'BKPSDM',
+  'Bakesbangpol',
+  'BPBD',
+  'Kecamatan',
+  'RSUD',
 ];
 
 const TAHUN_LIST = ['2024', '2023', '2022', '2021'];
@@ -216,6 +282,12 @@ const LiveDateTime = () => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  
+  // OPD Pagination State
+  const [opdPage, setOpdPage] = useState(0);
+  const opdItemsPerPage = 12;
+  const totalOpdPages = Math.ceil(DEFAULT_OPD_DATA.length / opdItemsPerPage);
+  const paginatedOpdData = DEFAULT_OPD_DATA.slice(opdPage * opdItemsPerPage, (opdPage + 1) * opdItemsPerPage);
 
   // Filters
   const [tahun, setTahun] = useState('2024');
@@ -592,6 +664,129 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* ── DISTRIBUSI GENDER & SEBARAN JENJANG ── */}
+          <div className="grid-2-charts">
+
+            {/* Donut: Distribusi Gender */}
+            <div className="chart-card chart-card-gender">
+              <div className="chart-card-header" style={{ justifyContent: 'flex-start' }}>
+                <div className="chart-card-icon-wrap" style={{ background: '#d1fae5' }}>
+                  <Users size={16} style={{ color: '#059669' }} />
+                </div>
+                <span className="chart-card-title">Distribusi Gender</span>
+              </div>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Laki-laki', value: summaryData.laki },
+                      { name: 'Perempuan', value: summaryData.perempuan },
+                    ]}
+                    cx="50%"
+                    cy="44%"
+                    innerRadius={65}
+                    outerRadius={95}
+                    paddingAngle={2}
+                    dataKey="value"
+                    startAngle={90}
+                    endAngle={-270}
+                  >
+                    <Cell fill="#0d9488" />
+                    <Cell fill="#34d399" />
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => [value.toLocaleString(), 'Jumlah ASN']}
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                  />
+                  <Legend
+                    iconType="circle"
+                    iconSize={10}
+                    verticalAlign="bottom"
+                    align="center"
+                    wrapperStyle={{ fontSize: '0.82rem', color: '#475569', paddingTop: '12px' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Vertical Bar: Sebaran Jenjang / Kelompok */}
+            <div className="chart-card chart-card-jenjang">
+              <div className="chart-card-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div className="chart-card-icon-wrap" style={{ background: '#d1fae5' }}>
+                    <BarChart2 size={16} style={{ color: '#059669' }} />
+                  </div>
+                  <span className="chart-card-title">Sebaran ASN pada OPD</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  <button 
+                    onClick={() => setOpdPage(p => Math.max(0, p - 1))} 
+                    disabled={opdPage === 0}
+                    style={{ 
+                      padding: '0.25rem', 
+                      borderRadius: '6px', 
+                      border: '1px solid #e2e8f0', 
+                      background: opdPage === 0 ? '#f8fafc' : 'white', 
+                      color: opdPage === 0 ? '#cbd5e1' : '#475569',
+                      cursor: opdPage === 0 ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                    title="Previous"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button 
+                    onClick={() => setOpdPage(p => Math.min(totalOpdPages - 1, p + 1))} 
+                    disabled={opdPage === totalOpdPages - 1}
+                    style={{ 
+                      padding: '0.25rem', 
+                      borderRadius: '6px', 
+                      border: '1px solid #e2e8f0', 
+                      background: opdPage === totalOpdPages - 1 ? '#f8fafc' : 'white', 
+                      color: opdPage === totalOpdPages - 1 ? '#cbd5e1' : '#475569',
+                      cursor: opdPage === totalOpdPages - 1 ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                    title="Next"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart
+                  data={paginatedOpdData}
+                  margin={{ top: 20, right: 10, left: 0, bottom: 80 }}
+                >
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 10, fill: '#475569' }}
+                    tickLine={false}
+                    axisLine={{ stroke: '#e2e8f0' }}
+                    angle={-40}
+                    textAnchor="end"
+                    interval={0}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: '#475569' }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    formatter={(value) => [value.toLocaleString(), 'Jumlah ASN']}
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                    cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                  />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={28} fill="#0d9488" animationDuration={500}>
+                    <LabelList dataKey="value" position="top" fill="#475569" fontSize={10} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+          </div>
+
 
           {/* ── STATUS PEGAWAI ── */}
           <div className="section-title">Status Pegawai</div>
