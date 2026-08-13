@@ -514,7 +514,7 @@ const Dashboard = () => {
           <div className="kpi-grid kpi-grid-4">
             <div className="kpi-card">
               <div className="kpi-left">
-                <span className="kpi-label">JUMLAH PEGAWAI</span>
+                <span className="kpi-label">JUMLAH ASN</span>
                 <span className="kpi-value">{summaryData.total.toLocaleString()}</span>
                 <span className="kpi-sub">Total ASN</span>
               </div>
@@ -525,7 +525,7 @@ const Dashboard = () => {
 
             <div className="kpi-card">
               <div className="kpi-left">
-                <span className="kpi-label">PNS</span>
+                <span className="kpi-label">JUMLAH PNS</span>
                 <span className="kpi-value">{(statusPegawaiData.find(d => d.title === 'PNS') ? statusPegawaiData.find(d => d.title === 'PNS').laki + statusPegawaiData.find(d => d.title === 'PNS').perempuan : 720).toLocaleString()}</span>
                 <span className="kpi-sub">Pegawai Negeri Sipil</span>
               </div>
@@ -536,22 +536,20 @@ const Dashboard = () => {
 
             <div className="kpi-card">
               <div className="kpi-left">
-                <span className="kpi-label">CAPAIAN</span>
-                <span className="kpi-value">
-                  {summaryData.total > 0 ? Math.round((summaryData.laki / summaryData.total) * 100) : 50}%
-                </span>
-                <span className="kpi-sub">Laki-laki dari Total</span>
+                <span className="kpi-label">JUMLAH CPNS</span>
+                <span className="kpi-value">{(statusPegawaiData.find(d => d.title === 'CPNS') ? statusPegawaiData.find(d => d.title === 'CPNS').laki + statusPegawaiData.find(d => d.title === 'CPNS').perempuan : 75).toLocaleString()}</span>
+                <span className="kpi-sub">Total CPNS</span>
               </div>
-              <div className="kpi-icon kpi-icon-purple">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+              <div className="kpi-icon kpi-icon-teal">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
               </div>
             </div>
 
             <div className="kpi-card">
               <div className="kpi-left">
-                <span className="kpi-label">PPPK</span>
+                <span className="kpi-label">JUMLAH PPPK</span>
                 <span className="kpi-value">{(statusPegawaiData.find(d => d.title === 'PPPK') ? statusPegawaiData.find(d => d.title === 'PPPK').laki + statusPegawaiData.find(d => d.title === 'PPPK').perempuan : 205).toLocaleString()}</span>
-                <span className="kpi-sub">Unit</span>
+                <span className="kpi-sub">Total PPPK</span>
               </div>
               <div className="kpi-icon kpi-icon-orange">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
@@ -563,12 +561,12 @@ const Dashboard = () => {
           <div className="kpi-grid kpi-grid-3">
             <div className="kpi-card">
               <div className="kpi-left">
-                <span className="kpi-label">TOTAL CPNS</span>
-                <span className="kpi-value">{(statusPegawaiData.find(d => d.title === 'CPNS') ? statusPegawaiData.find(d => d.title === 'CPNS').laki + statusPegawaiData.find(d => d.title === 'CPNS').perempuan : 75).toLocaleString()}</span>
+                <span className="kpi-label">TOTAL UNIT KERJA</span>
+                <span className="kpi-value">{SATUAN_KERJA_LIST.length - 1}</span>
                 <span className="kpi-sub">Unit Kerja</span>
               </div>
-              <div className="kpi-icon kpi-icon-teal">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+              <div className="kpi-icon kpi-icon-purple">
+                <Building2 size={28} strokeWidth={1.5} />
               </div>
             </div>
 
