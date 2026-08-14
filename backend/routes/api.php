@@ -11,3 +11,4 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
+Route::get('/satuan-kerja', [\App\Http\Controllers\SatuanKerjaController::class, 'index']);

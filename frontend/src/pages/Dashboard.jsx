@@ -159,43 +159,6 @@ const BULAN_LIST = [
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
 ];
 
-// Helper to generate simulated data
-const generateSimulatedData = (satker) => {
-  if (satker === 'Semua Satuan Kerja') return null;
-
-  // Create a stable pseudo-random multiplier based on satker name length
-  const multiplier = satker === 'Dinas Pendidikan' ? 0.3 :
-    satker === 'Dinas Kesehatan' ? 0.2 :
-      (satker.length % 15 + 5) / 100; // Between 5% and 20%
-
-  const applyMultiplier = (data, isChart = false) => {
-    return data.map(item => {
-      if (isChart) {
-        return { ...item, value: Math.ceil(item.value * multiplier) };
-      }
-      return {
-        ...item,
-        laki: Math.ceil(item.laki * multiplier),
-        perempuan: Math.ceil(item.perempuan * multiplier)
-      };
-    });
-  };
-
-  const statusPegawai = applyMultiplier(DEFAULT_STATUS_PEGAWAI);
-  const totalLaki = statusPegawai.reduce((acc, curr) => acc + curr.laki, 0);
-  const totalPerempuan = statusPegawai.reduce((acc, curr) => acc + curr.perempuan, 0);
-
-  return {
-    summary: { total: totalLaki + totalPerempuan, laki: totalLaki, perempuan: totalPerempuan },
-    statusPegawai,
-    jenisJabatan: applyMultiplier(DEFAULT_JENIS_JABATAN),
-    jenisJFT: applyMultiplier(DEFAULT_JENIS_JFT),
-    golonganPNS: applyMultiplier(DEFAULT_GOLONGAN_PNS, true),
-    golonganPPPK: applyMultiplier(DEFAULT_GOLONGAN_PPPK, true),
-    eselonData: applyMultiplier(DEFAULT_ESELON_DATA, true),
-  };
-};
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function DataCard({ title, laki, perempuan }) {
   const total = laki + perempuan;
@@ -316,24 +279,30 @@ const Dashboard = () => {
   const [eselonData, setEselonData] = useState(DEFAULT_ESELON_DATA);
 
   useEffect(() => {
-    const simData = generateSimulatedData(satker);
-    if (simData) {
-      setSummaryData(simData.summary);
-      setStatusPegawaiData(simData.statusPegawai);
-      setJenisJabatanData(simData.jenisJabatan);
-      setJenisJFTData(simData.jenisJFT);
-      setGolonganPNSData(simData.golonganPNS);
-      setGolonganPPPKData(simData.golonganPPPK);
-      setEselonData(simData.eselonData);
-    } else {
-      setSummaryData(DEFAULT_SUMMARY);
-      setStatusPegawaiData(DEFAULT_STATUS_PEGAWAI);
-      setJenisJabatanData(DEFAULT_JENIS_JABATAN);
-      setJenisJFTData(DEFAULT_JENIS_JFT);
-      setGolonganPNSData(DEFAULT_GOLONGAN_PNS);
-      setGolonganPPPKData(DEFAULT_GOLONGAN_PPPK);
-      setEselonData(DEFAULT_ESELON_DATA);
-    }
+    const fetchData = async () => {
+      setIsRefreshing(true);
+      try {
+        const response = await api.get('/dashboard', {
+          params: { satker }
+        });
+        const data = response.data;
+        if (data) {
+          setSummaryData(data.summary || DEFAULT_SUMMARY);
+          setStatusPegawaiData(data.statusPegawai || DEFAULT_STATUS_PEGAWAI);
+          setJenisJabatanData(data.jenisJabatan || DEFAULT_JENIS_JABATAN);
+          setJenisJFTData(data.jenisJFT || DEFAULT_JENIS_JFT);
+          setGolonganPNSData(data.golonganPNS || DEFAULT_GOLONGAN_PNS);
+          setGolonganPPPKData(data.golonganPPPK || DEFAULT_GOLONGAN_PPPK);
+          setEselonData(data.eselonData || DEFAULT_ESELON_DATA);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+    
+    fetchData();
   }, [satker]);
 
   useEffect(() => {
@@ -401,65 +370,13 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-layout">
-      {/* Sidebar Overlay for Mobile */}
-      {showSidebar && sidebarOpen && (
-        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} style={{ display: 'block' }}></div>
-      )}
-
-      {/* Sidebar */}
-      {showSidebar && (
-        <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-          <div className="sidebar-header">
-            <div className="sidebar-brand">
-              <Activity size={24} />
-              <span>BKPSDM</span>
-              <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)}>
-                <X size={20} />
-              </button>
-            </div>
-          </div>
-          <div className="sidebar-nav">
-            <div className="nav-section-title">Menu Utama</div>
-            <a href="#" className="nav-item active">
-              <LayoutDashboard size={18} />
-              <span>Dashboard</span>
-            </a>
-            <a href="#" className="nav-item">
-              <Users size={18} />
-              <span>Data Pegawai</span>
-            </a>
-            <a href="#" className="nav-item">
-              <Briefcase size={18} />
-              <span>Jabatan</span>
-            </a>
-            <a href="#" className="nav-item">
-              <FileText size={18} />
-              <span>Laporan</span>
-            </a>
-          </div>
-          <div className="sidebar-footer">
-            <button onClick={handleLogout} className="btn-logout">
-              <LogOut size={18} />
-              <span>Logout</span>
-            </button>
-          </div>
-        </aside>
-      )}
-
       {/* Main Content */}
-      <main className="main-content" style={!showSidebar ? { marginLeft: 0 } : {}}>
+      <main className="main-content" style={{ marginLeft: 0 }}>
         {/* Topbar */}
         {showNavbar && (
           <header className="topbar">
             <div className="topbar-inner">
               <div className="topbar-left">
-                <button
-                  className="sidebar-toggle-btn"
-                  onClick={() => setSidebarOpen(true)}
-                  style={{ marginRight: '1rem' }}
-                >
-                  <Menu size={24} />
-                </button>
                 <div className="topbar-brand">
                   <Activity size={28} className="brand-icon" />
                   <div className="brand-text">
@@ -546,6 +463,11 @@ const Dashboard = () => {
             </div>
           )}
 
+          {/* Breadcrumb */}
+          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+            <span style={{ color: '#0f172a' }}>Dashboard /</span>
+          </div>
+
           {/* ── HERO BANNER ── */}
           <div className="hero-banner">
             <div className="hero-banner-content">
@@ -557,19 +479,9 @@ const Dashboard = () => {
                   <span className="badge-prefix">Sumber: SIMPEL BKPSDM Kab. Bandung</span>
                 </div>
 
-                <div className="hero-badge-container">
+                <div className="hero-badge-container static-badge">
                   <Filter size={14} className="badge-icon-svg" />
-                  <span className="badge-prefix">Filter by:</span>
-                  <select
-                    className="hero-badge-select"
-                    value={satker}
-                    onChange={e => setSatker(e.target.value)}
-                  >
-                    <option value="Semua Satuan Kerja">Semua Data</option>
-                    {SATUAN_KERJA_LIST.filter(sk => sk !== 'Semua Satuan Kerja').map(sk => (
-                      <option key={sk} value={sk}>{sk}</option>
-                    ))}
-                  </select>
+                  <span className="badge-prefix">Filter by: Semua Data</span>
                 </div>
               </div>
             </div>
@@ -579,6 +491,102 @@ const Dashboard = () => {
                 alt="Logo Kabupaten Bandung"
                 className="hero-banner-logo"
               />
+            </div>
+          </div>
+
+          {/* ── QUICK ACCESS MENU ── */}
+          <div className="quick-menu-section">
+            <div className="section-title" style={{ marginTop: 0 }}>Akses Cepat</div>
+            <div className="quick-menu-grid">
+
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/sebaran-pegawai'); }} className="quick-menu-card" style={{ '--card-color': '#10b981', '--card-bg': '#ecfdf5' }}>
+                <div className="quick-menu-icon-wrap">
+                  <Users size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Sebaran Pegawai</span>
+                  <span className="quick-menu-desc">Kelola seluruh data ASN</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#3b82f6', '--card-bg': '#eff6ff' }}>
+                <div className="quick-menu-icon-wrap">
+                  <Briefcase size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Data Jabatan</span>
+                  <span className="quick-menu-desc">Struktural & fungsional</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#8b5cf6', '--card-bg': '#f5f3ff' }}>
+                <div className="quick-menu-icon-wrap">
+                  <GraduationCap size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Pendidikan</span>
+                  <span className="quick-menu-desc">Riwayat pendidikan ASN</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#f59e0b', '--card-bg': '#fffbeb' }}>
+                <div className="quick-menu-icon-wrap">
+                  <Award size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Golongan</span>
+                  <span className="quick-menu-desc">Pangkat & golongan</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#ec4899', '--card-bg': '#fdf2f8' }}>
+                <div className="quick-menu-icon-wrap">
+                  <UserCheck size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Kehadiran</span>
+                  <span className="quick-menu-desc">Absensi & kinerja</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#0d9488', '--card-bg': '#f0fdfa' }}>
+                <div className="quick-menu-icon-wrap">
+                  <Building2 size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Satuan Kerja</span>
+                  <span className="quick-menu-desc">Unit & organisasi</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#ef4444', '--card-bg': '#fef2f2' }}>
+                <div className="quick-menu-icon-wrap">
+                  <ShieldCheck size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Kompetensi</span>
+                  <span className="quick-menu-desc">Sertifikasi & skill</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
+              <a href="#" className="quick-menu-card" style={{ '--card-color': '#6366f1', '--card-bg': '#eef2ff' }}>
+                <div className="quick-menu-icon-wrap">
+                  <ClipboardList size={28} />
+                </div>
+                <div className="quick-menu-text">
+                  <span className="quick-menu-label">Laporan</span>
+                  <span className="quick-menu-desc">Cetak & ekspor data</span>
+                </div>
+                <ChevronRight size={18} className="quick-menu-arrow" />
+              </a>
+
             </div>
           </div>
 
@@ -676,38 +684,56 @@ const Dashboard = () => {
                 </div>
                 <span className="chart-card-title">Distribusi Gender</span>
               </div>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Laki-laki', value: summaryData.laki },
-                      { name: 'Perempuan', value: summaryData.perempuan },
-                    ]}
-                    cx="50%"
-                    cy="44%"
-                    innerRadius={65}
-                    outerRadius={95}
-                    paddingAngle={2}
-                    dataKey="value"
-                    startAngle={90}
-                    endAngle={-270}
-                  >
-                    <Cell fill="#0d9488" />
-                    <Cell fill="#34d399" />
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [value.toLocaleString(), 'Jumlah ASN']}
-                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-                  />
-                  <Legend
-                    iconType="circle"
-                    iconSize={10}
-                    verticalAlign="bottom"
-                    align="center"
-                    wrapperStyle={{ fontSize: '0.82rem', color: '#475569', paddingTop: '12px' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+                <div style={{ textAlign: 'center', flex: 1, paddingLeft: '0.25rem' }}>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0d9488' }}>{summaryData.laki.toLocaleString()}</div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px' }}>LAKI-LAKI</div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, marginTop: '0.25rem', color: '#334155' }}>
+                    {summaryData.total > 0 ? ((summaryData.laki / summaryData.total) * 100).toFixed(1) : 0}%
+                  </div>
+                </div>
+
+                <div style={{ flex: 2 }}>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Laki-laki', value: summaryData.laki },
+                          { name: 'Perempuan', value: summaryData.perempuan },
+                        ]}
+                        cx="50%" cy="45%"
+                        innerRadius={60} outerRadius={85}
+                        paddingAngle={2}
+                        dataKey="value"
+                        startAngle={90} endAngle={-270}
+                        stroke="none"
+                      >
+                        <Cell fill="#0d9488" />
+                        <Cell fill="#34d399" />
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => [value.toLocaleString(), 'Jumlah ASN']}
+                        contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                      />
+                      <Legend
+                        iconType="circle"
+                        iconSize={10}
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{ fontSize: '0.82rem', color: '#475569', paddingTop: '12px' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div style={{ textAlign: 'center', flex: 1, paddingRight: '0.25rem' }}>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#34d399' }}>{summaryData.perempuan.toLocaleString()}</div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px' }}>PEREMPUAN</div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, marginTop: '0.25rem', color: '#334155' }}>
+                    {summaryData.total > 0 ? ((summaryData.perempuan / summaryData.total) * 100).toFixed(1) : 0}%
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Vertical Bar: Sebaran Jenjang / Kelompok */}
@@ -813,103 +839,6 @@ const Dashboard = () => {
               {jenisJFTData.reduce((acc, curr) => acc + curr.laki + curr.perempuan, 0).toLocaleString()}
             </span>
           </div>
-
-          {/* ── QUICK ACCESS MENU ── */}
-          <div className="quick-menu-section">
-            <div className="section-title" style={{ marginTop: 0 }}>Akses Cepat</div>
-            <div className="quick-menu-grid">
-
-              <a href="#" className="quick-menu-card" style={{ '--card-color': '#10b981', '--card-bg': '#ecfdf5' }}>
-                <div className="quick-menu-icon-wrap">
-                  <Users size={28} />
-                </div>
-                <div className="quick-menu-text">
-                  <span className="quick-menu-label">Data Pegawai</span>
-                  <span className="quick-menu-desc">Kelola seluruh data ASN</span>
-                </div>
-                <ChevronRight size={18} className="quick-menu-arrow" />
-              </a>
-
-              <a href="#" className="quick-menu-card" style={{ '--card-color': '#3b82f6', '--card-bg': '#eff6ff' }}>
-                <div className="quick-menu-icon-wrap">
-                  <Briefcase size={28} />
-                </div>
-                <div className="quick-menu-text">
-                  <span className="quick-menu-label">Data Jabatan</span>
-                  <span className="quick-menu-desc">Struktural & fungsional</span>
-                </div>
-                <ChevronRight size={18} className="quick-menu-arrow" />
-              </a>
-
-              <a href="#" className="quick-menu-card" style={{ '--card-color': '#8b5cf6', '--card-bg': '#f5f3ff' }}>
-                <div className="quick-menu-icon-wrap">
-                  <GraduationCap size={28} />
-                </div>
-                <div className="quick-menu-text">
-                  <span className="quick-menu-label">Pendidikan</span>
-                  <span className="quick-menu-desc">Riwayat pendidikan ASN</span>
-                </div>
-                <ChevronRight size={18} className="quick-menu-arrow" />
-              </a>
-
-              <a href="#" className="quick-menu-card" style={{ '--card-color': '#f59e0b', '--card-bg': '#fffbeb' }}>
-                <div className="quick-menu-icon-wrap">
-                  <Award size={28} />
-                </div>
-                <div className="quick-menu-text">
-                  <span className="quick-menu-label">Golongan</span>
-                  <span className="quick-menu-desc">Pangkat & golongan</span>
-                </div>
-                <ChevronRight size={18} className="quick-menu-arrow" />
-              </a>
-
-              <a href="#" className="quick-menu-card" style={{ '--card-color': '#ec4899', '--card-bg': '#fdf2f8' }}>
-                <div className="quick-menu-icon-wrap">
-                  <UserCheck size={28} />
-                </div>
-                <div className="quick-menu-text">
-                  <span className="quick-menu-label">Kehadiran</span>
-                  <span className="quick-menu-desc">Absensi & kinerja</span>
-                </div>
-                <ChevronRight size={18} className="quick-menu-arrow" />
-              </a>
-
-              <a href="#" className="quick-menu-card" style={{ '--card-color': '#0d9488', '--card-bg': '#f0fdfa' }}>
-                <div className="quick-menu-icon-wrap">
-                  <Building2 size={28} />
-                </div>
-                <div className="quick-menu-text">
-                  <span className="quick-menu-label">Satuan Kerja</span>
-                  <span className="quick-menu-desc">Unit & organisasi</span>
-                </div>
-                <ChevronRight size={18} className="quick-menu-arrow" />
-              </a>
-
-              <a href="#" className="quick-menu-card" style={{ '--card-color': '#ef4444', '--card-bg': '#fef2f2' }}>
-                <div className="quick-menu-icon-wrap">
-                  <ShieldCheck size={28} />
-                </div>
-                <div className="quick-menu-text">
-                  <span className="quick-menu-label">Kompetensi</span>
-                  <span className="quick-menu-desc">Sertifikasi & skill</span>
-                </div>
-                <ChevronRight size={18} className="quick-menu-arrow" />
-              </a>
-
-              <a href="#" className="quick-menu-card" style={{ '--card-color': '#6366f1', '--card-bg': '#eef2ff' }}>
-                <div className="quick-menu-icon-wrap">
-                  <ClipboardList size={28} />
-                </div>
-                <div className="quick-menu-text">
-                  <span className="quick-menu-label">Laporan</span>
-                  <span className="quick-menu-desc">Cetak & ekspor data</span>
-                </div>
-                <ChevronRight size={18} className="quick-menu-arrow" />
-              </a>
-
-            </div>
-          </div>
-
           {/* ── CHARTS ── */}
           <div className="chart-section">
             <div className="grid-3">

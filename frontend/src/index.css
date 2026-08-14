@@ -1060,7 +1060,7 @@ body {
 
 /* Section Title */
 .section-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-main);
   margin-bottom: 1.25rem;
@@ -1094,7 +1094,7 @@ body {
 }
 
 .data-card-title {
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-main);
   margin-bottom: 1rem;
@@ -1110,14 +1110,14 @@ body {
 }
 
 .gender-col .gender-label {
-  font-size: 0.8rem;
+  font-size: 1.1rem;
   color: #475569;
   font-weight: 600;
   margin-bottom: 0.2rem;
 }
 
 .gender-col .gender-value {
-  font-size: 1.6rem;
+  font-size: 2.2rem;
   font-weight: 800;
 }
 
@@ -1139,13 +1139,13 @@ body {
 }
 
 .total-label {
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #475569;
 }
 
 .total-value {
-  font-size: 1.4rem;
+  font-size: 2rem;
   font-weight: 800;
   color: var(--primary);
 }
@@ -1184,7 +1184,7 @@ body {
 /* Two-column chart layout */
 .grid-2-charts {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1.05fr 2fr;
   gap: 1.25rem;
   margin-bottom: 2rem;
   align-items: start;
@@ -1520,4 +1520,59 @@ body {
   .data-card-gender-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* Table Card Styles */
+.table-card {
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2rem;
+}
+
+.pegawai-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 900px;
+}
+
+.pegawai-table th {
+  padding: 1rem;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  background-color: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.pegawai-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 500;
+  color: #334155;
+}
+
+.pegawai-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.pegawai-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Hide scrollbar for inline scrolling containers */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }

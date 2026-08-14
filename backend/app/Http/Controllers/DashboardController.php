@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -10,43 +11,35 @@ class DashboardController extends Controller
     {
         $satker = $request->query('satker', 'Semua Satuan Kerja');
         
+        $satuanKerja = DB::table('satuan_kerja')
+            ->selectRaw('SUM(pns_l) as pns_l, SUM(pns_p) as pns_p, SUM(pppk_l) as pppk_l, SUM(pppk_p) as pppk_p, SUM(cpns_p) as cpns_p')
+            ->first();
+            
         $DEFAULT_STATUS_PEGAWAI = [
-            ['title' => 'CPNS', 'laki' => 45, 'perempuan' => 30],
-            ['title' => 'PNS', 'laki' => 380, 'perempuan' => 340],
-            ['title' => 'PPPK', 'laki' => 75, 'perempuan' => 130],
+            ['title' => 'CPNS', 'laki' => 0, 'perempuan' => (int) $satuanKerja->cpns_p],
+            ['title' => 'PNS', 'laki' => (int) $satuanKerja->pns_l, 'perempuan' => (int) $satuanKerja->pns_p],
+            ['title' => 'PPPK', 'laki' => (int) $satuanKerja->pppk_l, 'perempuan' => (int) $satuanKerja->pppk_p],
         ];
         
-        $DEFAULT_JENIS_JABATAN = [
-            ['title' => 'Struktural', 'laki' => 120, 'perempuan' => 80],
-            ['title' => 'Fungsional', 'laki' => 210, 'perempuan' => 260],
-            ['title' => 'Pelaksana', 'laki' => 170, 'perempuan' => 160],
-        ];
+        $DEFAULT_JENIS_JABATAN = DB::table('jenis_jabatan')->get()->map(function($row) {
+            return ['title' => $row->jenis_jabatan, 'laki' => $row->laki_laki, 'perempuan' => $row->perempuan];
+        })->toArray();
         
-        $DEFAULT_JENIS_JFT = [
-            ['title' => 'Guru', 'laki' => 90, 'perempuan' => 150],
-            ['title' => 'Tenaga Kesehatan', 'laki' => 40, 'perempuan' => 60],
-            ['title' => 'Teknis', 'laki' => 80, 'perempuan' => 50],
-        ];
+        $DEFAULT_JENIS_JFT = DB::table('jft')->get()->map(function($row) {
+            return ['title' => $row->jenis_jft, 'laki' => $row->laki_laki, 'perempuan' => $row->perempuan];
+        })->toArray();
         
-        $DEFAULT_GOLONGAN_PNS = [
-            ['name' => 'IV/e', 'value' => 5], ['name' => 'IV/d', 'value' => 12], ['name' => 'IV/c', 'value' => 28],
-            ['name' => 'IV/b', 'value' => 55], ['name' => 'IV/a', 'value' => 80], ['name' => 'III/d', 'value' => 100],
-            ['name' => 'III/c', 'value' => 90], ['name' => 'III/b', 'value' => 75], ['name' => 'III/a', 'value' => 60],
-            ['name' => 'II/d', 'value' => 45],
-        ];
+        $DEFAULT_GOLONGAN_PNS = DB::table('golongan_pns')->get()->map(function($row) {
+            return ['name' => $row->golongan, 'value' => $row->total];
+        })->toArray();
         
-        $DEFAULT_GOLONGAN_PPPK = [
-            ['name' => 'Ahli Utama', 'value' => 8], ['name' => 'Ahli Madya', 'value' => 20],
-            ['name' => 'Ahli Muda', 'value' => 45], ['name' => 'Ahli Pertama', 'value' => 60],
-            ['name' => 'Penyelia', 'value' => 35], ['name' => 'Mahir', 'value' => 50],
-            ['name' => 'Terampil', 'value' => 40], ['name' => 'Pemula', 'value' => 25],
-        ];
+        $DEFAULT_GOLONGAN_PPPK = DB::table('golongan_pppk')->get()->map(function($row) {
+            return ['name' => $row->golongan, 'value' => $row->total];
+        })->toArray();
         
-        $DEFAULT_ESELON_DATA = [
-            ['name' => 'Eselon I', 'value' => 2], ['name' => 'Eselon II', 'value' => 10],
-            ['name' => 'Eselon III', 'value' => 35], ['name' => 'Eselon IV', 'value' => 80],
-            ['name' => 'Non Eselon', 'value' => 390],
-        ];
+        $DEFAULT_ESELON_DATA = DB::table('eselon')->get()->map(function($row) {
+            return ['name' => $row->eselon, 'value' => $row->total];
+        })->toArray();
 
         // If 'Semua Satuan Kerja', return null or the default multiplier
         $multiplier = 1.0;
