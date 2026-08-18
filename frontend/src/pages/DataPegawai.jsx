@@ -58,9 +58,15 @@ export default function DataPegawai() {
   const user = JSON.parse(localStorage.getItem('user')) || { name: 'Administrator' };
 
   // Data States
-  const [dataList, setDataList] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [dataList, setDataList] = useState(() => {
+    const cached = localStorage.getItem('dataPegawaiCache');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [filteredData, setFilteredData] = useState(() => {
+    const cached = localStorage.getItem('dataPegawaiCache');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [loading, setLoading] = useState(false);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -80,6 +86,8 @@ export default function DataPegawai() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -87,16 +95,24 @@ export default function DataPegawai() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setErrorMsg('');
       setIsRefreshing(true);
       const res = await api.get('/satuan-kerja');
+      
+      if (!res.data || !Array.isArray(res.data)) {
+        throw new Error('Format data tidak valid');
+      }
+
       // Filter out KECAMATAN from the main dataset
       const filteredResult = res.data.filter(d =>
         d.satuan_kerja && !d.satuan_kerja.toUpperCase().startsWith('KECAMATAN')
       );
       setDataList(filteredResult);
       setFilteredData(filteredResult);
+      localStorage.setItem('dataPegawaiCache', JSON.stringify(filteredResult));
     } catch (error) {
       console.error('Error fetching data:', error);
+      setErrorMsg('Gagal memuat data dari server. Silakan periksa koneksi atau muat ulang halaman.');
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -123,9 +139,9 @@ export default function DataPegawai() {
   }, [search, filterSatker, dataList]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
-    navigate('/login');
+    navigate('/');
   };
 
   const getInitials = (name) => (name ? name.charAt(0).toUpperCase() : 'U');
@@ -133,16 +149,23 @@ export default function DataPegawai() {
   // Stats Calculations
   const sumField = (field) => filteredData.reduce((acc, curr) => acc + (parseInt(curr[field]) || 0), 0);
 
-  const totalASN = sumField('total');
-  const totalPNS = sumField('pns_l') + sumField('pns_p');
-  const totalCPNS = sumField('cpns_p');
-  const totalPPPK = sumField('pppk_l') + sumField('pppk_p');
-  const totalLaki = sumField('pns_l') + sumField('pppk_l');
-  const totalPerempuan = sumField('pns_p') + sumField('cpns_p') + sumField('pppk_p');
+  const totalASNVal = sumField('total');
+  const totalPNSVal = sumField('pns_l') + sumField('pns_p');
+  const totalCPNSVal = sumField('cpns_p');
+  const totalPPPKVal = sumField('pppk_l') + sumField('pppk_p');
+  const totalLakiVal = sumField('pns_l') + sumField('pppk_l');
+  const totalPerempuanVal = sumField('pns_p') + sumField('cpns_p') + sumField('pppk_p');
+
+  const totalASN = totalASNVal.toLocaleString();
+  const totalPNS = totalPNSVal.toLocaleString();
+  const totalCPNS = totalCPNSVal.toLocaleString();
+  const totalPPPK = totalPPPKVal.toLocaleString();
+  const totalLaki = totalLakiVal.toLocaleString();
+  const totalPerempuan = totalPerempuanVal.toLocaleString();
 
   const genderData = [
-    { name: 'Laki-laki', value: totalLaki },
-    { name: 'Perempuan', value: totalPerempuan },
+    { name: 'Laki-laki', value: totalLakiVal },
+    { name: 'Perempuan', value: totalPerempuanVal },
   ];
   const GENDER_COLORS = ['#3b82f6', '#10b981'];
 
@@ -265,6 +288,16 @@ export default function DataPegawai() {
 
         {/* Content Area */}
         <div className="content-area">
+          {errorMsg && (
+            <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid #f87171', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Activity size={18} />
+                <span style={{ fontWeight: 500, fontSize: '0.95rem' }}>{errorMsg}</span>
+              </div>
+              <button onClick={fetchData} style={{ background: '#b91c1c', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Coba Lagi</button>
+            </div>
+          )}
+
           {/* Breadcrumb */}
           <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
             <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Dashboard</span>
@@ -372,51 +405,56 @@ export default function DataPegawai() {
             {/* ── Charts Area ── */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 2fr', gap: '1.5rem' }}>
               {/* Gender Donut Chart */}
-              <div className="chart-card">
-                <div className="chart-card-header">
-                  <div className="chart-icon-box">
-                    <Users size={16} />
+              {/* Gender Donut Chart */}
+              <div className="chart-card chart-card-gender">
+                <div className="chart-card-header" style={{ justifyContent: 'flex-start' }}>
+                  <div className="chart-card-icon-wrap" style={{ background: '#d1fae5' }}>
+                    <Users size={16} style={{ color: '#059669' }} />
                   </div>
                   <span className="chart-card-title">Distribusi Gender</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0' }}>
-                  <div style={{ textAlign: 'center', flex: 1, paddingLeft: '0.25rem' }}>
-                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#3b82f6' }}>{totalLaki.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px' }}>LAKI-LAKI</div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, marginTop: '0.25rem', color: '#334155' }}>
-                      {totalASN > 0 ? ((totalLaki / totalASN) * 100).toFixed(1) : 0}%
+                <div style={{ padding: '0.5rem 0' }}>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Laki-laki', value: totalLakiVal },
+                          { name: 'Perempuan', value: totalPerempuanVal },
+                        ]}
+                        cx="50%" cy="50%"
+                        innerRadius={60} outerRadius={85}
+                        paddingAngle={2}
+                        dataKey="value"
+                        startAngle={90} endAngle={-270}
+                        stroke="none"
+                      >
+                        <Cell fill="#0d9488" />
+                        <Cell fill="#34d399" />
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => [value.toLocaleString(), 'Jumlah ASN']}
+                        contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', marginTop: '0.5rem', padding: '0 1rem' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0d9488' }}>{totalLakiVal.toLocaleString()}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
+                        {totalASNVal > 0 ? ((totalLakiVal / totalASNVal) * 100).toFixed(1) : 0}%
+                      </div>
                     </div>
-                  </div>
+                    
+                    <div style={{ width: '1px', height: '35px', background: '#e2e8f0' }}></div>
 
-                  <div style={{ flex: 2 }}>
-                    <ResponsiveContainer width="100%" height={260}>
-                      <PieChart>
-                        <Pie
-                          data={genderData}
-                          cx="50%" cy="45%"
-                          innerRadius={60} outerRadius={85}
-                          paddingAngle={3}
-                          dataKey="value"
-                          stroke="none"
-                        >
-                          {genderData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={GENDER_COLORS[index % GENDER_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
-                          itemStyle={{ fontWeight: 600 }}
-                        />
-                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 500 }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div style={{ textAlign: 'center', flex: 1, paddingRight: '0.25rem' }}>
-                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#10b981' }}>{totalPerempuan.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px' }}>PEREMPUAN</div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, marginTop: '0.25rem', color: '#334155' }}>
-                      {totalASN > 0 ? ((totalPerempuan / totalASN) * 100).toFixed(1) : 0}%
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#34d399' }}>{totalPerempuanVal.toLocaleString()}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
+                        {totalASNVal > 0 ? ((totalPerempuanVal / totalASNVal) * 100).toFixed(1) : 0}%
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -505,9 +543,7 @@ export default function DataPegawai() {
               </div>
 
               <div style={{ flex: 1, overflowX: 'auto' }}>
-                {loading ? (
-                  <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>Memuat data dari database...</div>
-                ) : currentTableData.length > 0 ? (
+                {currentTableData.length > 0 ? (
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid #f1f5f9' }}>

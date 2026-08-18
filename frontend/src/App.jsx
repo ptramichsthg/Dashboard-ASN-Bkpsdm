@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import DataPegawai from './pages/DataPegawai';
+import Layanan from './pages/Layanan';
 import './index.css';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/sebaran-pegawai" element={<DataPegawai />} />
+        <Route path="/layanan" element={<Layanan />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
