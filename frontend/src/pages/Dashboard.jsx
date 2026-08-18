@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import bgLogin from '../assets/bg-login.png';
@@ -78,30 +78,30 @@ function DataCard({ title, laki, perempuan }) {
   );
 }
 
-function HorizontalChart({ data, color = '#266210', customColors = null }) {
+function HorizontalChart({ data, color = '#266210', customColors = null, yAxisWidth = 85 }) {
   return (
-    <ResponsiveContainer width="100%" height={Math.max(data.length * 38 + 20, 60)}>
+    <ResponsiveContainer width="100%" height={Math.max(data.length * 40 + 20, 60)}>
       <BarChart
         data={data}
         layout="vertical"
-        margin={{ top: 0, right: 30, left: 0, bottom: 0 }}
+        margin={{ top: 0, right: 45, left: 0, bottom: 0 }}
       >
-        <XAxis type="number" tick={{ fontSize: 11, fill: '#475569' }} tickLine={false} axisLine={false} />
+        <XAxis type="number" tick={{ fontSize: 13, fill: '#475569' }} tickLine={false} axisLine={false} />
         <YAxis
           type="category"
           dataKey="name"
-          width={130}
-          tick={{ fontSize: 10, fill: '#475569' }}
+          width={yAxisWidth}
+          tick={{ fontSize: 14, fill: '#475569', fontWeight: 500 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => v.length > 18 ? v.slice(0, 17) + '…' : v}
         />
         <Tooltip
-          contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+          contentStyle={{ fontSize: 14, borderRadius: 8, border: '1px solid #e5e7eb' }}
           cursor={{ fill: 'rgba(0,0,0,0.04)' }}
         />
-        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16}>
-          <LabelList dataKey="value" position="right" fill="#475569" fontSize={10} />
+        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+          <LabelList dataKey="value" position="right" fill="#334155" fontSize={14} fontWeight={600} />
           {data.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
@@ -337,32 +337,40 @@ const Dashboard = () => {
   const getInitials = (name) => (name ? name.charAt(0).toUpperCase() : 'U');
 
   const totalOpdPages = Math.max(1, Math.ceil(sebaranOPDData.length / ITEMS_PER_CHART_PAGE));
-  const paginatedOpdData = sebaranOPDData.slice(opdPage * ITEMS_PER_CHART_PAGE, (opdPage + 1) * ITEMS_PER_CHART_PAGE).map(item => ({
-    ...item,
-    name: formatOPDName(item.name)
-  }));
+  const paginatedOpdData = useMemo(() => {
+    return sebaranOPDData.slice(opdPage * ITEMS_PER_CHART_PAGE, (opdPage + 1) * ITEMS_PER_CHART_PAGE).map(item => ({
+      ...item,
+      name: formatOPDName(item.name)
+    }));
+  }, [sebaranOPDData, opdPage]);
 
-  const filteredGolonganPNSData = golonganPNSData.filter(item => {
-    if (golonganPNSFilter === 'Semua') return true;
-    const golLevel = golonganPNSFilter.replace('Gol ', '');
-    const itemLevel = item.name.split('/')[0];
-    return itemLevel === golLevel;
-  });
+  const filteredGolonganPNSData = useMemo(() => {
+    return golonganPNSData.filter(item => {
+      if (golonganPNSFilter === 'Semua') return true;
+      const golLevel = golonganPNSFilter.replace('Gol ', '');
+      const itemLevel = item.name.split('/')[0];
+      return itemLevel === golLevel;
+    });
+  }, [golonganPNSData, golonganPNSFilter]);
 
-  const filteredGolonganPPPKData = golonganPPPKData.filter(item => {
-    if (golonganPPPKFilter !== 'Semua' && item.name !== golonganPPPKFilter) return false;
-    return true;
-  });
+  const filteredGolonganPPPKData = useMemo(() => {
+    return golonganPPPKData.filter(item => {
+      if (golonganPPPKFilter !== 'Semua' && item.name !== golonganPPPKFilter) return false;
+      return true;
+    });
+  }, [golonganPPPKData, golonganPPPKFilter]);
 
-  const filteredEselonData = eselonData.filter(item => {
-    if (eselonFilter === 'Semua') return true;
-    if (eselonFilter === 'Struktural') return item.name !== 'Non Eselon';
-    if (eselonFilter === 'Non Eselon') return item.name === 'Non Eselon';
+  const filteredEselonData = useMemo(() => {
+    return eselonData.filter(item => {
+      if (eselonFilter === 'Semua') return true;
+      if (eselonFilter === 'Struktural') return item.name !== 'Non Eselon';
+      if (eselonFilter === 'Non Eselon') return item.name === 'Non Eselon';
 
-    // For 'Eselon I', 'Eselon II', etc.
-    const eselonLevel = eselonFilter.replace('Eselon ', ''); // "I", "II", "III", "IV"
-    return item.name.startsWith(eselonLevel + '.');
-  });
+      // For 'Eselon I', 'Eselon II', etc.
+      const eselonLevel = eselonFilter.replace('Eselon ', ''); // "I", "II", "III", "IV"
+      return item.name.startsWith(eselonLevel + '.');
+    });
+  }, [eselonData, eselonFilter]);
 
   return (
     <div className="dashboard-layout">
@@ -568,115 +576,115 @@ const Dashboard = () => {
           </div>
 
           {/* Row 1: Distribusi Gender (Donat) + Sebaran OPD (Bar) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 2fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-              {/* Gender Donut Chart */}
-              <div className="chart-card chart-card-gender">
-                <div className="chart-card-header" style={{ justifyContent: 'flex-start' }}>
-                  <div className="chart-card-icon-wrap" style={{ background: '#d1fae5' }}>
-                    <Users size={16} style={{ color: '#059669' }} />
-                  </div>
-                  <span className="chart-card-title">Distribusi Gender</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 2fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            {/* Gender Donut Chart */}
+            <div className="chart-card chart-card-gender">
+              <div className="chart-card-header" style={{ justifyContent: 'flex-start' }}>
+                <div className="chart-card-icon-wrap" style={{ background: '#d1fae5' }}>
+                  <Users size={16} style={{ color: '#059669' }} />
                 </div>
-                <div style={{ padding: '0.5rem 0' }}>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <PieChart>
-                      <Pie
-                        data={distribusiGenderData}
-                        cx="50%" cy="50%"
-                        innerRadius={60} outerRadius={85}
-                        paddingAngle={2}
-                        dataKey="value"
-                        startAngle={90} endAngle={-270}
-                        stroke="none"
-                      >
-                        <Cell fill="#0d9488" />
-                        <Cell fill="#34d399" />
-                      </Pie>
-                      <Tooltip
-                        formatter={(value) => [value.toLocaleString(), 'Jumlah ASN']}
-                        contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', marginTop: '0.5rem', padding: '0 1rem' }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0d9488' }}>{summaryData.laki.toLocaleString()}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
-                        {summaryData.total > 0 ? ((summaryData.laki / summaryData.total) * 100).toFixed(1) : 0}%
-                      </div>
-                    </div>
-
-                    <div style={{ width: '1px', height: '35px', background: '#e2e8f0' }}></div>
-
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#34d399' }}>{summaryData.perempuan.toLocaleString()}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
-                        {summaryData.total > 0 ? ((summaryData.perempuan / summaryData.total) * 100).toFixed(1) : 0}%
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <span className="chart-card-title">Distribusi Gender</span>
               </div>
+              <div style={{ padding: '0.5rem 0' }}>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={distribusiGenderData}
+                      cx="50%" cy="50%"
+                      innerRadius={60} outerRadius={85}
+                      paddingAngle={2}
+                      dataKey="value"
+                      startAngle={90} endAngle={-270}
+                      stroke="none"
+                    >
+                      <Cell fill="#0d9488" />
+                      <Cell fill="#34d399" />
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => [value.toLocaleString(), 'Jumlah ASN']}
+                      contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
 
-              {/* OPD Bar Chart */}
-              <div className="chart-card">
-                <div className="chart-card-header" style={{ justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div className="chart-icon-box" style={{ background: '#ecfdf5', color: '#10b981' }}>
-                      <BarChart2 size={16} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', marginTop: '0.5rem', padding: '0 1rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0d9488' }}>{summaryData.laki.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
+                      {summaryData.total > 0 ? ((summaryData.laki / summaryData.total) * 100).toFixed(1) : 0}%
                     </div>
-                    <span className="chart-card-title">Dashboard Data ASN Kabupaten Bandung</span>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-                    <button
-                      onClick={() => setOpdPage(p => Math.max(0, p - 1))}
-                      disabled={opdPage === 0}
-                      style={{
-                        padding: '0.25rem', borderRadius: '6px', border: '1px solid #e2e8f0',
-                        background: opdPage === 0 ? '#f8fafc' : 'white',
-                        color: opdPage === 0 ? '#cbd5e1' : '#475569',
-                        cursor: opdPage === 0 ? 'not-allowed' : 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}
-                      title="Previous"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <button
-                      onClick={() => setOpdPage(p => Math.min(totalOpdPages - 1, p + 1))}
-                      disabled={opdPage === totalOpdPages - 1 || totalOpdPages === 0}
-                      style={{
-                        padding: '0.25rem', borderRadius: '6px', border: '1px solid #e2e8f0',
-                        background: opdPage === totalOpdPages - 1 || totalOpdPages === 0 ? '#f8fafc' : 'white',
-                        color: opdPage === totalOpdPages - 1 || totalOpdPages === 0 ? '#cbd5e1' : '#475569',
-                        cursor: opdPage === totalOpdPages - 1 || totalOpdPages === 0 ? 'not-allowed' : 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}
-                      title="Next"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                    <Menu size={20} color="#94a3b8" style={{ cursor: 'pointer', marginLeft: '8px' }} />
+
+                  <div style={{ width: '1px', height: '35px', background: '#e2e8f0' }}></div>
+
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#34d399' }}>{summaryData.perempuan.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
+                      {summaryData.total > 0 ? ((summaryData.perempuan / summaryData.total) * 100).toFixed(1) : 0}%
+                    </div>
                   </div>
                 </div>
-                <ResponsiveContainer width="100%" height={360}>
-                  <BarChart data={paginatedOpdData} margin={{ top: 20, right: 10, left: -10, bottom: 90 }}>
-                    <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#475569', fontWeight: 500 }} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
-                    <YAxis tick={{ fontSize: 11, fill: '#475569' }} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
-                    <Bar dataKey="total" fill="#2ca27b" radius={[6, 6, 0, 0]} barSize={28} animationDuration={500}>
-                      <LabelList dataKey="total" content={<CustomBarLabel />} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
               </div>
             </div>
 
-            
+            {/* OPD Bar Chart */}
+            <div className="chart-card">
+              <div className="chart-card-header" style={{ justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div className="chart-icon-box" style={{ background: '#ecfdf5', color: '#10b981' }}>
+                    <BarChart2 size={16} />
+                  </div>
+                  <span className="chart-card-title">Grafik OPD</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                  <button
+                    onClick={() => setOpdPage(p => Math.max(0, p - 1))}
+                    disabled={opdPage === 0}
+                    style={{
+                      padding: '0.25rem', borderRadius: '6px', border: '1px solid #e2e8f0',
+                      background: opdPage === 0 ? '#f8fafc' : 'white',
+                      color: opdPage === 0 ? '#cbd5e1' : '#475569',
+                      cursor: opdPage === 0 ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                    title="Previous"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    onClick={() => setOpdPage(p => Math.min(totalOpdPages - 1, p + 1))}
+                    disabled={opdPage === totalOpdPages - 1 || totalOpdPages === 0}
+                    style={{
+                      padding: '0.25rem', borderRadius: '6px', border: '1px solid #e2e8f0',
+                      background: opdPage === totalOpdPages - 1 || totalOpdPages === 0 ? '#f8fafc' : 'white',
+                      color: opdPage === totalOpdPages - 1 || totalOpdPages === 0 ? '#cbd5e1' : '#475569',
+                      cursor: opdPage === totalOpdPages - 1 || totalOpdPages === 0 ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                    title="Next"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                  <Menu size={20} color="#94a3b8" style={{ cursor: 'pointer', marginLeft: '8px' }} />
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={360}>
+                <BarChart data={paginatedOpdData} margin={{ top: 20, right: 10, left: -10, bottom: 90 }}>
+                  <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#475569', fontWeight: 500 }} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
+                  <YAxis tick={{ fontSize: 11, fill: '#475569' }} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                  <Bar dataKey="total" fill="#2ca27b" radius={[6, 6, 0, 0]} barSize={28} animationDuration={500}>
+                    <LabelList dataKey="total" content={<CustomBarLabel />} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+
 
           {/* ── STATUS PEGAWAI ── */}
           <div className="section-title">Status Pegawai</div>
@@ -705,69 +713,74 @@ const Dashboard = () => {
           {/* ── CHARTS ── */}
           {/* ── CHARTS ── */}
           <div className="chart-section">
-            {/* Row 2: Golongan PNS, PPPK, Eselon */}
-            <div className="grid-3">
-              {/* Golongan PNS */}
-              <div className="chart-card">
-                <div className="chart-card-header">
-                  <span className="chart-card-title">Golongan PNS</span>
-                  <select className="filter-select" value={golonganPNSFilter} onChange={e => setGolonganPNSFilter(e.target.value)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
-                    <option>Semua</option>
-                    <option>Gol IV</option>
-                    <option>Gol III</option>
-                    <option>Gol II</option>
-                    <option>Gol I</option>
-                  </select>
-                </div>
-                <HorizontalChart
-                  data={filteredGolonganPNSData}
-                  customColors={['#064e66', '#136384', '#8dbfc2', '#0eb981', '#d4a329']}
-                />
+            {/* Row 2: Distribusi Golongan & Eselonering */}
+            <div className="chart-card">
+              <div className="chart-card-header">
+                <span className="chart-card-title">Distribusi Golongan & Eselonering</span>
               </div>
-
-              {/* Golongan PPPK */}
-              <div className="chart-card">
-                <div className="chart-card-header">
-                  <span className="chart-card-title">Golongan PPPK</span>
-                  <select className="filter-select" value={golonganPPPKFilter} onChange={e => setGolonganPPPKFilter(e.target.value)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
-                    <option>Semua</option>
-                    <option value="I">I</option>
-                    <option value="II">II</option>
-                    <option value="III">III</option>
-                    <option value="IV">IV</option>
-                    <option value="V">V</option>
-                    <option value="VI">VI</option>
-                    <option value="VII">VII</option>
-                    <option value="VIII">VIII</option>
-                    <option value="IX">IX</option>
-                    <option value="X">X</option>
-                    <option value="XI">XI</option>
-                    <option value="XII">XII</option>
-                    <option value="XIII">XIII</option>
-                    <option value="XIV">XIV</option>
-                    <option value="XV">XV</option>
-                    <option value="XVI">XVI</option>
-                    <option value="XVII">XVII</option>
-                  </select>
+              <div className="grid-3" style={{ padding: '0 1rem 1rem 1rem', gap: '2rem' }}>
+                {/* Golongan PNS */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 700, color: '#334155' }}>Golongan PNS</span>
+                    <select className="filter-select" value={golonganPNSFilter} onChange={e => setGolonganPNSFilter(e.target.value)} style={{ padding: '0.35rem 0.6rem', fontSize: '0.85rem' }}>
+                      <option>Semua</option>
+                      <option>Gol IV</option>
+                      <option>Gol III</option>
+                      <option>Gol II</option>
+                      <option>Gol I</option>
+                    </select>
+                  </div>
+                  <HorizontalChart
+                    data={filteredGolonganPNSData}
+                    customColors={['#064e66', '#136384', '#8dbfc2', '#0eb981', '#d4a329']}
+                    yAxisWidth={45}
+                  />
                 </div>
-                <HorizontalChart data={filteredGolonganPPPKData} color="#90B800" />
-              </div>
 
-              {/* Eselon */}
-              <div className="chart-card">
-                <div className="chart-card-header">
-                  <span className="chart-card-title">Eselonering</span>
-                  <select className="filter-select" value={eselonFilter} onChange={e => setEselonFilter(e.target.value)} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
-                    <option>Semua</option>
-                    <option>Struktural</option>
-                    <option>Eselon I</option>
-                    <option>Eselon II</option>
-                    <option>Eselon III</option>
-                    <option>Eselon IV</option>
-                    <option>Non Eselon</option>
-                  </select>
+                {/* Golongan PPPK */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 700, color: '#334155' }}>Golongan PPPK</span>
+                    <select className="filter-select" value={golonganPPPKFilter} onChange={e => setGolonganPPPKFilter(e.target.value)} style={{ padding: '0.35rem 0.6rem', fontSize: '0.85rem' }}>
+                      <option>Semua</option>
+                      <option value="I">I</option>
+                      <option value="II">II</option>
+                      <option value="III">III</option>
+                      <option value="IV">IV</option>
+                      <option value="V">V</option>
+                      <option value="VI">VI</option>
+                      <option value="VII">VII</option>
+                      <option value="VIII">VIII</option>
+                      <option value="IX">IX</option>
+                      <option value="X">X</option>
+                      <option value="XI">XI</option>
+                      <option value="XII">XII</option>
+                      <option value="XIII">XIII</option>
+                      <option value="XIV">XIV</option>
+                      <option value="XV">XV</option>
+                      <option value="XVI">XVI</option>
+                      <option value="XVII">XVII</option>
+                    </select>
+                  </div>
+                  <HorizontalChart data={filteredGolonganPPPKData} color="#90B800" yAxisWidth={45} />
                 </div>
-                <HorizontalChart data={filteredEselonData} color="#063B00" />
+
+                {/* Eselon */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 700, color: '#334155' }}>Eselonering</span>
+                    <select className="filter-select" value={eselonFilter} onChange={e => setEselonFilter(e.target.value)} style={{ padding: '0.35rem 0.6rem', fontSize: '0.85rem' }}>
+                      <option>Semua</option>
+                      <option>Eselon I</option>
+                      <option>Eselon II</option>
+                      <option>Eselon III</option>
+                      <option>Eselon IV</option>
+                      <option>Non Eselon</option>
+                    </select>
+                  </div>
+                  <HorizontalChart data={filteredEselonData} color="#063B00" />
+                </div>
               </div>
             </div>
           </div>

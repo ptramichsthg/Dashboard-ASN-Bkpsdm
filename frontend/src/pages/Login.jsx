@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Activity } from 'lucide-react';
+import { Eye, EyeOff, User, Lock } from 'lucide-react';
 import api from '../api/axios';
 import bgLogin from '../assets/bg-login.png';
+import badasBerdayaLogo from '../assets/badasberdaya.png';
+import bandungLebihBadasLogo from '../assets/bandunglebihbadas.png';
+import loginFooterIcon from '../assets/login-footer.png';
 import '../styles/Login.css';
 
 const Login = () => {
@@ -48,47 +51,55 @@ const Login = () => {
       }}
     >
       <div className="loginCard">
+        {/* Top Logos moved inside card wrapper for perfect centering */}
+        <div className="loginTopLogos">
+          <img src={badasBerdayaLogo} alt="BEDAS Berdaya" className="topLogoImage" />
+          <img src={bandungLebihBadasLogo} alt="Bandung Lebih Bedas" className="topLogoImage" />
+        </div>
+
         <div className="loginHeader">
-          <div className="login-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <Activity size={32} className="brand-icon" />
-              <div className="brand-text" style={{ textAlign: 'left' }}>
-                <h2 style={{ fontSize: '1.25rem' }}>BKPSDM PANEL</h2>
-                <span style={{ fontSize: '0.75rem' }}>SISTEM INFORMASI ASN</span>
-              </div>
-            </div>
-          </div>
-          <p>Silakan masuk menggunakan Username atau NIP Anda</p>
+          <h1>Login</h1>
+          <p>Silahkan login menggunakan akun yang ada</p>
         </div>
 
         {error && <div className="errorMessage">{error}</div>}
 
         <form onSubmit={handleLogin}>
           <div className="formGroup">
-            <label htmlFor="identifier">Username / NIP</label>
-            <input
-              type="text"
-              id="identifier"
-              className="formInput"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="Masukkan Username atau NIP"
-              spellCheck="false"
-              autoComplete="username"
-              required
-            />
+            <label htmlFor="identifier">Username</label>
+            <div className="inputBox">
+              <div className="inputPrefix">
+                <User size={18} color="#475569" />
+                <div className="inputDivider"></div>
+              </div>
+              <input
+                type="text"
+                id="identifier"
+                className="formInput"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="Masukan username anda"
+                spellCheck="false"
+                autoComplete="username"
+                required
+              />
+            </div>
           </div>
 
           <div className="formGroup">
             <label htmlFor="password">Password</label>
-            <div className="inputWrapper">
+            <div className="inputBox">
+              <div className="inputPrefix">
+                <Lock size={18} color="#475569" />
+                <div className="inputDivider"></div>
+              </div>
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 className="formInput"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan Password"
+                placeholder="Masukan password anda"
                 required
               />
               <button
@@ -97,15 +108,23 @@ const Login = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          <button type="submit" className="btnPrimary">
-            Login
-          </button>
+          <div className="submitWrapper">
+            <button type="submit" className="btnPrimary">
+              Masuk
+            </button>
+          </div>
         </form>
+      </div>
+
+      {/* Footer */}
+      <div className="loginFooter">
+        <img src={loginFooterIcon} alt="BKPSDM Footer Logo" className="footerLogo" />
+        <p>&copy; 2026 <strong>BKPSDM Kab Bandung.</strong> All Rights Reserved</p>
       </div>
     </div>
   );
