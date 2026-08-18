@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import bgLogin from '../assets/bg-login.png';
 import bgCard from '../assets/bg-card.png';
+import '../styles/Dashboard.css';
+
 import {
   LogOut,
   LayoutDashboard,
@@ -565,45 +567,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="admin-satker-wrapper">
-            <div className="filter-item" style={{ width: '100%' }}>
-              <label>Satuan Kerja</label>
-              <div className="select-wrapper">
-                <select className="filter-select" style={{ width: '100%', maxWidth: '100%' }} value={satker} onChange={(e) => setSatker(e.target.value)}>
-                  {satuanKerjaOptions.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* ── STATUS PEGAWAI ── */}
-          <div className="section-title">Status Pegawai</div>
-          <div className="grid-3">
-            {statusPegawaiData.map(d => <DataCard key={d.title} {...d} />)}
-          </div>
-
-          {/* ── JENIS JABATAN ── */}
-          <div className="section-title">Jenis Jabatan</div>
-          <div className="grid-3">
-            {jenisJabatanData.map(d => <DataCard key={d.title} {...d} />)}
-          </div>
-
-          {/* ── JENIS JFT ── */}
-          <div className="section-title">Jenis JFT</div>
-          <div className="grid-3">
-            {jenisJFTData.map(d => <DataCard key={d.title} {...d} />)}
-          </div>
-
-          {/* ── TOTAL BAR ── */}
-          <div className="admin-total-bar">
-            <span className="admin-total-bar-label">TOTAL ASN:</span>
-            <span className="admin-total-bar-value">{summaryData.total.toLocaleString()}</span>
-          </div>
-
-          {/* ── CHARTS ── */}
-          {/* ── CHARTS ── */}
-          <div className="chart-section">
-            {/* Row 1: Distribusi Gender (Donat) + Sebaran OPD (Bar) */}
+          {/* Row 1: Distribusi Gender (Donat) + Sebaran OPD (Bar) */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 2fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
               {/* Gender Donut Chart */}
               <div className="chart-card chart-card-gender">
@@ -712,6 +676,35 @@ const Dashboard = () => {
               </div>
             </div>
 
+            
+
+          {/* ── STATUS PEGAWAI ── */}
+          <div className="section-title">Status Pegawai</div>
+          <div className="grid-3">
+            {statusPegawaiData.map(d => <DataCard key={d.title} {...d} />)}
+          </div>
+
+          {/* ── JENIS JABATAN ── */}
+          <div className="section-title">Jenis Jabatan</div>
+          <div className="grid-3">
+            {jenisJabatanData.map(d => <DataCard key={d.title} {...d} />)}
+          </div>
+
+          {/* ── JENIS JFT ── */}
+          <div className="section-title">Jenis JFT</div>
+          <div className="grid-3">
+            {jenisJFTData.map(d => <DataCard key={d.title} {...d} />)}
+          </div>
+
+          {/* ── TOTAL BAR ── */}
+          <div className="admin-total-bar">
+            <span className="admin-total-bar-label">TOTAL ASN:</span>
+            <span className="admin-total-bar-value">{summaryData.total.toLocaleString()}</span>
+          </div>
+
+          {/* ── CHARTS ── */}
+          {/* ── CHARTS ── */}
+          <div className="chart-section">
             {/* Row 2: Golongan PNS, PPPK, Eselon */}
             <div className="grid-3">
               {/* Golongan PNS */}

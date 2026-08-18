@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import bgCard from '../assets/bg-card.png';
 import { useNavigate } from 'react-router-dom';
+import '../styles/Layanan.css';
 import {
   ArrowLeft,
   Home,

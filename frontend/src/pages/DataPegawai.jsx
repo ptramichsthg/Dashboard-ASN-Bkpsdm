@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import '../styles/DataPegawai.css';
 import {
   LogOut, LayoutDashboard, Users, Briefcase, FileText,
   Menu, X, Activity, Bell, Search, RefreshCw,

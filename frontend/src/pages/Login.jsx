@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Activity } from 'lucide-react';
 import api from '../api/axios';
 import bgLogin from '../assets/bg-login.png';
+import '../styles/Login.css';
 
 const Login = () => {
   const [identifier, setIdentifier] = useState('');
@@ -28,7 +29,6 @@ const Login = () => {
       }
     } catch (err) {
       if (err.response && err.response.data && err.response.data.errors) {
-        // Display validation errors
         const firstError = Object.values(err.response.data.errors)[0];
         setError(firstError[0] || 'Terjadi kesalahan saat login.');
       } else {
@@ -39,7 +39,7 @@ const Login = () => {
 
   return (
     <div
-      className="login-container"
+      className="loginContainer"
       style={{
         backgroundImage: `url(${bgLogin})`,
         backgroundSize: 'cover',
@@ -47,8 +47,8 @@ const Login = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      <div className="login-card">
-        <div className="login-header">
+      <div className="loginCard">
+        <div className="loginHeader">
           <div className="login-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <Activity size={32} className="brand-icon" />
@@ -61,15 +61,15 @@ const Login = () => {
           <p>Silakan masuk menggunakan Username atau NIP Anda</p>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="errorMessage">{error}</div>}
 
         <form onSubmit={handleLogin}>
-          <div className="form-group">
+          <div className="formGroup">
             <label htmlFor="identifier">Username / NIP</label>
             <input
               type="text"
               id="identifier"
-              className="form-input"
+              className="formInput"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="Masukkan Username atau NIP"
@@ -79,13 +79,13 @@ const Login = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="formGroup">
             <label htmlFor="password">Password</label>
-            <div className="input-wrapper">
+            <div className="inputWrapper">
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
-                className="form-input"
+                className="formInput"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan Password"
@@ -93,7 +93,7 @@ const Login = () => {
               />
               <button
                 type="button"
-                className="password-toggle"
+                className="passwordToggle"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
               >
@@ -102,7 +102,7 @@ const Login = () => {
             </div>
           </div>
 
-          <button type="submit" className="btn-primary">
+          <button type="submit" className="btnPrimary">
             Login
           </button>
         </form>
