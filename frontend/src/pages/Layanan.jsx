@@ -93,7 +93,7 @@ function StatusBadge({ status }) {
       display: 'inline-flex', alignItems: 'center', gap: '5px',
       padding: '3px 10px', borderRadius: '20px',
       background: c.bg, color: c.color,
-      fontSize: '0.9rem', fontWeight: 600,
+      fontSize: '1.05rem', fontWeight: 600,
     }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
       {c.label}
@@ -139,12 +139,12 @@ function CustomSelect({ value, onChange, options, icon: Icon, placeholder }) {
 }
 
 // ─── Stat Card ─────────────────────────────────────────────────────────────────
-function StatCard({ label, count, icon: Icon, color, bgColor }) {
+function StatCard({ icon: Icon, count, label, color, bgColor }) {
   return (
     <div style={{
-      background: 'white', borderRadius: 16, padding: '20px 24px',
-      boxShadow: 'var(--shadow)', border: '1px solid var(--border)',
-      display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 0,
+      background: 'white', padding: '1.5rem', borderRadius: 16,
+      border: '1px solid #0f172a', display: 'flex', gap: 16, alignItems: 'center',
+      boxShadow: 'var(--shadow-sm)', flex: 1, minWidth: 0,
     }}>
       <div style={{
         width: 48, height: 48, borderRadius: 12,
@@ -156,7 +156,7 @@ function StatCard({ label, count, icon: Icon, color, bgColor }) {
         <div style={{ fontSize: '2.6rem', fontWeight: 800, color, lineHeight: 1.1 }}>
           {count.toLocaleString()}
         </div>
-        <div style={{ fontSize: '1.2rem', color: 'var(--text-muted)', fontWeight: 700, marginTop: 2 }}>
+        <div style={{ fontSize: '1.3rem', color: 'var(--text-muted)', fontWeight: 700, marginTop: 2 }}>
           {label}
         </div>
       </div>
@@ -267,7 +267,7 @@ export default function Layanan() {
   const thStyle = (field) => ({
     padding: '11px 14px',
     textAlign: 'left',
-    fontSize: '0.95rem',
+    fontSize: '1.05rem',
     fontWeight: 600,
     color: 'var(--text-muted)',
     whiteSpace: 'nowrap',
@@ -279,7 +279,7 @@ export default function Layanan() {
 
   const tdStyle = {
     padding: '12px 14px',
-    fontSize: '1rem',
+    fontSize: '1.1rem',
     color: 'var(--text-main)',
     borderBottom: '1px solid #f1f5f9',
     verticalAlign: 'middle',
@@ -401,7 +401,7 @@ export default function Layanan() {
         {/* ─── Row 1: Top 3 Layanan ───────────────────────────────────── */}
         <div style={{
           background: 'white', borderRadius: 16, padding: '20px 24px',
-          boxShadow: 'var(--shadow)', border: '1px solid var(--border)', marginBottom: 20,
+          boxShadow: 'var(--shadow-sm)', border: '1px solid #0f172a', marginBottom: 20,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <div style={{
@@ -451,7 +451,7 @@ export default function Layanan() {
                       {item.name}
                     </div>
                     <div style={{ fontSize: '1.6rem', fontWeight: 800, color: rankColors[item.rank - 1] }}>
-                      {item.total.toLocaleString()} <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-muted)' }}>permohonan</span>
+                      {item.total.toLocaleString()} <span style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--text-muted)' }}>permohonan</span>
                     </div>
                   </div>
                 </div>
@@ -463,8 +463,8 @@ export default function Layanan() {
         {/* ─── Row 2: Filters ─────────────────────────────────────────── */}
         <div style={{
           background: 'white', borderRadius: 16, padding: '16px 20px',
-          boxShadow: 'var(--shadow)', border: '1px solid var(--border)', marginBottom: 20,
-          display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
+          boxShadow: 'var(--shadow-sm)', border: '1px solid #0f172a', marginBottom: 20,
+          display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
         }}>
           <Filter size={15} color="var(--text-muted)" style={{ flexShrink: 0 }} />
           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', marginRight: 4 }}>Filter:</span>
@@ -493,7 +493,7 @@ export default function Layanan() {
         {/* ─── Row 4: Search & Table ──────────────────────────────────── */}
         <div style={{
           background: 'white', borderRadius: 16,
-          boxShadow: 'var(--shadow)', border: '1px solid var(--border)', overflow: 'hidden',
+          boxShadow: 'var(--shadow-sm)', border: '1px solid #0f172a', overflow: 'hidden',
         }}>
           {/* Search bar */}
           <div style={{
@@ -516,7 +516,7 @@ export default function Layanan() {
                 style={{
                   width: '100%', padding: '9px 12px 9px 34px',
                   border: '1.5px solid var(--border)', borderRadius: 10,
-                  fontSize: '1rem', fontFamily: 'var(--font-sans)',
+                  fontSize: '1.05rem', fontFamily: 'var(--font-sans)',
                   color: 'var(--text-main)', outline: 'none', background: 'white',
                 }}
               />
@@ -533,13 +533,13 @@ export default function Layanan() {
                 style={{
                   width: '100%', padding: '9px 12px 9px 34px',
                   border: '1.5px solid var(--border)', borderRadius: 10,
-                  fontSize: '1rem', fontFamily: 'var(--font-sans)',
+                  fontSize: '1.05rem', fontFamily: 'var(--font-sans)',
                   color: 'var(--text-main)', outline: 'none', background: 'white',
                 }}
               />
             </div>
 
-            <div style={{ marginLeft: 'auto', fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+            <div style={{ marginLeft: 'auto', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
               {filteredData.length} data ditemukan
             </div>
           </div>
@@ -585,15 +585,15 @@ export default function Layanan() {
                     <td style={{ ...tdStyle, color: 'var(--text-muted)', fontWeight: 500 }}>
                       {(page - 1) * perPage + idx + 1}
                     </td>
-                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '0.95rem', color: '#475569' }}>
+                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '1.1rem', color: '#475569' }}>
                       {row.nip}
                     </td>
                     <td style={{ ...tdStyle, fontWeight: 600 }}>{row.nama}</td>
-                    <td style={{ ...tdStyle, color: '#475569', fontSize: '0.95rem' }}>{row.nomorSurat}</td>
+                    <td style={{ ...tdStyle, color: '#475569', fontSize: '1.1rem' }}>{row.nomorSurat}</td>
                     <td style={{ ...tdStyle }}>
                       <span style={{
                         background: '#f0fdf4', color: '#065f46', padding: '3px 10px',
-                        borderRadius: 20, fontSize: '0.9rem', fontWeight: 500, whiteSpace: 'nowrap',
+                        borderRadius: 20, fontSize: '1.05rem', fontWeight: 500, whiteSpace: 'nowrap',
                       }}>
                         {row.layanan}
                       </span>

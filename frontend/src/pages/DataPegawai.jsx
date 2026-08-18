@@ -395,7 +395,7 @@ export default function DataPegawai() {
                 { label: 'Laki-laki', val: totalLaki, color: '#3b82f6', bg: '#eff6ff' },
                 { label: 'Perempuan', val: totalPerempuan, color: '#db2777', bg: '#fdf2f8' },
               ].map(({ label, val, color, bg }) => (
-                <div key={label} className="kpi-card" style={{ padding: '1rem 1.25rem', backgroundColor: '#fff' }}>
+                <div key={label} className="kpi-card" style={{ padding: '1rem 1.25rem', backgroundColor: '#fff', border: '1px solid #0f172a', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
                   <div className="kpi-label">{label}</div>
                   <div className="kpi-value" style={{ color, fontSize: '1.6rem' }}>{val}</div>
                 </div>

@@ -1009,7 +1009,7 @@ body {
 
 .filter-select {
   padding: 0.5rem 1rem;
-  border: 1px solid var(--border);
+  border: 1px solid #0f172a;
   border-radius: var(--radius);
   background-color: var(--card-bg);
   color: var(--text-main);
@@ -1018,6 +1018,7 @@ body {
   cursor: pointer;
   outline: none;
   transition: border-color 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .filter-select:focus {
@@ -1043,7 +1044,7 @@ body {
   flex: 1;
   max-width: 340px;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--border);
+  border: 1px solid #0f172a;
   border-radius: var(--radius);
   background-color: var(--card-bg);
   color: var(--text-main);
@@ -1052,6 +1053,7 @@ body {
   cursor: pointer;
   outline: none;
   transition: border-color 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .satker-select:focus {
@@ -1087,9 +1089,9 @@ body {
 .data-card {
   background-color: var(--card-bg);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   padding: 1.5rem;
-  border: 1px solid var(--border);
+  border: 1px solid #0f172a;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: default;
 }
@@ -1097,7 +1099,7 @@ body {
 .data-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-hover);
-  border-color: #cbd5e1;
+  border-color: #0f172a;
 }
 
 .data-card-title {
@@ -1219,8 +1221,8 @@ body {
 .chart-card {
   background-color: var(--card-bg);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid #0f172a;
   padding: 1.5rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1228,7 +1230,7 @@ body {
 .chart-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-hover);
-  border-color: #cbd5e1;
+  border-color: #0f172a;
 }
 
 .chart-card-header {
@@ -1680,7 +1682,7 @@ body {
 
 .admin-kpi-card {
   background: white;
-  border: 1px solid var(--border);
+  border: 1px solid #0f172a;
   border-radius: var(--radius-sm);
   padding: 1.25rem;
   flex: 1;
