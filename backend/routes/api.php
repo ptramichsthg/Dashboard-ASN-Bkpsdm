@@ -12,3 +12,5 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
 Route::get('/satuan-kerja', [\App\Http\Controllers\SatuanKerjaController::class, 'index']);
+Route::get('/pengembangan-kompetensi', [\App\Http\Controllers\PengembanganKompetensiController::class, 'index']);
+Route::get('/layanan', [\App\Http\Controllers\LayananController::class, 'index']);

@@ -86,22 +86,22 @@ function HorizontalChart({ data, color = '#266210', customColors = null, yAxisWi
         layout="vertical"
         margin={{ top: 0, right: 45, left: 0, bottom: 0 }}
       >
-        <XAxis type="number" tick={{ fontSize: 13, fill: '#475569' }} tickLine={false} axisLine={false} />
+        <XAxis type="number" tick={{ fontSize: 15, fill: '#475569' }} tickLine={false} axisLine={false} />
         <YAxis
           type="category"
           dataKey="name"
           width={yAxisWidth}
-          tick={{ fontSize: 14, fill: '#475569', fontWeight: 500 }}
+          tick={<CustomYAxisTick />}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => v.length > 18 ? v.slice(0, 17) + '…' : v}
         />
         <Tooltip
-          contentStyle={{ fontSize: 14, borderRadius: 8, border: '1px solid #e5e7eb' }}
+          contentStyle={{ fontSize: 15, borderRadius: 8, border: '1px solid #e5e7eb' }}
           cursor={{ fill: 'rgba(0,0,0,0.04)' }}
         />
-        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
-          <LabelList dataKey="value" position="right" fill="#334155" fontSize={14} fontWeight={600} />
+        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+          <LabelList dataKey="value" position="right" fill="#334155" fontSize={15} fontWeight={700} />
           {data.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
@@ -188,11 +188,20 @@ const CustomBarLabel = (props) => {
       x={x + width / 2}
       y={isShort ? y - 5 : y + 16}
       fill={isShort ? '#475569' : '#ffffff'}
-      fontSize={11}
+      fontSize={13}
       fontWeight="bold"
       textAnchor="middle"
     >
       {value}
+    </text>
+  );
+};
+
+const CustomYAxisTick = (props) => {
+  const { y, payload } = props;
+  return (
+    <text x={0} y={y + 5} fill="#475569" fontSize={14} fontWeight={700} textAnchor="start">
+      {payload.value}
     </text>
   );
 };
@@ -469,7 +478,7 @@ const Dashboard = () => {
 
           {/* Breadcrumb */}
           <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
-            <span style={{ color: '#0f172a' }}>Dashboard /</span>
+            <span style={{ color: '#0f172a' }}>Dashboard</span>
           </div>
 
           {/* ── HERO BANNER ── */}
@@ -513,7 +522,7 @@ const Dashboard = () => {
                 <div className="admin-menu-icon"><LayoutDashboard size={32} /></div>
                 <span className="admin-menu-label">PERENCANAAN</span>
               </a>
-              <a href="#" className="admin-menu-card">
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/pengembangan-kompetensi'); }} className="admin-menu-card">
                 <div className="admin-menu-icon"><Award size={32} /></div>
                 <span className="admin-menu-label">PENGEMBANGAN<br />KOMPETENSI</span>
               </a>
@@ -602,16 +611,16 @@ const Dashboard = () => {
                     </Pie>
                     <Tooltip
                       formatter={(value) => [value.toLocaleString(), 'Jumlah ASN']}
-                      contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                      contentStyle={{ fontSize: 14, borderRadius: 8, border: '1px solid #e5e7eb', fontWeight: 600 }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', marginTop: '0.5rem', padding: '0 1rem' }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0d9488' }}>{summaryData.laki.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0d9488' }}>{summaryData.laki.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#334155', marginTop: '2px' }}>
                       {summaryData.total > 0 ? ((summaryData.laki / summaryData.total) * 100).toFixed(1) : 0}%
                     </div>
                   </div>
@@ -619,9 +628,9 @@ const Dashboard = () => {
                   <div style={{ width: '1px', height: '35px', background: '#e2e8f0' }}></div>
 
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#34d399' }}>{summaryData.perempuan.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#34d399' }}>{summaryData.perempuan.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#334155', marginTop: '2px' }}>
                       {summaryData.total > 0 ? ((summaryData.perempuan / summaryData.total) * 100).toFixed(1) : 0}%
                     </div>
                   </div>
@@ -671,12 +680,12 @@ const Dashboard = () => {
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={360}>
-                <BarChart data={paginatedOpdData} margin={{ top: 20, right: 10, left: -10, bottom: 90 }}>
+                <BarChart data={paginatedOpdData} margin={{ top: 20, right: 10, left: -10, bottom: 100 }}>
                   <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#475569', fontWeight: 500 }} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
-                  <YAxis tick={{ fontSize: 11, fill: '#475569' }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
-                  <Bar dataKey="total" fill="#2ca27b" radius={[6, 6, 0, 0]} barSize={28} animationDuration={500}>
+                  <XAxis dataKey="name" tick={{ fontSize: 13, fill: '#475569', fontWeight: 600 }} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
+                  <YAxis tick={{ fontSize: 13, fill: '#475569', fontWeight: 500 }} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ fontSize: 14, borderRadius: 8, border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontWeight: 600 }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                  <Bar dataKey="total" fill="#2ca27b" radius={[6, 6, 0, 0]} barSize={34} animationDuration={500}>
                     <LabelList dataKey="total" content={<CustomBarLabel />} />
                   </Bar>
                 </BarChart>
@@ -734,7 +743,7 @@ const Dashboard = () => {
                   <HorizontalChart
                     data={filteredGolonganPNSData}
                     customColors={['#064e66', '#136384', '#8dbfc2', '#0eb981', '#d4a329']}
-                    yAxisWidth={45}
+                    yAxisWidth={50}
                   />
                 </div>
 
@@ -763,7 +772,7 @@ const Dashboard = () => {
                       <option value="XVII">XVII</option>
                     </select>
                   </div>
-                  <HorizontalChart data={filteredGolonganPPPKData} color="#90B800" yAxisWidth={45} />
+                  <HorizontalChart data={filteredGolonganPPPKData} color="#90B800" yAxisWidth={50} />
                 </div>
 
                 {/* Eselon */}

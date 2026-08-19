@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import axios from 'axios';
 import bgCard from '../assets/bg-card.png';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Layanan.css';
@@ -66,20 +67,7 @@ const TOP3_LAYANAN = [
   { rank: 3, name: 'Cuti Tahunan', total: 612, icon: Award, color: '#b45309' },
 ];
 
-const MOCK_LAYANAN_DATA = [
-  { id: 1, nip: '199704012022032021', nama: 'NATASHA PUTERI ARNESTO', nomorSurat: '800.1.3.2/515/Sekre', layanan: 'Kenaikan Pangkat Reguler', tanggalPengajuan: '02-03-2026', tanggalKirim: '03-02-2026', status: 'Selesai', perangkatDaerah: 'BKPSDM' },
-  { id: 2, nip: '198805152015021003', nama: 'BUDI SANTOSO', nomorSurat: '800.1.2.1/102/Disdik', layanan: 'Kenaikan Pangkat Pilihan', tanggalPengajuan: '05-03-2026', tanggalKirim: '10-03-2026', status: 'Proses', perangkatDaerah: 'Dinas Pendidikan' },
-  { id: 3, nip: '197612202003121005', nama: 'SRI WAHYUNI DEWI', nomorSurat: '800.2.1.3/201/Dinkes', layanan: 'Pensiun BUP', tanggalPengajuan: '01-04-2026', tanggalKirim: '-', status: 'Usulan', perangkatDaerah: 'Dinas Kesehatan' },
-  { id: 4, nip: '198901102019031012', nama: 'RIZKY MAULANA PUTRA', nomorSurat: '800.1.3.2/317/Setda', layanan: 'Cuti Tahunan', tanggalPengajuan: '12-03-2026', tanggalKirim: '14-03-2026', status: 'Selesai', perangkatDaerah: 'Sekretariat Daerah' },
-  { id: 5, nip: '197803052006041009', nama: 'HENDRA GUNAWAN', nomorSurat: '800.2.3.1/445/DPUTR', layanan: 'Izin Belajar', tanggalPengajuan: '20-02-2026', tanggalKirim: '25-02-2026', status: 'Selesai', perangkatDaerah: 'Dinas PUTR' },
-  { id: 6, nip: '199210182021032008', nama: 'FITRIA RAHMAWATI', nomorSurat: '800.1.1.2/089/Insp', layanan: 'Kenaikan Pangkat Reguler', tanggalPengajuan: '15-04-2026', tanggalKirim: '-', status: 'Usulan', perangkatDaerah: 'Inspektorat Daerah' },
-  { id: 7, nip: '198407272010011021', nama: 'DEDY KURNIAWAN', nomorSurat: '800.1.3.2/521/Bapenda', layanan: 'Kenaikan Pangkat Reguler', tanggalPengajuan: '18-03-2026', tanggalKirim: '20-03-2026', status: 'Proses', perangkatDaerah: 'Bapenda' },
-  { id: 8, nip: '199509042018032014', nama: 'ANGGRAENI PUTRI LESTARI', nomorSurat: '800.3.1.1/156/Bapperida', layanan: 'Cuti Melahirkan', tanggalPengajuan: '08-04-2026', tanggalKirim: '10-04-2026', status: 'Selesai', perangkatDaerah: 'Bapperida' },
-  { id: 9, nip: '197506152000031004', nama: 'AGUS WIBOWO', nomorSurat: '800.2.1.5/378/BKAD', layanan: 'Pensiun APS', tanggalPengajuan: '22-01-2026', tanggalKirim: '-', status: 'Usulan', perangkatDaerah: 'BKAD' },
-  { id: 10, nip: '198612032011011017', nama: 'YUDI PRASETYO', nomorSurat: '800.1.3.2/412/Dinkes', layanan: 'Kenaikan Pangkat Pilihan', tanggalPengajuan: '28-03-2026', tanggalKirim: '02-04-2026', status: 'Selesai', perangkatDaerah: 'Dinas Kesehatan' },
-  { id: 11, nip: '199308112020122015', nama: 'MAYA SARI DEWANTI', nomorSurat: '800.1.2.2/277/Disdik', layanan: 'Tugas Belajar', tanggalPengajuan: '10-04-2026', tanggalKirim: '-', status: 'Proses', perangkatDaerah: 'Dinas Pendidikan' },
-  { id: 12, nip: '198203182005021011', nama: 'BAMBANG SUPRIADI', nomorSurat: '800.2.3.2/190/Setda', layanan: 'Cuti Besar', tanggalPengajuan: '05-02-2026', tanggalKirim: '08-02-2026', status: 'Selesai', perangkatDaerah: 'Sekretariat Daerah' },
-];
+// Data will be fetched from API
 
 // ─── Status Badge Component ────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -91,12 +79,12 @@ function StatusBadge({ status }) {
   const c = config[status] || config.Usulan;
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '5px',
-      padding: '3px 10px', borderRadius: '20px',
+      display: 'inline-flex', alignItems: 'center', gap: '6px',
+      padding: '4px 12px', borderRadius: '20px',
       background: c.bg, color: c.color,
-      fontSize: '1.05rem', fontWeight: 600,
+      fontSize: '1.15rem', fontWeight: 600,
     }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
+      <span style={{ width: 8, height: 8, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
       {c.label}
     </span>
   );
@@ -122,8 +110,8 @@ function CustomSelect({ value, onChange, options, icon: Icon, placeholder }) {
           borderRadius: '10px',
           background: 'white',
           color: 'var(--text-main)',
-          fontSize: '1rem',
-          fontWeight: 600,
+          fontSize: '1.05rem',
+          fontWeight: 700,
           cursor: 'pointer',
           outline: 'none',
           minWidth: 170,
@@ -196,10 +184,55 @@ export default function Layanan() {
   const [user, setUser] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [layanans, setLayanans] = useState([]);
+  const [stats, setStats] = useState({ usulan: 0, proses: 0, selesai: 0 });
+  const [top3, setTop3] = useState([]);
+
+  // Filters
+  const [jenisLayanan, setJenisLayanan] = useState('Semua Layanan');
+  const [tahun, setTahun] = useState('2026');
+  const [bulan, setBulan] = useState('Semua Bulan');
+  const [perangkatDaerah, setPerangkatDaerah] = useState('Semua Perangkat Daerah');
+  const [searchNama, setSearchNama] = useState('');
+  const [searchNIP, setSearchNIP] = useState('');
+
+  const fetchData = () => {
+    setIsRefreshing(true);
+    axios.get('http://localhost:8000/api/layanan', {
+      params: {
+        jenis_layanan: jenisLayanan,
+        tahun: tahun,
+        bulan: bulan,
+        satker: perangkatDaerah,
+        search: searchNama || searchNIP
+      }
+    })
+    .then(res => {
+      const data = res.data.data;
+      setLayanans(data.layanans);
+      setStats(data.stats);
+      
+      // Merge icons to top3
+      const icons = [Trophy, Medal, Award];
+      const colors = ['#f59e0b', '#94a3b8', '#b45309'];
+      const enrichedTop3 = data.top3.map((t, i) => ({
+        ...t,
+        rank: i + 1,
+        icon: icons[i % 3],
+        color: colors[i % 3]
+      }));
+      setTop3(enrichedTop3);
+    })
+    .catch(err => console.error(err))
+    .finally(() => setIsRefreshing(false));
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [jenisLayanan, tahun, bulan, perangkatDaerah, searchNama, searchNIP]);
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1000);
+    fetchData();
   };
   
   const handleLogout = () => {
@@ -212,14 +245,6 @@ export default function Layanan() {
   };
 
 
-  // Filters
-  const [jenisLayanan, setJenisLayanan] = useState('Semua Layanan');
-  const [tahun, setTahun] = useState('2026');
-  const [bulan, setBulan] = useState('Semua Bulan');
-  const [perangkatDaerah, setPerangkatDaerah] = useState('Semua Perangkat Daerah');
-  const [searchNama, setSearchNama] = useState('');
-  const [searchNIP, setSearchNIP] = useState('');
-
   // Table sort
   const [sortField, setSortField] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
@@ -228,31 +253,21 @@ export default function Layanan() {
   const [page, setPage] = useState(1);
   const perPage = 8;
 
-  // Filter data
+  // Filter data (local sort)
   const filteredData = useMemo(() => {
-    let d = MOCK_LAYANAN_DATA;
-    if (jenisLayanan !== 'Semua Layanan') d = d.filter(r => r.layanan === jenisLayanan);
-    if (perangkatDaerah !== 'Semua Perangkat Daerah') d = d.filter(r => r.perangkatDaerah === perangkatDaerah);
-    if (searchNama) d = d.filter(r => r.nama.toLowerCase().includes(searchNama.toLowerCase()));
-    if (searchNIP) d = d.filter(r => r.nip.includes(searchNIP));
+    let d = [...layanans];
     if (sortField) {
-      d = [...d].sort((a, b) => {
+      d.sort((a, b) => {
         const va = a[sortField] ?? '';
         const vb = b[sortField] ?? '';
         return sortDir === 'asc' ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
       });
     }
     return d;
-  }, [jenisLayanan, perangkatDaerah, searchNama, searchNIP, sortField, sortDir]);
+  }, [layanans, sortField, sortDir]);
 
   const totalPages = Math.ceil(filteredData.length / perPage);
   const pagedData = filteredData.slice((page - 1) * perPage, page * perPage);
-
-  const stats = {
-    usulan: filteredData.filter(r => r.status === 'Usulan').length,
-    proses: filteredData.filter(r => r.status === 'Proses').length,
-    selesai: filteredData.filter(r => r.status === 'Selesai').length,
-  };
 
   function handleSort(field) {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -266,10 +281,10 @@ export default function Layanan() {
   }
 
   const thStyle = (field) => ({
-    padding: '11px 14px',
+    padding: '14px 16px',
     textAlign: 'left',
-    fontSize: '1.05rem',
-    fontWeight: 600,
+    fontSize: '1.15rem',
+    fontWeight: 700,
     color: 'var(--text-muted)',
     whiteSpace: 'nowrap',
     cursor: field ? 'pointer' : 'default',
@@ -279,8 +294,8 @@ export default function Layanan() {
   });
 
   const tdStyle = {
-    padding: '12px 14px',
-    fontSize: '1.1rem',
+    padding: '14px 16px',
+    fontSize: '1.15rem',
     color: 'var(--text-main)',
     borderBottom: '1px solid #f1f5f9',
     verticalAlign: 'middle',
@@ -366,15 +381,9 @@ export default function Layanan() {
         <div className="content-area">
           {/* Breadcrumb */}
           <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
-            <span
-              onClick={() => navigate('/dashboard')}
-              style={{ color: '#0f172a', cursor: 'pointer', transition: 'color 0.2s' }}
-              onMouseOver={e => e.currentTarget.style.color = 'var(--primary)'}
-              onMouseOut={e => e.currentTarget.style.color = '#0f172a'}
-            >
-              Dashboard
-            </span>
-            <span> / Layanan /</span>
+            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Dashboard</span>
+            <span>/</span>
+            <span style={{ color: '#0f172a' }}>Layanan</span>
           </div>
 
           <div className="hero-banner">
@@ -425,7 +434,7 @@ export default function Layanan() {
           </div>
 
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-            {TOP3_LAYANAN.map((item) => {
+            {top3.length === 0 ? <div style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Data tidak tersedia</div> : top3.map((item) => {
               const rankColors = ['#f59e0b', '#94a3b8', '#b45309'];
               const rankBg = ['#fef3c7', '#f1f5f9', '#fdf6ec'];
               const RankIcon = item.icon;
@@ -515,9 +524,9 @@ export default function Layanan() {
                 value={searchNama}
                 onChange={e => { setSearchNama(e.target.value); setPage(1); }}
                 style={{
-                  width: '100%', padding: '9px 12px 9px 34px',
+                  width: '100%', padding: '10px 14px 10px 36px',
                   border: '1.5px solid var(--border)', borderRadius: 10,
-                  fontSize: '1.05rem', fontFamily: 'var(--font-sans)',
+                  fontSize: '1.15rem', fontFamily: 'var(--font-sans)',
                   color: 'var(--text-main)', outline: 'none', background: 'white',
                 }}
               />
@@ -532,9 +541,9 @@ export default function Layanan() {
                 value={searchNIP}
                 onChange={e => { setSearchNIP(e.target.value); setPage(1); }}
                 style={{
-                  width: '100%', padding: '9px 12px 9px 34px',
+                  width: '100%', padding: '10px 14px 10px 36px',
                   border: '1.5px solid var(--border)', borderRadius: 10,
-                  fontSize: '1.05rem', fontFamily: 'var(--font-sans)',
+                  fontSize: '1.15rem', fontFamily: 'var(--font-sans)',
                   color: 'var(--text-main)', outline: 'none', background: 'white',
                 }}
               />
@@ -583,18 +592,18 @@ export default function Layanan() {
                     onMouseOver={e => e.currentTarget.style.background = '#f0fdf4'}
                     onMouseOut={e => e.currentTarget.style.background = idx % 2 === 0 ? 'white' : '#fafafa'}
                   >
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)', fontWeight: 500 }}>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)', fontWeight: 600 }}>
                       {(page - 1) * perPage + idx + 1}
                     </td>
-                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '1.1rem', color: '#475569' }}>
+                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '1.2rem', color: '#475569', fontWeight: 600 }}>
                       {row.nip}
                     </td>
-                    <td style={{ ...tdStyle, fontWeight: 600 }}>{row.nama}</td>
-                    <td style={{ ...tdStyle, color: '#475569', fontSize: '1.1rem' }}>{row.nomorSurat}</td>
+                    <td style={{ ...tdStyle, fontWeight: 700 }}>{row.nama}</td>
+                    <td style={{ ...tdStyle, color: '#475569', fontSize: '1.15rem' }}>{row.nomorSurat}</td>
                     <td style={{ ...tdStyle }}>
                       <span style={{
-                        background: '#f0fdf4', color: '#065f46', padding: '3px 10px',
-                        borderRadius: 20, fontSize: '1.05rem', fontWeight: 500, whiteSpace: 'nowrap',
+                        background: '#f0fdf4', color: '#065f46', padding: '4px 12px',
+                        borderRadius: 20, fontSize: '1.15rem', fontWeight: 600, whiteSpace: 'nowrap',
                       }}>
                         {row.layanan}
                       </span>
@@ -617,7 +626,7 @@ export default function Layanan() {
             padding: '14px 20px', borderTop: '1px solid var(--border)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8,
           }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
               Halaman {page} dari {totalPages || 1} &nbsp;·&nbsp; {filteredData.length} data
             </span>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -629,7 +638,7 @@ export default function Layanan() {
                   padding: '6px 12px', borderRadius: 8,
                   border: '1.5px solid var(--border)', background: page <= 1 ? '#f8fafc' : 'white',
                   color: page <= 1 ? '#cbd5e1' : 'var(--text-main)',
-                  fontSize: '0.8rem', fontWeight: 500, cursor: page <= 1 ? 'not-allowed' : 'pointer',
+                  fontSize: '1rem', fontWeight: 600, cursor: page <= 1 ? 'not-allowed' : 'pointer',
                 }}
               >
                 <ChevronLeft size={14} /> Sebelumnya
@@ -647,7 +656,7 @@ export default function Layanan() {
                       width: 32, height: 32, borderRadius: 8, border: 'none',
                       background: p === page ? 'var(--primary)' : 'transparent',
                       color: p === page ? 'white' : 'var(--text-main)',
-                      fontSize: '0.82rem', fontWeight: p === page ? 700 : 400,
+                      fontSize: '1.05rem', fontWeight: p === page ? 800 : 600,
                       cursor: 'pointer',
                     }}
                   >
@@ -664,7 +673,7 @@ export default function Layanan() {
                   padding: '6px 12px', borderRadius: 8,
                   border: '1.5px solid var(--border)', background: page >= totalPages ? '#f8fafc' : 'white',
                   color: page >= totalPages ? '#cbd5e1' : 'var(--text-main)',
-                  fontSize: '0.8rem', fontWeight: 500, cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+                  fontSize: '1rem', fontWeight: 600, cursor: page >= totalPages ? 'not-allowed' : 'pointer',
                 }}
               >
                 Berikutnya <ChevronRight size={14} />

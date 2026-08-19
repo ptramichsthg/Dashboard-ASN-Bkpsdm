@@ -1,0 +1,379 @@
+/* ================================================
+   Pengembangan Kompetensi - Page Specific CSS
+   JP (Jam Pelajaran) Tracking per ASN
+   ================================================ */
+
+/* --- KPI Summary Cards --- */
+.pk-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.pk-kpi-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.pk-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: #000000;
+}
+
+.pk-kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pk-kpi-icon.blue   { background: #eff6ff; color: #3b82f6; }
+.pk-kpi-icon.green  { background: #f0fdf4; color: #10b981; }
+.pk-kpi-icon.red    { background: #fff1f2; color: #f43f5e; }
+.pk-kpi-icon.gold   { background: #fffbeb; color: #f59e0b; }
+
+.pk-kpi-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pk-kpi-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pk-kpi-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.pk-kpi-sub {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* --- Filter Bar --- */
+.pk-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  background: var(--card-bg);
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius);
+  border: 2px solid #0f172a;
+  box-shadow: var(--shadow-sm);
+}
+
+.pk-filter-bar label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pk-filter-select {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--input-bg, #f8fafc);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.pk-filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.pk-search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  padding: 0.55rem 1rem;
+  background: var(--input-bg, #f8fafc);
+  flex: 1;
+  min-width: 250px;
+  max-width: 350px;
+  transition: border-color 0.2s;
+}
+
+.pk-search-wrapper:focus-within {
+  border-color: var(--primary);
+}
+
+.pk-search-wrapper input {
+  border: none;
+  background: transparent;
+  outline: none;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 1.05rem;
+  width: 100%;
+}
+
+/* --- JP Progress Bar --- */
+.jp-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 120px;
+}
+
+.jp-progress-bar-bg {
+  height: 6px;
+  border-radius: 99px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.jp-progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.jp-progress-bar-fill.terpenuhi { background: #10b981; }
+.jp-progress-bar-fill.kurang    { background: #f43f5e; }
+.jp-progress-bar-fill.reward    { background: linear-gradient(90deg, #10b981, #f59e0b); }
+
+.jp-count {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* --- Status Chip --- */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.45rem 1rem;
+  border-radius: 99px;
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-chip.terpenuhi {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-chip.kurang {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+/* --- Reward Badge --- */
+.reward-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.35rem 0.85rem;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border-radius: 99px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border: 1px solid #fcd34d;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.3); }
+  50%       { box-shadow: 0 0 0 5px rgba(251, 191, 36, 0); }
+}
+
+/* --- Tabel JP --- */
+.pk-table-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 2px solid #0f172a;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.2s;
+}
+
+.pk-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.pk-table-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pk-table-count {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.pk-table-scroll {
+  overflow-x: auto;
+}
+
+.pk-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.pk-table th {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.pk-table td {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 1.1rem;
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+.pk-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.pk-table tbody tr:hover td {
+  background: #f8fafc;
+}
+
+.pk-table .nip-text {
+  font-family: 'Courier New', monospace;
+  font-size: 1.05rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.pk-table .nama-text {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+/* --- Chart Section --- */
+.pk-chart-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 2px solid #0f172a;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.2s;
+}
+
+.pk-chart-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* --- Pagination --- */
+.pk-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pk-pagination-btns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pk-page-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-main);
+  font-size: 1.05rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.pk-page-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+.pk-page-btn.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 700; }
+.pk-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* --- Responsive --- */
+@media (max-width: 1024px) {
+  .pk-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .pk-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pk-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pk-search-wrapper {
+    max-width: 100%;
+  }
+}
