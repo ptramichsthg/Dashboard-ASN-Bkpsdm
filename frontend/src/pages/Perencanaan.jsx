@@ -6,7 +6,7 @@ import '../styles/Perencanaan.css';
 import {
   Activity, Bell, RefreshCw, Settings, LogOut, Database,
   Users, UserMinus, Building, ClipboardList, Search, ChevronLeft,
-  ChevronRight, BarChart2, Briefcase
+  ChevronRight, BarChart2, Briefcase, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -43,7 +43,22 @@ const StatusChip = ({ status }) => {
   } else {
     cls = 'kosong';
   }
-  return <span className={`status-chip ${cls}`}>{status}</span>;
+
+  // Pisahkan string "Utama (Keterangan)" menggunakan regex
+  const match = status.match(/^([^(]+)(?:\((.*)\))?$/);
+  const mainStatus = match ? match[1].trim() : status;
+  const detailStatus = match && match[2] ? match[2].trim() : null;
+
+  return (
+    <div>
+      <span className={`status-chip ${cls}`}>{mainStatus}</span>
+      {detailStatus && (
+        <div style={{ fontSize: '0.9rem', color: '#475569', marginTop: '4px' }}>
+          ({detailStatus})
+        </div>
+      )}
+    </div>
+  );
 };
 
 // ─── Custom Tooltip OPD Chart ─────────────────────────────────────────────────
@@ -128,6 +143,7 @@ export default function Perencanaan() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [chartPage, setChartPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   const fetchData = async () => {
     setLoading(true);
@@ -165,9 +181,48 @@ export default function Perencanaan() {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
+  // Sorting logic
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedData = React.useMemo(() => {
+    let sortableItems = [...data];
+    
+    // Sort the data
+    if (sortConfig.key !== null) {
+      sortableItems.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+        
+        // Handle numeric sorting for 'kebutuhan'
+        if (sortConfig.key === 'kebutuhan') {
+           aValue = Number(aValue);
+           bValue = Number(bValue);
+        } else {
+           aValue = aValue ? aValue.toString().toLowerCase() : '';
+           bValue = bValue ? bValue.toString().toLowerCase() : '';
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [data, sortConfig]);
+
   // Pagination
-  const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
-  const pagedData = data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(sortedData.length / PAGE_SIZE));
+  const pagedData = sortedData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const tahunList = ['2024', '2025', '2026', '2027'];
 
   // OPD chart: shorten long names and paginate
@@ -396,13 +451,38 @@ export default function Perencanaan() {
                     <table className="pr-table">
                       <thead>
                         <tr>
-                          <th style={{ width: 40 }}>No</th>
-                          <th>Satuan Kerja</th>
-                          <th>Nama Jabatan</th>
-                          <th>Status</th>
-                          <th>Jumlah Kebutuhan</th>
-                          <th>Rencana Pengisian</th>
-                          <th>Aksi</th>
+                          <th style={{ width: '60px' }}>No</th>
+                          <th onClick={() => handleSort('opd')} style={{ width: '22%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Satuan Kerja
+                              {sortConfig.key === 'opd' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('jabatan')} style={{ width: '22%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Nama Jabatan
+                              {sortConfig.key === 'jabatan' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('status')} style={{ width: '13%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Status
+                              {sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('kebutuhan')} style={{ width: '13%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Jumlah Kebutuhan
+                              {sortConfig.key === 'kebutuhan' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('estimasi_pengisian')} style={{ width: '15%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Rencana Pengisian
+                              {sortConfig.key === 'estimasi_pengisian' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th style={{ width: '100px' }}>Aksi</th>
                         </tr>
                       </thead>
                       <tbody>
