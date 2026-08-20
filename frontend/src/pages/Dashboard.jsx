@@ -645,7 +645,7 @@ const Dashboard = () => {
                   <div className="chart-icon-box" style={{ background: '#ecfdf5', color: '#10b981' }}>
                     <BarChart2 size={16} />
                   </div>
-                  <span className="chart-card-title">Grafik OPD</span>
+                  <span className="chart-card-title">Grafik Jumlah Pegawai Aktif per OPD</span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
                   <button
