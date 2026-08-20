@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import bgCard from '../assets/bg-card.png';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Layanan.css';
@@ -198,7 +198,7 @@ export default function Layanan() {
 
   const fetchData = () => {
     setIsRefreshing(true);
-    axios.get('http://localhost:8000/api/layanan', {
+    api.get('/layanan', {
       params: {
         jenis_layanan: jenisLayanan,
         tahun: tahun,

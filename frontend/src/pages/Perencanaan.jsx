@@ -172,6 +172,17 @@ export default function Perencanaan() {
     if (u) setUser(JSON.parse(u));
   }, [tahun, satker, search]);
 
+  useEffect(() => {
+    if (selectedDetail) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [selectedDetail]);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
     fetchData().finally(() => setTimeout(() => setIsRefreshing(false), 600));
@@ -555,7 +566,8 @@ export default function Perencanaan() {
             <div className="pr-modal-header">
               <div className="pr-modal-title">Detail Kebutuhan Jabatan</div>
               <button className="pr-modal-close" onClick={() => setSelectedDetail(null)}>
-                <X size={20} />
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, marginRight: '6px' }}>Tutup</span>
+                <X size={16} />
               </button>
             </div>
             <div className="pr-modal-body">
@@ -568,29 +580,25 @@ export default function Perencanaan() {
                   <span className="pr-detail-label">Nama Jabatan</span>
                   <span className="pr-detail-value">{selectedDetail.jabatan}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="pr-detail-item">
-                    <span className="pr-detail-label">Masa Jabatan Sebelumnya</span>
-                    <span className="pr-detail-value">{selectedDetail.masa_jabatan_sebelumnya || '-'}</span>
-                  </div>
-                  <div className="pr-detail-item">
-                    <span className="pr-detail-label">Mulai Kosong</span>
-                    <span className="pr-detail-value">{selectedDetail.mulai_kosong || '-'}</span>
-                  </div>
+                <div className="pr-detail-item">
+                  <span className="pr-detail-label">Masa Jabatan Sebelumnya</span>
+                  <span className="pr-detail-value">{selectedDetail.masa_jabatan_sebelumnya || '-'}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="pr-detail-item">
-                    <span className="pr-detail-label">Kualifikasi Pendidikan</span>
-                    <span className="pr-detail-value">{selectedDetail.kualifikasi || '-'}</span>
-                  </div>
-                  <div className="pr-detail-item">
-                    <span className="pr-detail-label">Kelas Jabatan</span>
-                    <span className="pr-detail-value">{selectedDetail.kelas_jabatan || '-'}</span>
-                  </div>
+                <div className="pr-detail-item">
+                  <span className="pr-detail-label">Mulai Kosong</span>
+                  <span className="pr-detail-value">{selectedDetail.mulai_kosong || '-'}</span>
                 </div>
-                <div className="pr-detail-item" style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px dashed #e2e8f0' }}>
+                <div className="pr-detail-item">
+                  <span className="pr-detail-label">Kualifikasi Pendidikan</span>
+                  <span className="pr-detail-value">{selectedDetail.kualifikasi || '-'}</span>
+                </div>
+                <div className="pr-detail-item">
+                  <span className="pr-detail-label">Kelas Jabatan</span>
+                  <span className="pr-detail-value">{selectedDetail.kelas_jabatan || '-'}</span>
+                </div>
+                <div className="pr-detail-item" style={{ gridColumn: '1 / -1', marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px dashed #cbd5e1' }}>
                   <span className="pr-detail-label">Rencana / Estimasi Pengisian</span>
-                  <span className="pr-detail-value" style={{ color: '#3b82f6' }}>{selectedDetail.estimasi_pengisian}</span>
+                  <span className="pr-detail-value" style={{ color: '#3b82f6', fontSize: '1.4rem' }}>{selectedDetail.estimasi_pengisian}</span>
                 </div>
               </div>
             </div>

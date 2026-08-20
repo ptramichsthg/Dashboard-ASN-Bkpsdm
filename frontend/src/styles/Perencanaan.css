@@ -342,48 +342,59 @@
 /* ── Modal Detail ── */
 .pr-modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(15, 23, 42, 0.4);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  animation: prFadeIn 0.2s ease-out;
+  z-index: 9999;
+  padding: 2rem;
 }
 
 .pr-modal-content {
-  background: #ffffff;
-  width: 90%;
-  max-width: 650px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  background-color: #fff;
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modal-fade-in 0.2s ease-out;
   overflow: hidden;
-  animation: prSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .pr-modal-header {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: #f8fafc;
+  justify-content: space-between;
+  background-color: #f8fafc;
 }
 
 .pr-modal-title {
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: #0f172a;
-  font-size: 1.1rem;
 }
 
 .pr-modal-close {
-  background: none;
+  background: transparent;
   border: none;
-  color: #64748b;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  color: #64748b;
+  padding: 0.5rem;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -391,44 +402,42 @@
 }
 
 .pr-modal-close:hover {
-  background: #e2e8f0;
+  background-color: #e2e8f0;
   color: #0f172a;
 }
 
 .pr-modal-body {
-  padding: 1.5rem;
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .pr-detail-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  background-color: #f8fafc;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 
 .pr-detail-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .pr-detail-label {
-  font-size: 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 600;
   color: #64748b;
-  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .pr-detail-value {
-  font-size: 0.95rem;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #0f172a;
-  font-weight: 600;
-}
-
-@keyframes prFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes prSlideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
 }
