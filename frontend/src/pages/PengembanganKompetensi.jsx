@@ -6,7 +6,7 @@ import '../styles/PengembanganKompetensi.css';
 import {
   Activity, Bell, RefreshCw, Settings, LogOut, Database,
   Users, CheckCircle2, Clock, Trophy, Search, ChevronLeft,
-  ChevronRight, BarChart2, GraduationCap
+  ChevronRight, BarChart2, GraduationCap, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -51,7 +51,7 @@ const StatusChip = ({ row }) => {
   if (row.total_jp > TARGET_JP) {
     return (
       <span className="status-chip reward">
-        <Trophy size={14} /> Melebihi Target + Reward
+        <Trophy size={14} /> Lebih {row.total_jp - TARGET_JP} JP
       </span>
     );
   }
@@ -150,6 +150,11 @@ export default function PengembanganKompetensi() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
 
+  // Modal State
+  const [selectedAsn, setSelectedAsn] = useState(null);
+  const [historyData, setHistoryData] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
   // Filter
   const [bulan, setBulan] = useState('Agustus');
   const [tahun, setTahun] = useState('2026');
@@ -157,6 +162,7 @@ export default function PengembanganKompetensi() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [chartPage, setChartPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   const fetchData = async () => {
     setLoading(true);
@@ -183,6 +189,17 @@ export default function PengembanganKompetensi() {
     if (u) setUser(JSON.parse(u));
   }, [bulan, tahun, satker, search]);
 
+  useEffect(() => {
+    if (selectedAsn) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [selectedAsn]);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
     fetchData().finally(() => setTimeout(() => setIsRefreshing(false), 600));
@@ -195,9 +212,62 @@ export default function PengembanganKompetensi() {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
+  const handleDetail = async (asn) => {
+    setSelectedAsn(asn);
+    setLoadingHistory(true);
+    setHistoryData([]);
+    try {
+      const res = await api.get(`/pengembangan-kompetensi/${asn.nip}/history`, {
+        params: { bulan, tahun }
+      });
+      setHistoryData(res.data.history || []);
+    } catch (e) {
+      console.error('Failed to fetch history:', e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  // Sorting logic
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedData = React.useMemo(() => {
+    let sortableItems = [...data];
+    
+    if (sortConfig.key !== null) {
+      sortableItems.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+        
+        if (sortConfig.key === 'total_jp') {
+           aValue = Number(aValue);
+           bValue = Number(bValue);
+        } else {
+           aValue = aValue ? aValue.toString().toLowerCase() : '';
+           bValue = bValue ? bValue.toString().toLowerCase() : '';
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [data, sortConfig]);
+
   // Pagination
-  const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
-  const pagedData = data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(sortedData.length / PAGE_SIZE));
+  const pagedData = sortedData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const tahunList = ['2024', '2025', '2026', '2027'];
 
@@ -355,87 +425,6 @@ export default function PengembanganKompetensi() {
               </div>
             </div>
 
-            {/* ── Tabel Status JP per ASN ── */}
-            <div className="pk-table-card">
-              <div className="pk-table-header">
-                <div className="pk-table-title">
-                  <GraduationCap size={18} color="#3b82f6" />
-                  Status JP Per ASN — {bulan} {tahun}
-                </div>
-                <span className="pk-table-count">{data.length} ASN ditemukan</span>
-              </div>
-
-              {loading ? (
-                <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8', fontSize: '1.1rem' }}>Memuat data…</div>
-              ) : data.length === 0 ? (
-                <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
-                  <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem', display: 'inline-block' }} />
-                  <div>Data tidak tersedia</div>
-                </div>
-              ) : (
-                <>
-                  <div className="pk-table-scroll">
-                    <table className="pk-table">
-                      <thead>
-                        <tr>
-                          <th style={{ width: 40 }}>No</th>
-                          <th>NIP</th>
-                          <th>Nama ASN</th>
-                          <th>Satuan Kerja</th>
-                          <th>JP Bulan Ini</th>
-                          <th>Status</th>
-                          <th>Reward</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pagedData.map((row, i) => (
-                          <tr key={row.nip}>
-                            <td style={{ color: '#94a3b8', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
-                            <td><span className="nip-text">{row.nip}</span></td>
-                            <td><span className="nama-text">{row.nama}</span></td>
-                            <td style={{ fontSize: '0.82rem', color: '#475569' }} title={row.satuan_kerja}>
-                              {shortenOPD(row.satuan_kerja)}
-                            </td>
-                            <td><JpProgressBar totalJp={row.total_jp} target={TARGET_JP} /></td>
-                            <td><StatusChip row={row} /></td>
-                            <td>
-                              {row.reward ? (
-                                <span className="reward-badge"><Trophy size={12} /> Berprestasi</span>
-                              ) : (
-                                <span style={{ color: '#cbd5e1', fontSize: '0.78rem' }}>—</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Pagination */}
-                  <div className="pk-pagination">
-                    <span>Menampilkan {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.length)} dari {data.length} ASN</span>
-                    <div className="pk-pagination-btns">
-                      <button className="pk-page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>
-                        <ChevronLeft size={14} />
-                      </button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                        .map((p, idx, arr) => (
-                          <React.Fragment key={p}>
-                            {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ padding: '0 4px', color: '#94a3b8' }}>…</span>}
-                            <button className={`pk-page-btn${page === p ? ' active' : ''}`} onClick={() => setPage(p)}>{p}</button>
-                          </React.Fragment>
-                        ))
-                      }
-                      <button className="pk-page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>
-                        <ChevronRight size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
             {/* ── Grafik Sebaran per OPD ── */}
             {perOpd.length > 0 && (
               <div className="pk-chart-card">
@@ -492,9 +481,214 @@ export default function PengembanganKompetensi() {
               </div>
             )}
 
+            {/* ── Tabel Status JP per ASN ── */}
+            <div className="pk-table-card">
+              <div className="pk-table-header">
+                <div className="pk-table-title">
+                  <GraduationCap size={18} color="#3b82f6" />
+                  Status JP Per ASN — {bulan} {tahun}
+                </div>
+                <span className="pk-table-count">{data.length} ASN ditemukan</span>
+              </div>
+
+              {loading ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8', fontSize: '1.1rem' }}>Memuat data…</div>
+              ) : data.length === 0 ? (
+                <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
+                  <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem', display: 'inline-block' }} />
+                  <div>Data tidak tersedia</div>
+                </div>
+              ) : (
+                <>
+                  <div className="pk-table-scroll">
+                    <table className="pk-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: 40 }}>No</th>
+                          <th onClick={() => handleSort('nip')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                              NIP
+                              {sortConfig.key === 'nip' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('nama')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                              Nama ASN
+                              {sortConfig.key === 'nama' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('satuan_kerja')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                              Satuan Kerja
+                              {sortConfig.key === 'satuan_kerja' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th>Unit Kerja</th>
+                          <th onClick={() => handleSort('total_jp')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                              JP Bulan Ini
+                              {sortConfig.key === 'total_jp' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('status')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                              Status
+                              {sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
+                            </div>
+                          </th>
+                          <th style={{ width: '80px' }}>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pagedData.map((row, i) => (
+                          <tr key={row.nip}>
+                            <td style={{ color: '#94a3b8', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
+                            <td><span className="nip-text">{row.nip}</span></td>
+                            <td><span className="nama-text">{row.nama}</span></td>
+                            <td style={{ fontSize: '0.82rem', color: '#475569', textAlign: 'center' }} title={row.satuan_kerja}>
+                              {shortenOPD(row.satuan_kerja)}
+                            </td>
+                            <td style={{ fontSize: '0.82rem', color: '#94a3b8', textAlign: 'center' }}>-</td>
+                            <td><JpProgressBar totalJp={row.total_jp} target={TARGET_JP} /></td>
+                            <td><StatusChip row={row} /></td>
+                            <td style={{ textAlign: 'center' }}>
+                              <button className="btn-action" onClick={() => handleDetail(row)}>Detail</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination */}
+                  <div className="pk-pagination">
+                    <span>Menampilkan {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.length)} dari {data.length} ASN</span>
+                    <div className="pk-pagination-btns">
+                      <button className="pk-page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>
+                        <ChevronLeft size={14} />
+                      </button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                        .map((p, idx, arr) => (
+                          <React.Fragment key={p}>
+                            {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ padding: '0 4px', color: '#94a3b8' }}>…</span>}
+                            <button className={`pk-page-btn${page === p ? ' active' : ''}`} onClick={() => setPage(p)}>{p}</button>
+                          </React.Fragment>
+                        ))
+                      }
+                      <button className="pk-page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>
+                        <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+
           </div>
         </main>
       </div>
+
+      {/* ── Modal Detail ── */}
+      {selectedAsn && (
+        <div className="pk-modal-overlay" onClick={() => setSelectedAsn(null)}>
+          <div className="pk-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="pk-modal-header">
+              <h2 className="pk-modal-title">Detail Pengembangan Kompetensi</h2>
+              <button className="pk-modal-close" onClick={() => setSelectedAsn(null)} title="Tutup">
+                Tutup ✕
+              </button>
+            </div>
+            <div className="pk-modal-body">
+              <div className="pk-modal-summary">
+                <div className="pk-summary-item">
+                  <span className="pk-summary-label">NIP</span>
+                  <span className="pk-summary-value">{selectedAsn.nip}</span>
+                </div>
+                <div className="pk-summary-item">
+                  <span className="pk-summary-label">Nama ASN</span>
+                  <span className="pk-summary-value">{selectedAsn.nama}</span>
+                </div>
+                <div className="pk-summary-item">
+                  <span className="pk-summary-label">Unit Kerja</span>
+                  <span className="pk-summary-value">{selectedAsn.satuan_kerja}</span>
+                </div>
+                <div className="pk-summary-item">
+                  <span className="pk-summary-label">Bulan & Tahun</span>
+                  <span className="pk-summary-value">{bulan} {tahun}</span>
+                </div>
+                <div className="pk-summary-item">
+                  <span className="pk-summary-label">Target JP</span>
+                  <span className="pk-summary-value">20 JP</span>
+                </div>
+                <div className="pk-summary-item">
+                  <span className="pk-summary-label">Total JP Diperoleh</span>
+                  <span className="pk-summary-value">{selectedAsn.total_jp} JP</span>
+                </div>
+                <div className="pk-summary-item" style={{ gridColumn: '1 / -1' }}>
+                  <span className="pk-summary-label">Status Pencapaian</span>
+                  <span className="pk-summary-value">
+                    {selectedAsn.total_jp >= 20 ? (
+                      <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <CheckCircle2 size={20} /> Memenuhi (Sisa/Lebih: {selectedAsn.total_jp - 20} JP)
+                      </span>
+                    ) : (
+                      <span style={{ color: '#f43f5e', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Clock size={20} /> Belum Memenuhi (Kurang: {20 - selectedAsn.total_jp} JP)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <h3 className="pk-modal-history-title">
+                <Activity size={24} color="#3b82f6" />
+                History Pengembangan Kompetensi
+              </h3>
+
+              {loadingHistory ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  Memuat data riwayat...
+                </div>
+              ) : historyData.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  Belum ada riwayat pengembangan kompetensi pada bulan ini.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="pk-modal-history-table">
+                    <thead>
+                      <tr>
+                        <th>No</th>
+                        <th>Nama Kegiatan</th>
+                        <th>Jenis Kegiatan</th>
+                        <th>Bidang</th>
+                        <th>Penyelenggara</th>
+                        <th>Tanggal</th>
+                        <th>Jumlah JP</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {historyData.map((item, idx) => (
+                        <tr key={item.id}>
+                          <td>{idx + 1}</td>
+                          <td>{item.nama_pelatihan}</td>
+                          <td>{item.jenis_pelatihan}</td>
+                          <td>{item.bidang || '-'}</td>
+                          <td>{item.penyelenggara || '-'}</td>
+                          <td>{item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-'}</td>
+                          <td style={{ fontWeight: 700 }}>{item.jp} JP</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

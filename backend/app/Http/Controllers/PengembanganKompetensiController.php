@@ -99,4 +99,28 @@ class PengembanganKompetensiController extends Controller
             'filter'     => ['bulan' => $bulan, 'tahun' => $tahun],
         ]);
     }
+
+    public function history(Request $request, $nip)
+    {
+        $bulan = $request->query('bulan');
+        $tahun = $request->query('tahun');
+
+        $query = DB::table('pengembangan_kompetensi')
+            ->where('nip', $nip);
+
+        if ($bulan) {
+            $query->where('bulan', $bulan);
+        }
+        if ($tahun) {
+            $query->where('tahun', $tahun);
+        }
+
+        $history = $query->orderBy('tanggal', 'desc')
+                         ->orderBy('created_at', 'desc')
+                         ->get();
+
+        return response()->json([
+            'history' => $history
+        ]);
+    }
 }
