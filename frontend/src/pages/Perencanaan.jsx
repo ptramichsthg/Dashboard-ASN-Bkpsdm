@@ -6,7 +6,7 @@ import '../styles/Perencanaan.css';
 import {
   Activity, Bell, RefreshCw, Settings, LogOut, Database,
   Users, UserMinus, Building, ClipboardList, Search, ChevronLeft,
-  ChevronRight, BarChart2, Briefcase, ArrowUpDown, ArrowUp, ArrowDown
+  ChevronRight, BarChart2, Briefcase, ArrowUpDown, ArrowUp, ArrowDown, X
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -50,10 +50,10 @@ const StatusChip = ({ status }) => {
   const detailStatus = match && match[2] ? match[2].trim() : null;
 
   return (
-    <div>
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
       <span className={`status-chip ${cls}`}>{mainStatus}</span>
       {detailStatus && (
-        <div style={{ fontSize: '0.9rem', color: '#475569', marginTop: '4px' }}>
+        <div style={{ fontSize: '0.9rem', color: '#475569', marginTop: '4px', textAlign: 'center' }}>
           ({detailStatus})
         </div>
       )}
@@ -141,6 +141,9 @@ export default function Perencanaan() {
   const [tahun, setTahun] = useState('2026');
   const [satker, setSatker] = useState('Semua');
   const [search, setSearch] = useState('');
+  
+  // State untuk modal detail
+  const [selectedDetail, setSelectedDetail] = useState(null);
   const [page, setPage] = useState(1);
   const [chartPage, setChartPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
@@ -308,7 +311,7 @@ export default function Perencanaan() {
                 </div>
               </div>
               <div className="hero-banner-decor">
-                <img src={bgCard} alt="Logo Kabupaten Bandung" className="hero-banner-logo" style={{ opacity: 0.5 }} />
+                <img src={bgCard} alt="Logo Kabupaten Bandung" className="hero-banner-logo" />
               </div>
             </div>
 
@@ -372,6 +375,119 @@ export default function Perencanaan() {
               </div>
             </div>
 
+
+            {/* ── Tabel Jabatan Kosong ── */}
+            <div className="pr-table-card">
+              <div className="pr-table-header">
+                <div className="pr-table-title">
+                  <Briefcase size={18} color="#3b82f6" />
+                  Daftar Jabatan Kosong / Kurang
+                </div>
+                <span className="pr-table-count">{data.length} Data ditemukan</span>
+              </div>
+
+              {loading ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8', fontSize: '1.1rem' }}>Memuat data…</div>
+              ) : data.length === 0 ? (
+                <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
+                  <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem', display: 'inline-block' }} />
+                  <div>Data tidak tersedia</div>
+                </div>
+              ) : (
+                <>
+                  <div className="pr-table-scroll">
+                    <table className="pr-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '60px' }}>No</th>
+                          <th onClick={() => handleSort('opd')} style={{ width: '22%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Satuan Kerja
+                              {sortConfig.key === 'opd' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} color="#0f172a" strokeWidth={2.5} /> : <ArrowDown size={14} color="#0f172a" strokeWidth={2.5} />) : <ArrowUpDown size={14} color="#94a3b8" opacity={0.6} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('jabatan')} style={{ width: '22%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Nama Jabatan
+                              {sortConfig.key === 'jabatan' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} color="#0f172a" strokeWidth={2.5} /> : <ArrowDown size={14} color="#0f172a" strokeWidth={2.5} />) : <ArrowUpDown size={14} color="#94a3b8" opacity={0.6} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('status')} style={{ width: '13%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Status
+                              {sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} color="#0f172a" strokeWidth={2.5} /> : <ArrowDown size={14} color="#0f172a" strokeWidth={2.5} />) : <ArrowUpDown size={14} color="#94a3b8" opacity={0.6} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('kebutuhan')} style={{ width: '13%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Jumlah Kebutuhan
+                              {sortConfig.key === 'kebutuhan' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} color="#0f172a" strokeWidth={2.5} /> : <ArrowDown size={14} color="#0f172a" strokeWidth={2.5} />) : <ArrowUpDown size={14} color="#94a3b8" opacity={0.6} />}
+                            </div>
+                          </th>
+                          <th onClick={() => handleSort('estimasi_pengisian')} style={{ width: '15%', cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              Rencana Pengisian
+                              {sortConfig.key === 'estimasi_pengisian' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} color="#0f172a" strokeWidth={2.5} /> : <ArrowDown size={14} color="#0f172a" strokeWidth={2.5} />) : <ArrowUpDown size={14} color="#94a3b8" opacity={0.6} />}
+                            </div>
+                          </th>
+                          <th style={{ width: '100px' }}>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pagedData.map((row, i) => (
+                          <tr key={row.id}>
+                            <td style={{ color: '#94a3b8', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
+                            <td style={{ fontSize: '0.85rem', color: '#475569', maxWidth: '250px', whiteSpace: 'normal' }}>
+                              {row.opd}
+                            </td>
+                            <td><span style={{ fontWeight: 700, color: '#0f172a' }}>{row.jabatan}</span></td>
+                            <td><StatusChip status={row.status} /></td>
+                            <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{row.kebutuhan} Orang</td>
+                            <td>
+                              <span style={{ 
+                                padding: '4px 8px', 
+                                backgroundColor: '#f1f5f9', 
+                                borderRadius: '4px', 
+                                fontSize: '0.9rem',
+                                color: '#475569' 
+                              }}>
+                                {row.estimasi_pengisian}
+                              </span>
+                            </td>
+                            <td>
+                              <button className="btn-action" onClick={() => setSelectedDetail(row)}>Detail</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination */}
+                  <div className="pr-pagination">
+                    <span>Menampilkan {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.length)} dari {data.length} Data</span>
+                    <div className="pr-pagination-btns">
+                      <button className="pr-page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>
+                        <ChevronLeft size={14} />
+                      </button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                        .map((p, idx, arr) => (
+                          <React.Fragment key={p}>
+                            {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ padding: '0 4px', color: '#94a3b8' }}>…</span>}
+                            <button className={`pr-page-btn${page === p ? ' active' : ''}`} onClick={() => setPage(p)}>{p}</button>
+                          </React.Fragment>
+                        ))
+                      }
+                      <button className="pr-page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>
+                        <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* ── Grafik Sebaran per OPD ── */}
             {perOpd.length > 0 && (
               <div className="pr-chart-card">
@@ -428,121 +544,60 @@ export default function Perencanaan() {
               </div>
             )}
 
-            {/* ── Tabel Jabatan Kosong ── */}
-            <div className="pr-table-card">
-              <div className="pr-table-header">
-                <div className="pr-table-title">
-                  <Briefcase size={18} color="#3b82f6" />
-                  Daftar Jabatan Kosong / Kurang
-                </div>
-                <span className="pr-table-count">{data.length} Data ditemukan</span>
-              </div>
-
-              {loading ? (
-                <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8', fontSize: '1.1rem' }}>Memuat data…</div>
-              ) : data.length === 0 ? (
-                <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
-                  <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem', display: 'inline-block' }} />
-                  <div>Data tidak tersedia</div>
-                </div>
-              ) : (
-                <>
-                  <div className="pr-table-scroll">
-                    <table className="pr-table">
-                      <thead>
-                        <tr>
-                          <th style={{ width: '60px' }}>No</th>
-                          <th onClick={() => handleSort('opd')} style={{ width: '22%', cursor: 'pointer', userSelect: 'none' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              Satuan Kerja
-                              {sortConfig.key === 'opd' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
-                            </div>
-                          </th>
-                          <th onClick={() => handleSort('jabatan')} style={{ width: '22%', cursor: 'pointer', userSelect: 'none' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              Nama Jabatan
-                              {sortConfig.key === 'jabatan' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
-                            </div>
-                          </th>
-                          <th onClick={() => handleSort('status')} style={{ width: '13%', cursor: 'pointer', userSelect: 'none' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              Status
-                              {sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
-                            </div>
-                          </th>
-                          <th onClick={() => handleSort('kebutuhan')} style={{ width: '13%', cursor: 'pointer', userSelect: 'none' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              Jumlah Kebutuhan
-                              {sortConfig.key === 'kebutuhan' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
-                            </div>
-                          </th>
-                          <th onClick={() => handleSort('estimasi_pengisian')} style={{ width: '15%', cursor: 'pointer', userSelect: 'none' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              Rencana Pengisian
-                              {sortConfig.key === 'estimasi_pengisian' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} opacity={0.3} />}
-                            </div>
-                          </th>
-                          <th style={{ width: '100px' }}>Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pagedData.map((row, i) => (
-                          <tr key={row.id}>
-                            <td style={{ color: '#94a3b8', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
-                            <td style={{ fontSize: '0.85rem', color: '#475569', maxWidth: '250px', whiteSpace: 'normal' }}>
-                              {row.opd}
-                            </td>
-                            <td><span style={{ fontWeight: 700, color: '#0f172a' }}>{row.jabatan}</span></td>
-                            <td><StatusChip status={row.status} /></td>
-                            <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{row.kebutuhan} Orang</td>
-                            <td>
-                              <span style={{ 
-                                padding: '4px 8px', 
-                                backgroundColor: '#f1f5f9', 
-                                borderRadius: '4px', 
-                                fontSize: '0.9rem',
-                                color: '#475569' 
-                              }}>
-                                {row.estimasi_pengisian}
-                              </span>
-                            </td>
-                            <td>
-                              <button className="btn-action">Detail</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Pagination */}
-                  <div className="pr-pagination">
-                    <span>Menampilkan {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.length)} dari {data.length} Data</span>
-                    <div className="pr-pagination-btns">
-                      <button className="pr-page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>
-                        <ChevronLeft size={14} />
-                      </button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                        .map((p, idx, arr) => (
-                          <React.Fragment key={p}>
-                            {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ padding: '0 4px', color: '#94a3b8' }}>…</span>}
-                            <button className={`pr-page-btn${page === p ? ' active' : ''}`} onClick={() => setPage(p)}>{p}</button>
-                          </React.Fragment>
-                        ))
-                      }
-                      <button className="pr-page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>
-                        <ChevronRight size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
           </div>
         </main>
       </div>
+
+      {/* ── Modal Detail Jabatan ── */}
+      {selectedDetail && (
+        <div className="pr-modal-overlay" onClick={() => setSelectedDetail(null)}>
+          <div className="pr-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="pr-modal-header">
+              <div className="pr-modal-title">Detail Kebutuhan Jabatan</div>
+              <button className="pr-modal-close" onClick={() => setSelectedDetail(null)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="pr-modal-body">
+              <div className="pr-detail-grid">
+                <div className="pr-detail-item">
+                  <span className="pr-detail-label">Satuan Kerja</span>
+                  <span className="pr-detail-value">{selectedDetail.opd}</span>
+                </div>
+                <div className="pr-detail-item">
+                  <span className="pr-detail-label">Nama Jabatan</span>
+                  <span className="pr-detail-value">{selectedDetail.jabatan}</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="pr-detail-item">
+                    <span className="pr-detail-label">Masa Jabatan Sebelumnya</span>
+                    <span className="pr-detail-value">{selectedDetail.masa_jabatan_sebelumnya || '-'}</span>
+                  </div>
+                  <div className="pr-detail-item">
+                    <span className="pr-detail-label">Mulai Kosong</span>
+                    <span className="pr-detail-value">{selectedDetail.mulai_kosong || '-'}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="pr-detail-item">
+                    <span className="pr-detail-label">Kualifikasi Pendidikan</span>
+                    <span className="pr-detail-value">{selectedDetail.kualifikasi || '-'}</span>
+                  </div>
+                  <div className="pr-detail-item">
+                    <span className="pr-detail-label">Kelas Jabatan</span>
+                    <span className="pr-detail-value">{selectedDetail.kelas_jabatan || '-'}</span>
+                  </div>
+                </div>
+                <div className="pr-detail-item" style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px dashed #e2e8f0' }}>
+                  <span className="pr-detail-label">Rencana / Estimasi Pengisian</span>
+                  <span className="pr-detail-value" style={{ color: '#3b82f6' }}>{selectedDetail.estimasi_pengisian}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
