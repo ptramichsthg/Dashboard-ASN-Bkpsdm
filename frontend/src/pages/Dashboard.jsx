@@ -518,7 +518,7 @@ const Dashboard = () => {
                 <div className="admin-menu-icon"><ClipboardList size={32} /></div>
                 <span className="admin-menu-label">LAYANAN</span>
               </a>
-              <a href="#" className="admin-menu-card">
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/perencanaan'); }} className="admin-menu-card">
                 <div className="admin-menu-icon"><LayoutDashboard size={32} /></div>
                 <span className="admin-menu-label">PERENCANAAN</span>
               </a>

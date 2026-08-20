@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import DataPegawai from './pages/DataPegawai';
 import Layanan from './pages/Layanan';
 import PengembanganKompetensi from './pages/PengembanganKompetensi';
+import Perencanaan from './pages/Perencanaan';
 import './index.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/sebaran-pegawai" element={<DataPegawai />} />
         <Route path="/layanan" element={<Layanan />} />
         <Route path="/pengembangan-kompetensi" element={<PengembanganKompetensi />} />
+        <Route path="/perencanaan" element={<Perencanaan />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
