@@ -240,7 +240,7 @@ export default function Perencanaan() {
             </div>
 
             {/* Hero Banner */}
-            <div className="hero-banner" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
+            <div className="hero-banner">
               <div className="hero-banner-content">
                 <h1>Peta Jabatan & Perencanaan ASN</h1>
                 <p>Data proyeksi kekosongan jabatan, analisis beban kerja, dan rencana pemenuhan kebutuhan pegawai.<br />
