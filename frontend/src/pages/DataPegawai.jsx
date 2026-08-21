@@ -5,7 +5,7 @@ import '../styles/DataPegawai.css';
 import {
   LogOut, LayoutDashboard, Users, Briefcase, FileText,
   Menu, X, Activity, Bell, Search, RefreshCw,
-  Building2, ChevronLeft, ChevronRight, Settings, BarChart2
+  Building2, ChevronLeft, ChevronRight, ChevronDown, Settings, BarChart2
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -189,12 +189,7 @@ export default function DataPegawai() {
   const uniqueSatker = [...new Set(dataList.map(d => d.satuan_kerja))].sort();
   uniqueSatker.forEach(satker => {
     if (satker) {
-      // Create a short label or use abbreviation
-      let label = OPD_ABBREVIATIONS[satker] || satker;
-      if (label.startsWith('KECAMATAN ')) {
-        label = label.replace('KECAMATAN ', 'KEC. ');
-      }
-      dynamicFilters.push({ label, value: satker });
+      dynamicFilters.push({ label: satker, value: satker });
     }
   });
 
@@ -333,56 +328,36 @@ export default function DataPegawai() {
             <div className="chart-card" style={{ padding: '1.25rem 1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-                {/* Previous Button */}
-                <button
-                  onClick={() => scrollFilters('left')}
-                  style={{
-                    padding: '0.5rem', borderRadius: '50%', border: '1px solid #e2e8f0',
-                    background: '#fff', color: '#475569',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '36px', minHeight: '36px', flexShrink: 0
-                  }}
-                >
-                  <ChevronLeft size={18} />
-                </button>
-
-                <div
-                  ref={filterContainerRef}
-                  className="hide-scrollbar"
-                  style={{ display: 'flex', gap: '0.5rem', flex: 1, overflowX: 'auto', scrollBehavior: 'smooth' }}
-                >
-                  {/* Filter OPDs */}
-                  {dynamicFilters.map(filter => (
-                    <button
-                      key={filter.value}
-                      onClick={() => setFilterSatker(filterSatker === filter.value ? 'Semua Satuan Kerja' : filter.value)}
-                      style={{
-                        padding: '0.5rem 1rem', borderRadius: '9999px',
-                        border: filterSatker === filter.value ? 'none' : '1px solid #e2e8f0',
-                        background: filterSatker === filter.value ? '#10b981' : '#fff',
-                        color: filterSatker === filter.value ? '#fff' : '#64748b',
-                        fontSize: '0.85rem', fontWeight: filterSatker === filter.value ? 600 : 500,
-                        cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s ease',
-                        boxShadow: filterSatker === filter.value ? '0 4px 6px -1px rgba(16, 185, 129, 0.3)' : 'none',
-                        flexShrink: 0
-                      }}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
+                <div style={{ position: 'relative', flex: 1, maxWidth: '600px' }}>
+                  <Building2 size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', zIndex: 1 }} />
+                  <select
+                    value={filterSatker}
+                    onChange={(e) => setFilterSatker(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.8rem 1rem 0.8rem 2.8rem',
+                      borderRadius: '10px',
+                      border: '1.5px solid #e2e8f0',
+                      backgroundColor: '#fff',
+                      color: '#0f172a',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      outline: 'none',
+                      cursor: 'pointer',
+                      appearance: 'none',
+                      fontFamily: 'inherit',
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                    }}
+                  >
+                    <option value="Semua Satuan Kerja">Semua Satuan Kerja</option>
+                    {dynamicFilters.map(filter => (
+                      <option key={filter.value} value={filter.value}>
+                        {filter.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', pointerEvents: 'none', zIndex: 1 }} />
                 </div>
-
-                {/* Next Button */}
-                <button
-                  onClick={() => scrollFilters('right')}
-                  style={{
-                    padding: '0.5rem', borderRadius: '50%', border: '1px solid #e2e8f0',
-                    background: '#fff', color: '#475569',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '36px', minHeight: '36px',
-                    flexShrink: 0
-                  }}
-                >
-                  <ChevronRight size={18} />
-                </button>
               </div>
             </div>
 

@@ -528,15 +528,15 @@ const Dashboard = () => {
               </a>
             </div>
             <div className="admin-menu-grid-row2">
-              <a href="#" className="admin-menu-card">
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/dashboard/pemberhentian'); }} className="admin-menu-card">
                 <div className="admin-menu-icon"><LogOut size={32} /></div>
                 <span className="admin-menu-label">PEMBERHENTIAN</span>
               </a>
-              <a href="#" className="admin-menu-card">
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/dashboard/tracking'); }} className="admin-menu-card">
                 <div className="admin-menu-icon"><Activity size={32} /></div>
                 <span className="admin-menu-label">TRACKING</span>
               </a>
-              <a href="#" className="admin-menu-card">
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/dashboard/perpustakaan'); }} className="admin-menu-card">
                 <div className="admin-menu-icon"><BookOpen size={32} /></div>
                 <span className="admin-menu-label">PERPUSTAKAAN</span>
               </a>
