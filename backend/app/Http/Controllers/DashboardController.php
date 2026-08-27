@@ -180,52 +180,34 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function bezettingJenisKelamin(Request $request)
+    /**
+     * Mengambil distribusi jenis kelamin untuk endpoint bezetting.
+     *
+     * Query params (opsional):
+     *   - bulan : nama bulan dalam Bahasa Indonesia
+     *   - tahun : tahun (integer)
+     */
+    public function bezettingJenisKelamin(Request $request): \Illuminate\Http\JsonResponse
     {
         $bulan = $request->input('bulan');
         $tahun = $request->input('tahun');
 
-        // Fetch data from jenis_kelamin table or use default/mock data if empty
         $distribusiGender = DB::table('jenis_kelamin')->get();
-        
-        $data = [];
-        if ($distribusiGender->isEmpty()) {
-            // Mock data matching the Postman output if table is empty
-            $data = [
-                [
-                    "bulan" => $bulan,
-                    "tahun" => $tahun,
-                    "nama" => "Laki-Laki",
-                    "jumlah" => "6457"
-                ],
-                [
-                    "bulan" => $bulan,
-                    "tahun" => $tahun,
-                    "nama" => "Perempuan",
-                    "jumlah" => "11458"
-                ]
-            ];
-        } else {
-            // Map actual database values to the required structure
-            foreach ($distribusiGender as $row) {
-                $data[] = [
-                    "bulan" => $bulan,
-                    "tahun" => $tahun,
-                    "nama" => $row->jenis_kelamin,
-                    "jumlah" => (string)$row->jumlah
-                ];
-            }
-        }
+
+        $data = $distribusiGender->map(fn($row) => [
+            'bulan'  => $bulan,
+            'tahun'  => $tahun,
+            'nama'   => $row->jenis_kelamin,
+            'jumlah' => (string) $row->jumlah,
+        ])->values()->all();
 
         return response()->json([
-            'success' => true,
-            'message' => 'Data berhasil diambil',
-            'data' => $data,
-            'parameter' => [
-                'tahun' => $tahun,
-                'bulan' => $bulan
-            ],
-            'timestamp' => now()->toIso8601String() . 'Z'
+            'success'   => true,
+            'message'   => 'Data berhasil diambil',
+            'data'      => $data,
+            'parameter' => ['tahun' => $tahun, 'bulan' => $bulan],
+            'timestamp' => now()->toIso8601String() . 'Z',
         ]);
     }
 }
+

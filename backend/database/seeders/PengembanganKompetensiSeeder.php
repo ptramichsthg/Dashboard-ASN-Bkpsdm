@@ -7,8 +7,20 @@ use Illuminate\Support\Facades\DB;
 
 class PengembanganKompetensiSeeder extends Seeder
 {
+    /**
+     * Mengisi tabel pengembangan_kompetensi dengan data sampel.
+     *
+     * PERINGATAN: Seeder ini menggunakan truncate() dan HANYA boleh dijalankan
+     * di environment local/development, tidak di production.
+     */
     public function run(): void
     {
+        // Guard: Cegah eksekusi di production untuk menghindari data loss
+        if (app()->isProduction()) {
+            $this->command->warn('[SKIPPED] PengembanganKompetensiSeeder: Tidak aman dijalankan di production.');
+            return;
+        }
+
         DB::table('pengembangan_kompetensi')->truncate();
 
         $satkerList = [

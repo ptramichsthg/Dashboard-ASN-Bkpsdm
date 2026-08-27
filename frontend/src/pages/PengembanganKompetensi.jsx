@@ -13,6 +13,10 @@ import {
   ResponsiveContainer, Legend, Cell
 } from 'recharts';
 
+import { usePengembanganKompetensi } from '../hooks/usePengembanganKompetensi';
+import KpiCard from '../components/shared/KpiCard';
+import FilterSelect from '../components/shared/FilterSelect';
+
 const TARGET_JP = 20;
 const PAGE_SIZE = 10;
 const CHART_PAGE_SIZE = 15;
@@ -140,12 +144,6 @@ export default function PengembanganKompetensi() {
   const navigate = useNavigate();
 
   // State
-  const [data, setData] = useState([]);
-  const [ringkasan, setRingkasan] = useState({ total_asn: 0, sudah_memenuhi: 0, belum_memenuhi: 0, total_jp: 0, asn_reward: 0 });
-  const [perOpd, setPerOpd] = useState([]);
-  const [bulanList, setBulanList] = useState([]);
-  const [satkerList, setSatkerList] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -160,33 +158,32 @@ export default function PengembanganKompetensi() {
   const [tahun, setTahun] = useState('2026');
   const [satker, setSatker] = useState('Semua');
   const [search, setSearch] = useState('');
+  
+  // Custom Hook
+  const {
+    data,
+    ringkasan,
+    perOpd,
+    bulanList,
+    satkerList,
+    loading,
+    refresh
+  } = usePengembanganKompetensi(bulan, tahun, satker, search);
+
+  // Pagination & Sort State
   const [page, setPage] = useState(1);
   const [chartPage, setChartPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/pengembangan-kompetensi', {
-        params: { bulan, tahun, satker, search }
-      });
-      setData(res.data.data || []);
-      setRingkasan(res.data.ringkasan || {});
-      setPerOpd(res.data.per_opd || []);
-      setBulanList(res.data.bulan_list || []);
-      setSatkerList(res.data.satker_list || []);
-      setChartPage(1); // Reset chart page on filter change
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
     const u = localStorage.getItem('user');
     if (u) setUser(JSON.parse(u));
+  }, []);
+
+  // Reset pagination saat filter berubah
+  useEffect(() => {
+    setPage(1);
+    setChartPage(1);
   }, [bulan, tahun, satker, search]);
 
   useEffect(() => {
@@ -200,9 +197,10 @@ export default function PengembanganKompetensi() {
     };
   }, [selectedAsn]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    fetchData().finally(() => setTimeout(() => setIsRefreshing(false), 600));
+    await refresh();
+    setTimeout(() => setIsRefreshing(false), 600);
   };
 
   const handleLogout = () => { localStorage.clear(); navigate('/'); };
@@ -360,59 +358,64 @@ export default function PengembanganKompetensi() {
 
             {/* ── KPI Cards ── */}
             <div className="pk-kpi-grid">
-              <div className="pk-kpi-card">
-                <div className="pk-kpi-icon blue"><Users size={22} /></div>
-                <div className="pk-kpi-info">
-                  <div className="pk-kpi-label">Total ASN</div>
-                  <div className="pk-kpi-value">{loading ? '…' : ringkasan.total_asn}</div>
-                  <div className="pk-kpi-sub">Bulan {bulan} {tahun}</div>
-                </div>
-              </div>
-              <div className="pk-kpi-card">
-                <div className="pk-kpi-icon green"><CheckCircle2 size={22} /></div>
-                <div className="pk-kpi-info">
-                  <div className="pk-kpi-label">Sudah Memenuhi</div>
-                  <div className="pk-kpi-value">{loading ? '…' : ringkasan.sudah_memenuhi}</div>
-                  <div className="pk-kpi-sub">≥ {TARGET_JP} JP bulan ini</div>
-                </div>
-              </div>
-              <div className="pk-kpi-card">
-                <div className="pk-kpi-icon red"><Clock size={22} /></div>
-                <div className="pk-kpi-info">
-                  <div className="pk-kpi-label">Belum Memenuhi</div>
-                  <div className="pk-kpi-value">{loading ? '…' : ringkasan.belum_memenuhi}</div>
-                  <div className="pk-kpi-sub">&lt; {TARGET_JP} JP bulan ini</div>
-                </div>
-              </div>
-              <div className="pk-kpi-card">
-                <div className="pk-kpi-icon gold"><Trophy size={22} /></div>
-                <div className="pk-kpi-info">
-                  <div className="pk-kpi-label">ASN Berprestasi</div>
-                  <div className="pk-kpi-value">{loading ? '…' : ringkasan.asn_reward}</div>
-                  <div className="pk-kpi-sub">&gt; {TARGET_JP} JP (reward)</div>
-                </div>
-              </div>
+              <KpiCard
+                icon={Users}
+                value={loading ? '…' : ringkasan.total_asn}
+                label="Total ASN"
+                sublabel={`Bulan ${bulan} ${tahun}`}
+                color="#3b82f6"
+                iconBg="#dbeafe"
+                cssClass="pk-kpi-card"
+              />
+              <KpiCard
+                icon={CheckCircle2}
+                value={loading ? '…' : ringkasan.sudah_memenuhi}
+                label="Sudah Memenuhi"
+                sublabel={`≥ ${TARGET_JP} JP bulan ini`}
+                color="#10b981"
+                iconBg="#d1fae5"
+                cssClass="pk-kpi-card"
+              />
+              <KpiCard
+                icon={Clock}
+                value={loading ? '…' : ringkasan.belum_memenuhi}
+                label="Belum Memenuhi"
+                sublabel={`< ${TARGET_JP} JP bulan ini`}
+                color="#f43f5e"
+                iconBg="#ffe4e6"
+                cssClass="pk-kpi-card"
+              />
+              <KpiCard
+                icon={Trophy}
+                value={loading ? '…' : ringkasan.asn_reward}
+                label="ASN Berprestasi"
+                sublabel={`> ${TARGET_JP} JP (reward)`}
+                color="#eab308"
+                iconBg="#fef9c3"
+                cssClass="pk-kpi-card"
+              />
             </div>
 
             {/* ── Filter Bar ── */}
             <div className="pk-filter-bar">
-              <label>Bulan</label>
-              <select className="pk-filter-select" value={bulan} onChange={e => { setBulan(e.target.value); setPage(1); }}>
-                {(bulanList.length ? bulanList : ['Agustus']).map(b => (
-                  <option key={b}>{b}</option>
-                ))}
-              </select>
-
-              <label>Tahun</label>
-              <select className="pk-filter-select" value={tahun} onChange={e => { setTahun(e.target.value); setPage(1); }}>
-                {tahunList.map(y => <option key={y}>{y}</option>)}
-              </select>
-
-              <label>Satuan Kerja</label>
-              <select className="pk-filter-select" value={satker} onChange={e => { setSatker(e.target.value); setPage(1); }}>
-                <option value="Semua">Semua Satuan Kerja</option>
-                {satkerList.map(s => <option key={s}>{s}</option>)}
-              </select>
+              <FilterSelect
+                label="Bulan"
+                value={bulan}
+                onChange={setBulan}
+                options={bulanList.length ? bulanList : ['Agustus']}
+              />
+              <FilterSelect
+                label="Tahun"
+                value={tahun}
+                onChange={setTahun}
+                options={tahunList}
+              />
+              <FilterSelect
+                label="Satuan Kerja"
+                value={satker}
+                onChange={setSatker}
+                options={[{ value: 'Semua', label: 'Semua Satuan Kerja' }, ...satkerList]}
+              />
 
               <div className="pk-search-wrapper">
                 <Search size={15} color="#94a3b8" />

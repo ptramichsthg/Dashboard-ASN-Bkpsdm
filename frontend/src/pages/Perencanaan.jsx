@@ -13,6 +13,10 @@ import {
   ResponsiveContainer, Legend
 } from 'recharts';
 
+import { usePerencanaan } from '../hooks/usePerencanaan';
+import KpiCard from '../components/shared/KpiCard';
+import FilterSelect from '../components/shared/FilterSelect';
+
 const PAGE_SIZE = 10;
 const CHART_PAGE_SIZE = 15;
 
@@ -127,49 +131,41 @@ const shortenOPD = (name) => {
 export default function Perencanaan() {
   const navigate = useNavigate();
 
-  // State
-  const [data, setData] = useState([]);
-  const [ringkasan, setRingkasan] = useState({ total_jabatan_kosong: 0, proyeksi_pensiun: 0, total_kebutuhan_pegawai: 0, formasi_disetujui: 0 });
-  const [perOpd, setPerOpd] = useState([]);
-  const [opdList, setOpdList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // State untuk pengguna & UI global
   const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Filter
   const [tahun, setTahun] = useState('2026');
   const [satker, setSatker] = useState('Semua');
   const [search, setSearch] = useState('');
+
+  // Panggil Custom Hook
+  const {
+    data,
+    ringkasan,
+    perOpd,
+    opdList,
+    loading,
+    refresh
+  } = usePerencanaan(tahun, satker, search);
   
-  // State untuk modal detail
+  // State untuk modal detail & pagination
   const [selectedDetail, setSelectedDetail] = useState(null);
   const [page, setPage] = useState(1);
   const [chartPage, setChartPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/perencanaan', {
-        params: { tahun, opd: satker, search }
-      });
-      setData(res.data.data || []);
-      setRingkasan(res.data.ringkasan || {});
-      setPerOpd(res.data.per_opd || []);
-      setOpdList(res.data.opd_list || []);
-      setChartPage(1);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
     const u = localStorage.getItem('user');
     if (u) setUser(JSON.parse(u));
+  }, []);
+
+  // Reset pagination saat filter berubah
+  useEffect(() => {
+    setPage(1);
+    setChartPage(1);
   }, [tahun, satker, search]);
 
   useEffect(() => {
@@ -183,9 +179,10 @@ export default function Perencanaan() {
     };
   }, [selectedDetail]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    fetchData().finally(() => setTimeout(() => setIsRefreshing(false), 600));
+    await refresh();
+    setTimeout(() => setIsRefreshing(false), 600);
   };
 
   const handleLogout = () => { localStorage.clear(); navigate('/'); };
@@ -328,52 +325,58 @@ export default function Perencanaan() {
 
             {/* ── KPI Cards ── */}
             <div className="pr-kpi-grid">
-              <div className="pr-kpi-card">
-                <div className="pr-kpi-icon red"><UserMinus size={22} /></div>
-                <div className="pr-kpi-info">
-                  <div className="pr-kpi-label">Jabatan Kosong</div>
-                  <div className="pr-kpi-value">{loading ? '…' : ringkasan.total_jabatan_kosong}</div>
-                  <div className="pr-kpi-sub">Total record jabatan</div>
-                </div>
-              </div>
-              <div className="pr-kpi-card">
-                <div className="pr-kpi-icon gold"><Briefcase size={22} /></div>
-                <div className="pr-kpi-info">
-                  <div className="pr-kpi-label">Proyeksi Pensiun</div>
-                  <div className="pr-kpi-value">{loading ? '…' : ringkasan.proyeksi_pensiun}</div>
-                  <div className="pr-kpi-sub">Di tahun {tahun}</div>
-                </div>
-              </div>
-              <div className="pr-kpi-card">
-                <div className="pr-kpi-icon blue"><Building size={22} /></div>
-                <div className="pr-kpi-info">
-                  <div className="pr-kpi-label">Total Kebutuhan</div>
-                  <div className="pr-kpi-value">{loading ? '…' : ringkasan.total_kebutuhan_pegawai}</div>
-                  <div className="pr-kpi-sub">Formasi/Pegawai baru</div>
-                </div>
-              </div>
-              <div className="pr-kpi-card">
-                <div className="pr-kpi-icon green"><ClipboardList size={22} /></div>
-                <div className="pr-kpi-info">
-                  <div className="pr-kpi-label">Estimasi Disetujui</div>
-                  <div className="pr-kpi-value">{loading ? '…' : ringkasan.formasi_disetujui}</div>
-                  <div className="pr-kpi-sub">Kuota Kemenpan-RB</div>
-                </div>
-              </div>
+              <KpiCard
+                icon={UserMinus}
+                value={loading ? '…' : ringkasan.total_jabatan_kosong}
+                label="Jabatan Kosong"
+                sublabel="Total record jabatan"
+                color="#f43f5e"
+                iconBg="#ffe4e6"
+                cssClass="pr-kpi-card"
+              />
+              <KpiCard
+                icon={Briefcase}
+                value={loading ? '…' : ringkasan.proyeksi_pensiun}
+                label="Proyeksi Pensiun"
+                sublabel={`Di tahun ${tahun}`}
+                color="#eab308"
+                iconBg="#fef9c3"
+                cssClass="pr-kpi-card"
+              />
+              <KpiCard
+                icon={Building}
+                value={loading ? '…' : ringkasan.total_kebutuhan_pegawai}
+                label="Total Kebutuhan"
+                sublabel="Formasi/Pegawai baru"
+                color="#3b82f6"
+                iconBg="#dbeafe"
+                cssClass="pr-kpi-card"
+              />
+              <KpiCard
+                icon={ClipboardList}
+                value={loading ? '…' : ringkasan.formasi_disetujui}
+                label="Estimasi Disetujui"
+                sublabel="Kuota Kemenpan-RB"
+                color="#10b981"
+                iconBg="#d1fae5"
+                cssClass="pr-kpi-card"
+              />
             </div>
 
             {/* ── Filter Bar ── */}
             <div className="pr-filter-bar">
-              <label>Tahun</label>
-              <select className="pr-filter-select" value={tahun} onChange={e => { setTahun(e.target.value); setPage(1); }}>
-                {tahunList.map(y => <option key={y}>{y}</option>)}
-              </select>
-
-              <label>Satuan Kerja</label>
-              <select className="pr-filter-select" value={satker} onChange={e => { setSatker(e.target.value); setPage(1); }}>
-                <option value="Semua">Semua Satuan Kerja</option>
-                {opdList.map(s => <option key={s}>{s}</option>)}
-              </select>
+              <FilterSelect
+                label="Tahun"
+                value={tahun}
+                onChange={setTahun}
+                options={tahunList}
+              />
+              <FilterSelect
+                label="Satuan Kerja"
+                value={satker}
+                onChange={setSatker}
+                options={[{ value: 'Semua', label: 'Semua Satuan Kerja' }, ...opdList]}
+              />
 
               <div className="pr-search-wrapper">
                 <Search size={15} color="#94a3b8" />
