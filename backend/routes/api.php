@@ -10,6 +10,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::post('/main/bezetting-jenis-kelamin', [\App\Http\Controllers\DashboardController::class, 'bezettingJenisKelamin']);
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
 Route::get('/satuan-kerja', [\App\Http\Controllers\SatuanKerjaController::class, 'index']);
 Route::get('/pengembangan-kompetensi', [\App\Http\Controllers\PengembanganKompetensiController::class, 'index']);

@@ -91,7 +91,7 @@ export default function Pemberhentian() {
         {/* Content Area */}
         <div className="content-area">
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
             <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
             <span>/</span>
             <span style={{ color: '#0f172a' }}>Pemberhentian & Pensiun</span>
@@ -118,7 +118,7 @@ export default function Pemberhentian() {
             </div>
           </div>
           
-          <div style={{ padding: '2rem 0', textAlign: 'center', color: '#64748b', fontSize: '1.1rem' }}>
+          <div style={{ padding: '2rem 0', textAlign: 'center', color: '#000000', fontWeight: 'bold', fontSize: '1.1rem' }}>
             Konten halaman masih kosong.
           </div>
         </div>

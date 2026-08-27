@@ -53,7 +53,7 @@ const StatusChip = ({ status }) => {
     <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
       <span className={`status-chip ${cls}`}>{mainStatus}</span>
       {detailStatus && (
-        <div style={{ fontSize: '0.9rem', color: '#475569', marginTop: '4px', textAlign: 'center' }}>
+        <div style={{ fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', marginTop: '4px', textAlign: 'center' }}>
           ({detailStatus})
         </div>
       )}
@@ -302,7 +302,7 @@ export default function Perencanaan() {
           {/* ── Content Area ── */}
           <div className="content-area">
             {/* Breadcrumb */}
-            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}>
+            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}>
               <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
               <span>/</span>
               <span style={{ color: '#0f172a' }}>Perencanaan Jabatan</span>
@@ -398,9 +398,9 @@ export default function Perencanaan() {
               </div>
 
               {loading ? (
-                <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8', fontSize: '1.1rem' }}>Memuat data…</div>
+                <div style={{ padding: '3rem', textAlign: 'center', color: '#000000', fontWeight: 'bold', fontSize: '1.1rem' }}>Memuat data…</div>
               ) : data.length === 0 ? (
-                <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
+                <div style={{ padding: '4rem', textAlign: 'center', color: '#000000', fontWeight: 'bold', fontSize: '1.1rem', fontWeight: 500 }}>
                   <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem', display: 'inline-block' }} />
                   <div>Data tidak tersedia</div>
                 </div>
@@ -447,8 +447,8 @@ export default function Perencanaan() {
                       <tbody>
                         {pagedData.map((row, i) => (
                           <tr key={row.id}>
-                            <td style={{ color: '#94a3b8', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
-                            <td style={{ fontSize: '0.85rem', color: '#475569', maxWidth: '250px', whiteSpace: 'normal' }}>
+                            <td style={{ color: '#000000', fontWeight: 'bold', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
+                            <td style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 'bold', maxWidth: '250px', whiteSpace: 'normal' }}>
                               {row.opd}
                             </td>
                             <td><span style={{ fontWeight: 700, color: '#0f172a' }}>{row.jabatan}</span></td>
@@ -460,7 +460,7 @@ export default function Perencanaan() {
                                 backgroundColor: '#f1f5f9', 
                                 borderRadius: '4px', 
                                 fontSize: '0.9rem',
-                                color: '#475569' 
+                                color: '#000000', fontWeight: 'bold' 
                               }}>
                                 {row.estimasi_pengisian}
                               </span>
@@ -485,7 +485,7 @@ export default function Perencanaan() {
                         .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
                         .map((p, idx, arr) => (
                           <React.Fragment key={p}>
-                            {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ padding: '0 4px', color: '#94a3b8' }}>…</span>}
+                            {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ padding: '0 4px', color: '#000000', fontWeight: 'bold' }}>…</span>}
                             <button className={`pr-page-btn${page === p ? ' active' : ''}`} onClick={() => setPage(p)}>{p}</button>
                           </React.Fragment>
                         ))
@@ -518,7 +518,7 @@ export default function Perencanaan() {
                       >
                         <ChevronLeft size={14} />
                       </button>
-                      <span style={{ fontSize: '0.85rem', color: '#64748b', display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
                         {chartPage} / {totalChartPages}
                       </span>
                       <button
@@ -537,12 +537,12 @@ export default function Perencanaan() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis
                       dataKey="short"
-                      tick={{ fontSize: 13, fill: '#475569', fontWeight: 500 }}
+                      tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 500 }}
                       angle={-40}
                       textAnchor="end"
                       interval={0}
                     />
-                    <YAxis tick={{ fontSize: 13, fill: '#475569', fontWeight: 500 }} allowDecimals={false} />
+                    <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 500 }} allowDecimals={false} />
                     <Tooltip content={<TooltipOPD />} labelFormatter={(label) => {
                       const found = opdChartData.find(d => d.short === label);
                       return found ? found.full : label;

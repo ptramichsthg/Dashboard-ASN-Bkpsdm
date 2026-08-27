@@ -86,7 +86,7 @@ function HorizontalChart({ data, color = '#266210', customColors = null, yAxisWi
         layout="vertical"
         margin={{ top: 0, right: 45, left: 0, bottom: 0 }}
       >
-        <XAxis type="number" tick={{ fontSize: 15, fill: '#475569' }} tickLine={false} axisLine={false} />
+        <XAxis type="number" tick={{ fontSize: 15, fill: '#000000', fontWeight: 'bold' }} tickLine={false} axisLine={false} />
         <YAxis
           type="category"
           dataKey="name"
@@ -477,7 +477,7 @@ const Dashboard = () => {
           )}
 
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
             <span style={{ color: '#0f172a' }}>Dashboard</span>
           </div>
 
@@ -619,7 +619,7 @@ const Dashboard = () => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', marginTop: '0.5rem', padding: '0 1rem' }}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0d9488' }}>{summaryData.laki.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
+                    <div style={{ fontSize: '0.8rem', color: '#000000', fontWeight: 'bold', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
                     <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#334155', marginTop: '2px' }}>
                       {summaryData.total > 0 ? ((summaryData.laki / summaryData.total) * 100).toFixed(1) : 0}%
                     </div>
@@ -629,7 +629,7 @@ const Dashboard = () => {
 
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#34d399' }}>{summaryData.perempuan.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
+                    <div style={{ fontSize: '0.8rem', color: '#000000', fontWeight: 'bold', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
                     <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#334155', marginTop: '2px' }}>
                       {summaryData.total > 0 ? ((summaryData.perempuan / summaryData.total) * 100).toFixed(1) : 0}%
                     </div>
@@ -645,7 +645,7 @@ const Dashboard = () => {
                   <div className="chart-icon-box" style={{ background: '#ecfdf5', color: '#10b981' }}>
                     <BarChart2 size={16} />
                   </div>
-                  <span className="chart-card-title">Grafik Jumlah Pegawai Aktif per OPD</span>
+                  <span className="chart-card-title">Grafik Jumlah Pegawai Aktif per Organisasi Perangkat Daerah</span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
                   <button
@@ -682,8 +682,8 @@ const Dashboard = () => {
               <ResponsiveContainer width="100%" height={360}>
                 <BarChart data={paginatedOpdData} margin={{ top: 20, right: 10, left: -10, bottom: 100 }}>
                   <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" tick={{ fontSize: 13, fill: '#475569', fontWeight: 600 }} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
-                  <YAxis tick={{ fontSize: 13, fill: '#475569', fontWeight: 500 }} tickLine={false} axisLine={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 600 }} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
+                  <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 500 }} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={{ fontSize: 14, borderRadius: 8, border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontWeight: 600 }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
                   <Bar dataKey="total" fill="#2ca27b" radius={[6, 6, 0, 0]} barSize={34} animationDuration={500}>
                     <LabelList dataKey="total" content={<CustomBarLabel />} />

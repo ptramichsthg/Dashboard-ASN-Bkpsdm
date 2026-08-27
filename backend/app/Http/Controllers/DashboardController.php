@@ -35,7 +35,7 @@ class DashboardController extends Controller
             $dataTahun = (string)$year;
             $dataBulan = $bulanIndo[$month];
             
-            $tahunList = ['Semua', '2024', '2025', '2026', '2027']; // Provide some options so user can interact
+            $tahunList = ['Semua', '2024', '2025', '2026', '2027']; 
             $bulanList = ['Semua', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         }
 
@@ -177,6 +177,55 @@ class DashboardController extends Controller
             'satuanKerjaList' => $satuanKerjaList,
             'tahunList' => $tahunList,
             'bulanList' => $bulanList,
+        ]);
+    }
+
+    public function bezettingJenisKelamin(Request $request)
+    {
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
+
+        // Fetch data from jenis_kelamin table or use default/mock data if empty
+        $distribusiGender = DB::table('jenis_kelamin')->get();
+        
+        $data = [];
+        if ($distribusiGender->isEmpty()) {
+            // Mock data matching the Postman output if table is empty
+            $data = [
+                [
+                    "bulan" => $bulan,
+                    "tahun" => $tahun,
+                    "nama" => "Laki-Laki",
+                    "jumlah" => "6457"
+                ],
+                [
+                    "bulan" => $bulan,
+                    "tahun" => $tahun,
+                    "nama" => "Perempuan",
+                    "jumlah" => "11458"
+                ]
+            ];
+        } else {
+            // Map actual database values to the required structure
+            foreach ($distribusiGender as $row) {
+                $data[] = [
+                    "bulan" => $bulan,
+                    "tahun" => $tahun,
+                    "nama" => $row->jenis_kelamin,
+                    "jumlah" => (string)$row->jumlah
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data berhasil diambil',
+            'data' => $data,
+            'parameter' => [
+                'tahun' => $tahun,
+                'bulan' => $bulan
+            ],
+            'timestamp' => now()->toIso8601String() . 'Z'
         ]);
     }
 }

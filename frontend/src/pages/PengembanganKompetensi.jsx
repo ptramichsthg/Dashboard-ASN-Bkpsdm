@@ -334,7 +334,7 @@ export default function PengembanganKompetensi() {
           {/* ── Content Area ── */}
           <div className="content-area">
             {/* Breadcrumb */}
-            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}>
+            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}>
               <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
               <span>/</span>
               <span style={{ color: '#0f172a' }}>Pengembangan Kompetensi</span>
@@ -444,7 +444,7 @@ export default function PengembanganKompetensi() {
                       >
                         <ChevronLeft size={14} />
                       </button>
-                      <span style={{ fontSize: '0.85rem', color: '#64748b', display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
                         {chartPage} / {totalChartPages}
                       </span>
                       <button
@@ -463,12 +463,12 @@ export default function PengembanganKompetensi() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis
                       dataKey="short"
-                      tick={{ fontSize: 13, fill: '#475569', fontWeight: 500 }}
+                      tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 500 }}
                       angle={-40}
                       textAnchor="end"
                       interval={0}
                     />
-                    <YAxis tick={{ fontSize: 13, fill: '#475569', fontWeight: 500 }} allowDecimals={false} />
+                    <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 500 }} allowDecimals={false} />
                     <Tooltip content={<TooltipOPD />} labelFormatter={(label) => {
                       const found = opdChartData.find(d => d.short === label);
                       return found ? found.full : label;
@@ -492,9 +492,9 @@ export default function PengembanganKompetensi() {
               </div>
 
               {loading ? (
-                <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8', fontSize: '1.1rem' }}>Memuat data…</div>
+                <div style={{ padding: '3rem', textAlign: 'center', color: '#000000', fontWeight: 'bold', fontSize: '1.1rem' }}>Memuat data…</div>
               ) : data.length === 0 ? (
-                <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
+                <div style={{ padding: '4rem', textAlign: 'center', color: '#000000', fontWeight: 'bold', fontSize: '1.1rem', fontWeight: 500 }}>
                   <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem', display: 'inline-block' }} />
                   <div>Data tidak tersedia</div>
                 </div>
@@ -542,13 +542,13 @@ export default function PengembanganKompetensi() {
                       <tbody>
                         {pagedData.map((row, i) => (
                           <tr key={row.nip}>
-                            <td style={{ color: '#94a3b8', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
+                            <td style={{ color: '#000000', fontWeight: 'bold', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
                             <td><span className="nip-text">{row.nip}</span></td>
                             <td><span className="nama-text">{row.nama}</span></td>
-                            <td style={{ fontSize: '0.82rem', color: '#475569', textAlign: 'center' }} title={row.satuan_kerja}>
+                            <td style={{ fontSize: '0.82rem', color: '#000000', fontWeight: 'bold', textAlign: 'center' }} title={row.satuan_kerja}>
                               {shortenOPD(row.satuan_kerja)}
                             </td>
-                            <td style={{ fontSize: '0.82rem', color: '#94a3b8', textAlign: 'center' }}>-</td>
+                            <td style={{ fontSize: '0.82rem', color: '#000000', fontWeight: 'bold', textAlign: 'center' }}>-</td>
                             <td><JpProgressBar totalJp={row.total_jp} target={TARGET_JP} /></td>
                             <td><StatusChip row={row} /></td>
                             <td style={{ textAlign: 'center' }}>
@@ -571,7 +571,7 @@ export default function PengembanganKompetensi() {
                         .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
                         .map((p, idx, arr) => (
                           <React.Fragment key={p}>
-                            {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ padding: '0 4px', color: '#94a3b8' }}>…</span>}
+                            {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ padding: '0 4px', color: '#000000', fontWeight: 'bold' }}>…</span>}
                             <button className={`pk-page-btn${page === p ? ' active' : ''}`} onClick={() => setPage(p)}>{p}</button>
                           </React.Fragment>
                         ))
@@ -648,11 +648,11 @@ export default function PengembanganKompetensi() {
               </h3>
 
               {loadingHistory ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#000000', fontWeight: 'bold' }}>
                   Memuat data riwayat...
                 </div>
               ) : historyData.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#000000', fontWeight: 'bold' }}>
                   Belum ada riwayat pengembangan kompetensi pada bulan ini.
                 </div>
               ) : (
