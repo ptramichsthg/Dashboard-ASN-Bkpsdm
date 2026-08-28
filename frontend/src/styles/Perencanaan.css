@@ -78,7 +78,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
   margin-bottom: 1.25rem;
   background: var(--card-bg);
@@ -88,11 +88,44 @@
   box-shadow: var(--shadow-sm);
 }
 
-.pr-filter-bar label {
+/* Filter Select Wrapper untuk spacing konsisten */
+.pr-filter-bar .filter-select-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pr-filter-bar .filter-select-label {
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+/* Styling untuk select dalam filter bar */
+.pr-filter-bar .filter-select {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--input-bg, #f8fafc);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  min-width: 150px;
+}
+
+.pr-filter-bar .filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Khusus untuk filter Satuan Kerja - kurangi lebar */
+.pr-filter-bar .filter-select-wrapper:nth-child(2) .filter-select {
+  min-width: 220px;
+  max-width: 280px;
 }
 
 .pr-filter-select {
@@ -114,19 +147,32 @@
 
 .pr-search-wrapper {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pr-search-wrapper .filter-select-label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pr-search-wrapper > div {
+  display: flex;
   align-items: center;
   gap: 0.5rem;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) - 4px);
   padding: 0.55rem 1rem;
   background: var(--input-bg, #f8fafc);
-  flex: 1;
-  min-width: 250px;
+  min-width: 280px;
   max-width: 350px;
   transition: border-color 0.2s;
 }
 
-.pr-search-wrapper:focus-within {
+.pr-search-wrapper > div:focus-within {
   border-color: var(--primary);
 }
 
@@ -353,6 +399,12 @@
   justify-content: center;
   z-index: 9999;
   padding: 2rem;
+}
+
+/* Animasi Spin untuk Loading */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .pr-modal-content {

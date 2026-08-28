@@ -347,8 +347,7 @@ export default function DataPegawai() {
                       appearance: 'none',
                       fontFamily: 'inherit',
                       boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                      textAlign: 'center',
-                      textAlignLast: 'center'
+                      textAlign: 'left'
                     }}
                   >
                     <option value="Semua Satuan Kerja">Semua Satuan Kerja</option>

@@ -140,16 +140,26 @@ export default function Perencanaan() {
   const [tahun, setTahun] = useState('2026');
   const [satker, setSatker] = useState('Semua');
   const [search, setSearch] = useState('');
+  const [searchDebounced, setSearchDebounced] = useState('');
 
-  // Panggil Custom Hook
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchDebounced(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Panggil Custom Hook dengan debounced search
   const {
     data,
     ringkasan,
     perOpd,
     opdList,
     loading,
+    error,
     refresh
-  } = usePerencanaan(tahun, satker, search);
+  } = usePerencanaan(tahun, satker, searchDebounced);
   
   // State untuk modal detail & pagination
   const [selectedDetail, setSelectedDetail] = useState(null);
@@ -166,7 +176,7 @@ export default function Perencanaan() {
   useEffect(() => {
     setPage(1);
     setChartPage(1);
-  }, [tahun, satker, search]);
+  }, [tahun, satker, searchDebounced]);
 
   useEffect(() => {
     if (selectedDetail) {
@@ -379,13 +389,16 @@ export default function Perencanaan() {
               />
 
               <div className="pr-search-wrapper">
-                <Search size={15} color="#94a3b8" />
-                <input
-                  type="text"
-                  placeholder="Cari nama jabatan / OPD…"
-                  value={search}
-                  onChange={e => { setSearch(e.target.value); setPage(1); }}
-                />
+                <label className="filter-select-label">Pencarian</label>
+                <div>
+                  <Search size={15} color="#94a3b8" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama jabatan / OPD…"
+                    value={search}
+                    onChange={e => { setSearch(e.target.value); setPage(1); }}
+                  />
+                </div>
               </div>
             </div>
 
@@ -397,15 +410,54 @@ export default function Perencanaan() {
                   <Briefcase size={18} color="#3b82f6" />
                   Daftar Jabatan Kosong / Kurang
                 </div>
-                <span className="pr-table-count">{data.length} Data ditemukan</span>
+                <span className="pr-table-count">
+                  {loading ? 'Memuat data...' : `${data.length} Data ditemukan`}
+                </span>
               </div>
 
               {loading ? (
-                <div style={{ padding: '3rem', textAlign: 'center', color: '#000000', fontWeight: 'bold', fontSize: '1.1rem' }}>Memuat data…</div>
+                <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', fontSize: '1.1rem' }}>
+                  <RefreshCw size={48} style={{ opacity: 0.3, marginBottom: '1rem', display: 'inline-block', animation: 'spin 1s linear infinite' }} />
+                  <div>Memuat data...</div>
+                </div>
+              ) : error ? (
+                <div style={{ padding: '4rem', textAlign: 'center' }}>
+                  <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem', display: 'inline-block', color: '#ef4444' }} />
+                  <div style={{ color: '#ef4444', fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+                    Gagal Memuat Data
+                  </div>
+                  <div style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                    {error}
+                  </div>
+                  <button 
+                    onClick={handleRefresh}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    <RefreshCw size={16} />
+                    Coba Lagi
+                  </button>
+                </div>
               ) : data.length === 0 ? (
-                <div style={{ padding: '4rem', textAlign: 'center', color: '#000000', fontWeight: 'bold', fontSize: '1.1rem', fontWeight: 500 }}>
+                <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
                   <Database size={48} style={{ opacity: 0.2, marginBottom: '1rem', display: 'inline-block' }} />
                   <div>Data tidak tersedia</div>
+                  {(search || satker !== 'Semua') && (
+                    <div style={{ fontSize: '0.9rem', marginTop: '0.5rem', opacity: 0.8 }}>
+                      Coba ubah filter atau kata kunci pencarian
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>

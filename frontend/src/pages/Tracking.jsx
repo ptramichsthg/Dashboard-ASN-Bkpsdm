@@ -414,13 +414,16 @@ export default function Tracking() {
                 options={[{ value: 'Semua', label: 'Semua Perangkat Daerah' }, ...satkerList.map(s => ({ value: s, label: s }))]}
               />
               <div className="tr-search-wrapper">
-                <Search size={15} color="#94a3b8" />
-                <input
-                  type="text"
-                  placeholder="Cari nama / NIP / no. surat…"
-                  value={search}
-                  onChange={e => { setSearch(e.target.value); setPage(1); }}
-                />
+                <label className="filter-select-label">Pencarian</label>
+                <div>
+                  <Search size={15} color="#94a3b8" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama / NIP / no. surat…"
+                    value={search}
+                    onChange={e => { setSearch(e.target.value); setPage(1); }}
+                  />
+                </div>
               </div>
             </div>
 

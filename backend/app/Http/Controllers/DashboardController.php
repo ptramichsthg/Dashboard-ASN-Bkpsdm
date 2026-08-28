@@ -102,6 +102,7 @@ class DashboardController extends Controller
 
         // Distribusi Gender (Donat Chart) - Fetch from external API
         $distribusiGender = [];
+        $apiSummaryOverride = false; // flag untuk override summary dari API
         try {
             $bulanMap = [
                 'Januari' => '01', 'Februari' => '02', 'Maret' => '03', 'April' => '04',
@@ -123,13 +124,29 @@ class DashboardController extends Controller
             if ($response->successful()) {
                 $apiData = $response->json('data');
                 if (is_array($apiData)) {
+                    $apiLaki = 0;
+                    $apiPerempuan = 0;
                     foreach ($apiData as $item) {
                         // Sesuaikan penamaan agar seragam dengan frontend (Laki-Laki -> Laki-laki)
                         $name = $item['nama'] === 'Laki-Laki' ? 'Laki-laki' : $item['nama'];
+                        $jumlah = (int) $item['jumlah'];
                         $distribusiGender[] = [
                             'name' => $name,
-                            'value' => (int) $item['jumlah']
+                            'value' => $jumlah
                         ];
+                        // Akumulasi total dari API untuk override summary
+                        if ($item['nama'] === 'Laki-Laki') {
+                            $apiLaki = $jumlah;
+                        } else {
+                            $apiPerempuan = $jumlah;
+                        }
+                    }
+                    // Override summary dengan data live API jika filter satker = Semua
+                    if ($satker === 'Semua Satuan Kerja' && ($apiLaki > 0 || $apiPerempuan > 0)) {
+                        $totalLaki = $apiLaki;
+                        $totalPerempuan = $apiPerempuan;
+                        $total = $apiLaki + $apiPerempuan;
+                        $apiSummaryOverride = true;
                     }
                 }
             } else {

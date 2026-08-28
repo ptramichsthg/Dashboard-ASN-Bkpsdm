@@ -10,16 +10,10 @@ class PerencanaanController extends Controller
     /** Jumlah item per halaman untuk paginasi server-side (jika dibutuhkan) */
     private const PAGE_SIZE = 10;
 
-    /**
-     * Mengambil daftar jabatan kosong/kurang beserta ringkasan KPI dan data grafik.
-     *
-     * Query params (opsional):
-     *   - opd    : filter berdasarkan nama OPD (default: 'Semua')
-     *   - search : kata kunci pencarian jabatan atau OPD
-     *   - tahun  : filter tahun (default: '2026')
-     */
     public function index(Request $request): \Illuminate\Http\JsonResponse
     {
+        $startTime = microtime(true);
+        
         $opdFilter = $request->query('opd', 'Semua');
         $search    = $request->query('search', '');
         $tahun     = $request->query('tahun', '2026');
@@ -62,11 +56,17 @@ class PerencanaanController extends Controller
             ->orderBy('opd')
             ->pluck('opd');
 
+        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
+        \Log::info("[PerencanaanController] Query executed in {$executionTime}ms");
+
         return response()->json([
             'ringkasan' => $ringkasan,
             'per_opd'   => $perOpd,
             'data'      => $filteredData->values(),
             'opd_list'  => $opdList,
+            'meta'      => [
+                'execution_time_ms' => $executionTime,
+            ],
         ]);
     }
 

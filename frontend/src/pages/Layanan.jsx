@@ -413,10 +413,31 @@ export default function Layanan() {
         </div>
 
         {/* ─── Row 3: Stat Cards ──────────────────────────────────────── */}
-        <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
-          <KpiCard label="Usulan" value={loading ? '…' : stats.usulan} icon={FileText} color="#d97706" iconBg="#fef3c7" />
-          <KpiCard label="Proses" value={loading ? '…' : stats.proses} icon={Clock} color="#2563eb" iconBg="#dbeafe" />
-          <KpiCard label="Selesai" value={loading ? '…' : stats.selesai} icon={CheckCircle2} color="#059669" iconBg="#d1fae5" />
+        <div className="layanan-kpi-grid">
+          <KpiCard 
+            label="Usulan" 
+            value={loading ? '…' : stats.usulan} 
+            icon={FileText} 
+            color="#d97706" 
+            iconBg="#fef3c7" 
+            cssClass="layanan-kpi-card"
+          />
+          <KpiCard 
+            label="Proses" 
+            value={loading ? '…' : stats.proses} 
+            icon={Clock} 
+            color="#2563eb" 
+            iconBg="#dbeafe" 
+            cssClass="layanan-kpi-card"
+          />
+          <KpiCard 
+            label="Selesai" 
+            value={loading ? '…' : stats.selesai} 
+            icon={CheckCircle2} 
+            color="#059669" 
+            iconBg="#d1fae5" 
+            cssClass="layanan-kpi-card"
+          />
         </div>
 
         {/* ─── Row 4: Search & Table ──────────────────────────────────── */}

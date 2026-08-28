@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
   margin-bottom: 1.25rem;
   background: var(--card-bg);
@@ -44,14 +44,67 @@
   box-shadow: var(--shadow-sm);
 }
 
-.tr-filter-bar label {
+/* Filter Select Wrapper untuk spacing konsisten */
+.tr-filter-bar .filter-select-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tr-filter-bar .filter-select-label {
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-muted);
   white-space: nowrap;
 }
 
+/* Styling untuk select dalam filter bar */
+.tr-filter-bar .filter-select {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--input-bg, #f8fafc);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  min-width: 140px;
+}
+
+.tr-filter-bar .filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Khusus untuk filter Jenis Layanan - lebar sedang */
+.tr-filter-bar .filter-select-wrapper:nth-child(1) .filter-select {
+  min-width: 180px;
+  max-width: 240px;
+}
+
+/* Khusus untuk filter Perangkat Daerah - kurangi lebar */
+.tr-filter-bar .filter-select-wrapper:nth-child(4) .filter-select {
+  min-width: 220px;
+  max-width: 280px;
+}
+
 .tr-search-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tr-search-wrapper .filter-select-label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.tr-search-wrapper > div {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -59,13 +112,12 @@
   border-radius: calc(var(--radius) - 4px);
   padding: 0.55rem 1rem;
   background: var(--input-bg, #f8fafc);
-  flex: 1;
-  min-width: 250px;
+  min-width: 280px;
   max-width: 350px;
   transition: border-color 0.2s;
 }
 
-.tr-search-wrapper:focus-within {
+.tr-search-wrapper > div:focus-within {
   border-color: var(--primary);
 }
 
@@ -581,6 +633,16 @@
   .tr-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  .tr-filter-bar {
+    gap: 1.25rem;
+  }
+  
+  .tr-filter-bar .filter-select-wrapper:nth-child(1) .filter-select,
+  .tr-filter-bar .filter-select-wrapper:nth-child(4) .filter-select {
+    min-width: 180px;
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
@@ -591,10 +653,19 @@
   .tr-filter-bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
   }
-
+  
+  .tr-filter-bar .filter-select-wrapper,
   .tr-search-wrapper {
+    width: 100%;
+  }
+  
+  .tr-filter-bar .filter-select,
+  .tr-search-wrapper > div {
+    width: 100%;
     max-width: 100%;
+    min-width: 100%;
   }
 
   .tr-modal-summary {

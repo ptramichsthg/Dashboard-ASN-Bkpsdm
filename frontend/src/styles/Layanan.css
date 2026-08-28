@@ -1,2 +1,47 @@
 /* Layanan Page - Traditional CSS */
-/* Empty for now as it shares global classes */
+
+/* KPI Card untuk Layanan dengan outline hitam dan lebar penuh */
+.layanan-kpi-card {
+  border: 2px solid #0f172a !important;
+  box-shadow: var(--shadow-sm) !important;
+  width: 100% !important;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s !important;
+}
+
+.layanan-kpi-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-color: #000000 !important;
+}
+
+/* Container grid untuk KPI cards di Layanan */
+.layanan-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* Responsive untuk tablet */
+@media (max-width: 1024px) {
+  .layanan-kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  
+  .layanan-kpi-card {
+    min-width: auto !important;
+  }
+}
+
+/* Responsive untuk mobile */
+@media (max-width: 640px) {
+  .layanan-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .layanan-kpi-card {
+    min-width: 100% !important;
+  }
+}

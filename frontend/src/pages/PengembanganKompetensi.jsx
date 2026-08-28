@@ -418,13 +418,16 @@ export default function PengembanganKompetensi() {
               />
 
               <div className="pk-search-wrapper">
-                <Search size={15} color="#94a3b8" />
-                <input
-                  type="text"
-                  placeholder="Cari nama / NIP ASN…"
-                  value={search}
-                  onChange={e => { setSearch(e.target.value); setPage(1); }}
-                />
+                <label className="filter-select-label">Pencarian</label>
+                <div>
+                  <Search size={15} color="#94a3b8" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama / NIP ASN…"
+                    value={search}
+                    onChange={e => { setSearch(e.target.value); setPage(1); }}
+                  />
+                </div>
               </div>
             </div>
 
