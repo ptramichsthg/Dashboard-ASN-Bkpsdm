@@ -17,3 +17,5 @@ Route::get('/pengembangan-kompetensi', [\App\Http\Controllers\PengembanganKompet
 Route::get('/pengembangan-kompetensi/{nip}/history', [\App\Http\Controllers\PengembanganKompetensiController::class, 'history']);
 Route::get('/layanan', [\App\Http\Controllers\LayananController::class, 'index']);
 Route::get('/perencanaan', [\App\Http\Controllers\PerencanaanController::class, 'index']);
+Route::get('/tracking', [\App\Http\Controllers\TrackingController::class, 'index']);
+Route::get('/tracking/{id}', [\App\Http\Controllers\TrackingController::class, 'show']);
