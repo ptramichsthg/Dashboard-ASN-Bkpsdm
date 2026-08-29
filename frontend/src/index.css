@@ -1,3 +1,6 @@
+/* ===== IMPORT RESPONSIVE IMPROVEMENTS ===== */
+@import './styles/responsive-improvements.css';
+
 :root {
   --primary-dark: #064e3b;
   /* darker green */
@@ -1416,7 +1419,3 @@ body {
   scrollbar-width: none;
   /* Firefox */
 }
-
-
-/* ===== IMPORT RESPONSIVE IMPROVEMENTS ===== */
-@import './styles/responsive-improvements.css';
