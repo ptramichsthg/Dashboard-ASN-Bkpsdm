@@ -19,3 +19,7 @@ Route::get('/layanan', [\App\Http\Controllers\LayananController::class, 'index']
 Route::get('/perencanaan', [\App\Http\Controllers\PerencanaanController::class, 'index']);
 Route::get('/tracking', [\App\Http\Controllers\TrackingController::class, 'index']);
 Route::get('/tracking/{id}', [\App\Http\Controllers\TrackingController::class, 'show']);
+Route::get('/perpustakaan', [\App\Http\Controllers\PerpustakaanController::class, 'index']);
+Route::get('/perpustakaan/{id}', [\App\Http\Controllers\PerpustakaanController::class, 'show']);
+Route::post('/perpustakaan/{id}/unduh', [\App\Http\Controllers\PerpustakaanController::class, 'unduh']);
+
