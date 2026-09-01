@@ -23,3 +23,10 @@ Route::get('/perpustakaan', [\App\Http\Controllers\PerpustakaanController::class
 Route::get('/perpustakaan/{id}', [\App\Http\Controllers\PerpustakaanController::class, 'show']);
 Route::post('/perpustakaan/{id}/unduh', [\App\Http\Controllers\PerpustakaanController::class, 'unduh']);
 
+// Pemberhentian Routes
+Route::get('/pemberhentian', [\App\Http\Controllers\PemberhentianController::class, 'index']);
+Route::get('/pemberhentian/statistics', [\App\Http\Controllers\PemberhentianController::class, 'statistics']);
+Route::get('/pemberhentian/{id}', [\App\Http\Controllers\PemberhentianController::class, 'show']);
+Route::post('/pemberhentian/{id}/send-email', [\App\Http\Controllers\PemberhentianController::class, 'sendEmail']);
+Route::put('/pemberhentian/{id}/update-status', [\App\Http\Controllers\PemberhentianController::class, 'updateStatus']);
+
