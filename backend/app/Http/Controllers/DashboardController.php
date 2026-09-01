@@ -35,7 +35,7 @@ class DashboardController extends Controller
             $dataTahun = (string)$year;
             $dataBulan = $bulanIndo[$month];
             
-            $tahunList = ['Semua', '2024', '2025', '2026', '2027']; // Provide some options so user can interact
+            $tahunList = ['Semua', '2024', '2025', '2026', '2027']; 
             $bulanList = ['Semua', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         }
 
@@ -100,10 +100,64 @@ class DashboardController extends Controller
         $totalPerempuan = array_reduce($statusPegawai, function($carry, $item) { return $carry + $item['perempuan']; }, 0);
         $total = $totalLaki + $totalPerempuan;
 
-        // Distribusi Gender (Donat Chart)
-        $distribusiGender = DB::table('jenis_kelamin')->get()->map(function($row) {
-            return ['name' => $row->jenis_kelamin, 'value' => (int) $row->jumlah];
-        })->toArray();
+        // Distribusi Gender (Donat Chart) - Fetch from external API
+        $distribusiGender = [];
+        $apiSummaryOverride = false; // flag untuk override summary dari API
+        try {
+            $bulanMap = [
+                'Januari' => '01', 'Februari' => '02', 'Maret' => '03', 'April' => '04',
+                'Mei' => '05', 'Juni' => '06', 'Juli' => '07', 'Agustus' => '08',
+                'September' => '09', 'Oktober' => '10', 'November' => '11', 'Desember' => '12'
+            ];
+            
+            $apiBulan = ($bulanReq && $bulanReq !== 'Semua' && isset($bulanMap[$bulanReq])) ? $bulanMap[$bulanReq] : '';
+            $apiTahun = ($tahunReq && $tahunReq !== 'Semua') ? $tahunReq : '';
+
+            $response = \Illuminate\Support\Facades\Http::withoutVerifying()
+                ->acceptJson()
+                ->asJson()
+                ->post('https://simpelbkpsdm.bandungkab.go.id/api/v1/dashboard/main/bezetting-jenis-kelamin', [
+                    'bulan' => $apiBulan,
+                    'tahun' => $apiTahun
+                ]);
+
+            if ($response->successful()) {
+                $apiData = $response->json('data');
+                if (is_array($apiData)) {
+                    $apiLaki = 0;
+                    $apiPerempuan = 0;
+                    foreach ($apiData as $item) {
+                        // Sesuaikan penamaan agar seragam dengan frontend (Laki-Laki -> Laki-laki)
+                        $name = $item['nama'] === 'Laki-Laki' ? 'Laki-laki' : $item['nama'];
+                        $jumlah = (int) $item['jumlah'];
+                        $distribusiGender[] = [
+                            'name' => $name,
+                            'value' => $jumlah
+                        ];
+                        // Akumulasi total dari API untuk override summary
+                        if ($item['nama'] === 'Laki-Laki') {
+                            $apiLaki = $jumlah;
+                        } else {
+                            $apiPerempuan = $jumlah;
+                        }
+                    }
+                    // Override summary dengan data live API jika filter satker = Semua
+                    if ($satker === 'Semua Satuan Kerja' && ($apiLaki > 0 || $apiPerempuan > 0)) {
+                        $totalLaki = $apiLaki;
+                        $totalPerempuan = $apiPerempuan;
+                        $total = $apiLaki + $apiPerempuan;
+                        $apiSummaryOverride = true;
+                    }
+                }
+            } else {
+                throw new \Exception("API returned non-success response");
+            }
+        } catch (\Exception $e) {
+            // Fallback jika API eksternal gagal/timeout
+            $distribusiGender = DB::table('jenis_kelamin')->get()->map(function($row) {
+                return ['name' => $row->jenis_kelamin, 'value' => (int) $row->jumlah];
+            })->toArray();
+        }
 
         // Sebaran ASN per OPD (Bar Chart) - Top 12
         $sebaranOPDQuery = DB::table('satuan_kerja')
@@ -142,4 +196,35 @@ class DashboardController extends Controller
             'bulanList' => $bulanList,
         ]);
     }
+
+    /**
+     * Mengambil distribusi jenis kelamin untuk endpoint bezetting.
+     *
+     * Query params (opsional):
+     *   - bulan : nama bulan dalam Bahasa Indonesia
+     *   - tahun : tahun (integer)
+     */
+    public function bezettingJenisKelamin(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
+
+        $distribusiGender = DB::table('jenis_kelamin')->get();
+
+        $data = $distribusiGender->map(fn($row) => [
+            'bulan'  => $bulan,
+            'tahun'  => $tahun,
+            'nama'   => $row->jenis_kelamin,
+            'jumlah' => (string) $row->jumlah,
+        ])->values()->all();
+
+        return response()->json([
+            'success'   => true,
+            'message'   => 'Data berhasil diambil',
+            'data'      => $data,
+            'parameter' => ['tahun' => $tahun, 'bulan' => $bulan],
+            'timestamp' => now()->toIso8601String() . 'Z',
+        ]);
+    }
 }
+

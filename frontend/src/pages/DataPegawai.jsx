@@ -5,7 +5,7 @@ import '../styles/DataPegawai.css';
 import {
   LogOut, LayoutDashboard, Users, Briefcase, FileText,
   Menu, X, Activity, Bell, Search, RefreshCw,
-  Building2, ChevronLeft, ChevronRight, Settings, BarChart2
+  Building2, ChevronLeft, ChevronRight, ChevronDown, Settings, BarChart2
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -189,12 +189,7 @@ export default function DataPegawai() {
   const uniqueSatker = [...new Set(dataList.map(d => d.satuan_kerja))].sort();
   uniqueSatker.forEach(satker => {
     if (satker) {
-      // Create a short label or use abbreviation
-      let label = OPD_ABBREVIATIONS[satker] || satker;
-      if (label.startsWith('KECAMATAN ')) {
-        label = label.replace('KECAMATAN ', 'KEC. ');
-      }
-      dynamicFilters.push({ label, value: satker });
+      dynamicFilters.push({ label: satker, value: satker });
     }
   });
 
@@ -300,7 +295,7 @@ export default function DataPegawai() {
           )}
 
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
             <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Dashboard</span>
             <span>/</span>
             <span style={{ color: '#0f172a' }}>Sebaran Pegawai</span>
@@ -330,59 +325,40 @@ export default function DataPegawai() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
 
             {/* ── Filter & Search Bar ── */}
-            <div className="chart-card" style={{ padding: '1.25rem 1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="chart-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%' }}>
 
-                {/* Previous Button */}
-                <button
-                  onClick={() => scrollFilters('left')}
-                  style={{
-                    padding: '0.5rem', borderRadius: '50%', border: '1px solid #e2e8f0',
-                    background: '#fff', color: '#475569',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '36px', minHeight: '36px', flexShrink: 0
-                  }}
-                >
-                  <ChevronLeft size={18} />
-                </button>
-
-                <div
-                  ref={filterContainerRef}
-                  className="hide-scrollbar"
-                  style={{ display: 'flex', gap: '0.5rem', flex: 1, overflowX: 'auto', scrollBehavior: 'smooth' }}
-                >
-                  {/* Filter OPDs */}
-                  {dynamicFilters.map(filter => (
-                    <button
-                      key={filter.value}
-                      onClick={() => setFilterSatker(filterSatker === filter.value ? 'Semua Satuan Kerja' : filter.value)}
-                      style={{
-                        padding: '0.5rem 1rem', borderRadius: '9999px',
-                        border: filterSatker === filter.value ? 'none' : '1px solid #e2e8f0',
-                        background: filterSatker === filter.value ? '#10b981' : '#fff',
-                        color: filterSatker === filter.value ? '#fff' : '#64748b',
-                        fontSize: '0.85rem', fontWeight: filterSatker === filter.value ? 600 : 500,
-                        cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s ease',
-                        boxShadow: filterSatker === filter.value ? '0 4px 6px -1px rgba(16, 185, 129, 0.3)' : 'none',
-                        flexShrink: 0
-                      }}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
+                <div style={{ position: 'relative', flex: 1, maxWidth: '600px' }}>
+                  <Building2 size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#000000', fontWeight: 'bold', zIndex: 1 }} />
+                  <select
+                    value={filterSatker}
+                    onChange={(e) => setFilterSatker(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.8rem 1rem 0.8rem 2.8rem',
+                      borderRadius: '10px',
+                      border: '1.5px solid #e2e8f0',
+                      backgroundColor: '#fff',
+                      color: '#0f172a',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      outline: 'none',
+                      cursor: 'pointer',
+                      appearance: 'none',
+                      fontFamily: 'inherit',
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <option value="Semua Satuan Kerja">Semua Satuan Kerja</option>
+                    {dynamicFilters.map(filter => (
+                      <option key={filter.value} value={filter.value}>
+                        {filter.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#000000', fontWeight: 'bold', pointerEvents: 'none', zIndex: 1 }} />
                 </div>
-
-                {/* Next Button */}
-                <button
-                  onClick={() => scrollFilters('right')}
-                  style={{
-                    padding: '0.5rem', borderRadius: '50%', border: '1px solid #e2e8f0',
-                    background: '#fff', color: '#475569',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '36px', minHeight: '36px',
-                    flexShrink: 0
-                  }}
-                >
-                  <ChevronRight size={18} />
-                </button>
               </div>
             </div>
 
@@ -442,7 +418,7 @@ export default function DataPegawai() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', marginTop: '0.5rem', padding: '0 1rem' }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0d9488' }}>{totalLakiVal.toLocaleString()}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
+                      <div style={{ fontSize: '0.7rem', color: '#000000', fontWeight: 'bold', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
                       <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
                         {totalASNVal > 0 ? ((totalLakiVal / totalASNVal) * 100).toFixed(1) : 0}%
                       </div>
@@ -452,7 +428,7 @@ export default function DataPegawai() {
 
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#34d399' }}>{totalPerempuanVal.toLocaleString()}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
+                      <div style={{ fontSize: '0.7rem', color: '#000000', fontWeight: 'bold', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
                       <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
                         {totalASNVal > 0 ? ((totalPerempuanVal / totalASNVal) * 100).toFixed(1) : 0}%
                       </div>
@@ -468,7 +444,7 @@ export default function DataPegawai() {
                     <div className="chart-icon-box" style={{ background: '#ecfdf5', color: '#10b981' }}>
                       <BarChart2 size={16} />
                     </div>
-                    <span className="chart-card-title">Sebaran ASN pada OPD</span>
+                    <span className="chart-card-title">Sebaran ASN pada Organisasi Perangkat Daerah</span>
                   </div>
                   <div style={{ display: 'flex', gap: '0.25rem' }}>
                     <button
@@ -503,8 +479,8 @@ export default function DataPegawai() {
                 </div>
                 <ResponsiveContainer width="100%" height={360}>
                   <BarChart data={paginatedOpdData} margin={{ top: 10, right: 10, left: 0, bottom: 90 }}>
-                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#475569' }} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
-                    <YAxis tick={{ fontSize: 11, fill: '#475569' }} tickLine={false} axisLine={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#000000', fontWeight: 'bold' }} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
+                    <YAxis tick={{ fontSize: 11, fill: '#000000', fontWeight: 'bold' }} tickLine={false} axisLine={false} />
                     <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
                     <Legend verticalAlign="top" align="center" wrapperStyle={{ fontSize: '11px', paddingBottom: '20px' }} />
                     <Bar dataKey="PNS" stackId="a" fill="#3b82f6" animationDuration={500} />
@@ -548,30 +524,30 @@ export default function DataPegawai() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>No</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Satuan Kerja / OPD</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (L)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (P)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CPNS (P)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (L)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (P)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Total</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>No</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Satuan Kerja / OPD</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (L)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (P)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CPNS (P)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (L)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (P)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {currentTableData.map((row, i) => (
                         <tr key={row.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#475569' }}>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>
                             {(currentPage - 1) * itemsPerPage + i + 1}
                           </td>
                           <td style={{ padding: '1rem 1.5rem' }}>
                             <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0f172a' }}>{row.satuan_kerja}</div>
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#475569' }}>{row.pns_l}</td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#475569' }}>{row.pns_p}</td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#475569' }}>{row.cpns_p}</td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#475569' }}>{row.pppk_l}</td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#475569' }}>{row.pppk_p}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.pns_l}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.pns_p}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.cpns_p}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.pppk_l}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.pppk_p}</td>
                           <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', padding: '0.25rem 0.75rem', backgroundColor: '#ecfdf5', color: '#10b981', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700 }}>
                               {row.total}
@@ -582,7 +558,7 @@ export default function DataPegawai() {
                     </tbody>
                   </table>
                 ) : (
-                  <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                  <div style={{ padding: '3rem', textAlign: 'center', color: '#000000', fontWeight: 'bold' }}>
                     Tidak ada data ditemukan.
                   </div>
                 )}
@@ -591,7 +567,7 @@ export default function DataPegawai() {
               {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px' }}>
-                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>
                     Menampilkan <span style={{ fontWeight: 600, color: '#0f172a' }}>{(currentPage - 1) * itemsPerPage + 1}</span> hingga <span style={{ fontWeight: 600, color: '#0f172a' }}>{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> dari <span style={{ fontWeight: 600, color: '#0f172a' }}>{filteredData.length}</span> data
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -629,7 +605,7 @@ export default function DataPegawai() {
                             </button>
                           );
                         } else if (p === currentPage - 2 || p === currentPage + 2) {
-                          return <span key={p} style={{ color: '#94a3b8', padding: '0 0.25rem' }}>...</span>;
+                          return <span key={p} style={{ color: '#000000', fontWeight: 'bold', padding: '0 0.25rem' }}>...</span>;
                         }
                         return null;
                       })}

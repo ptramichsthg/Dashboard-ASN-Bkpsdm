@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import bgCard from '../assets/bg-card.png';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Layanan.css';
@@ -26,6 +26,10 @@ import {
   Star,
   Activity, Bell, Settings, LogOut, Database, RefreshCw, X,
 } from 'lucide-react';
+
+import { useLayanan } from '../hooks/useLayanan';
+import KpiCard from '../components/shared/KpiCard';
+import FilterSelect from '../components/shared/FilterSelect';
 
 // ─── Mock Data ─────────────────────────────────────────────────────────────────
 const JENIS_LAYANAN_LIST = [
@@ -63,7 +67,7 @@ const PERANGKAT_DAERAH_LIST = [
 
 const TOP3_LAYANAN = [
   { rank: 1, name: 'Kenaikan Pangkat Reguler', total: 1247, icon: Trophy, color: '#f59e0b' },
-  { rank: 2, name: 'Pensiun BUP', total: 834, icon: Medal, color: '#94a3b8' },
+  { rank: 2, name: 'Pensiun BUP', total: 834, icon: Medal, color: '#000000', fontWeight: 'bold' },
   { rank: 3, name: 'Cuti Tahunan', total: 612, icon: Award, color: '#b45309' },
 ];
 
@@ -87,69 +91,6 @@ function StatusBadge({ status }) {
       <span style={{ width: 8, height: 8, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
       {c.label}
     </span>
-  );
-}
-
-// ─── Custom Select ─────────────────────────────────────────────────────────────
-function CustomSelect({ value, onChange, options, icon: Icon, placeholder }) {
-  return (
-    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-      {Icon && (
-        <Icon size={15} style={{
-          position: 'absolute', left: 12, color: 'var(--text-muted)', zIndex: 1, pointerEvents: 'none'
-        }} />
-      )}
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        style={{
-          appearance: 'none',
-          padding: `9px ${Icon ? '34px' : '12px'} 9px ${Icon ? '34px' : '12px'}`,
-          paddingRight: '32px',
-          border: '1.5px solid var(--border)',
-          borderRadius: '10px',
-          background: 'white',
-          color: 'var(--text-main)',
-          fontSize: '1.05rem',
-          fontWeight: 700,
-          cursor: 'pointer',
-          outline: 'none',
-          minWidth: 170,
-          fontFamily: 'var(--font-sans)',
-        }}
-      >
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-      <ChevronDown size={14} style={{
-        position: 'absolute', right: 10, color: 'var(--text-muted)', pointerEvents: 'none'
-      }} />
-    </div>
-  );
-}
-
-// ─── Stat Card ─────────────────────────────────────────────────────────────────
-function StatCard({ icon: Icon, count, label, color, bgColor }) {
-  return (
-    <div style={{
-      background: 'white', padding: '1.5rem', borderRadius: 16,
-      border: '1px solid #0f172a', display: 'flex', gap: 16, alignItems: 'center',
-      boxShadow: 'var(--shadow-sm)', flex: 1, minWidth: 0,
-    }}>
-      <div style={{
-        width: 48, height: 48, borderRadius: 12,
-        background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-      }}>
-        <Icon size={22} color={color} />
-      </div>
-      <div>
-        <div style={{ fontSize: '2.6rem', fontWeight: 800, color, lineHeight: 1.1 }}>
-          {count.toLocaleString()}
-        </div>
-        <div style={{ fontSize: '1.3rem', color: 'var(--text-muted)', fontWeight: 700, marginTop: 2 }}>
-          {label}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -184,9 +125,6 @@ export default function Layanan() {
   const [user, setUser] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [layanans, setLayanans] = useState([]);
-  const [stats, setStats] = useState({ usulan: 0, proses: 0, selesai: 0 });
-  const [top3, setTop3] = useState([]);
 
   // Filters
   const [jenisLayanan, setJenisLayanan] = useState('Semua Layanan');
@@ -196,43 +134,24 @@ export default function Layanan() {
   const [searchNama, setSearchNama] = useState('');
   const [searchNIP, setSearchNIP] = useState('');
 
-  const fetchData = () => {
-    setIsRefreshing(true);
-    axios.get('http://localhost:8000/api/layanan', {
-      params: {
-        jenis_layanan: jenisLayanan,
-        tahun: tahun,
-        bulan: bulan,
-        satker: perangkatDaerah,
-        search: searchNama || searchNIP
-      }
-    })
-    .then(res => {
-      const data = res.data.data;
-      setLayanans(data.layanans);
-      setStats(data.stats);
-      
-      // Merge icons to top3
-      const icons = [Trophy, Medal, Award];
-      const colors = ['#f59e0b', '#94a3b8', '#b45309'];
-      const enrichedTop3 = data.top3.map((t, i) => ({
-        ...t,
-        rank: i + 1,
-        icon: icons[i % 3],
-        color: colors[i % 3]
-      }));
-      setTop3(enrichedTop3);
-    })
-    .catch(err => console.error(err))
-    .finally(() => setIsRefreshing(false));
-  };
+  // Panggil Custom Hook
+  const {
+    layanans,
+    stats,
+    top3,
+    loading,
+    refresh
+  } = useLayanan(jenisLayanan, tahun, bulan, perangkatDaerah, searchNama || searchNIP);
 
   useEffect(() => {
-    fetchData();
-  }, [jenisLayanan, tahun, bulan, perangkatDaerah, searchNama, searchNIP]);
+    const u = localStorage.getItem('user');
+    if (u) setUser(JSON.parse(u));
+  }, []);
 
-  const handleRefresh = () => {
-    fetchData();
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refresh();
+    setTimeout(() => setIsRefreshing(false), 600);
   };
   
   const handleLogout = () => {
@@ -380,7 +299,7 @@ export default function Layanan() {
         {/* Content */}
         <div className="content-area">
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
             <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Dashboard</span>
             <span>/</span>
             <span style={{ color: '#0f172a' }}>Layanan</span>
@@ -479,25 +398,46 @@ export default function Layanan() {
           <Filter size={15} color="var(--text-muted)" style={{ flexShrink: 0 }} />
           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', marginRight: 4 }}>Filter:</span>
 
-          <CustomSelect
+          <FilterSelect
             value={jenisLayanan} onChange={v => { setJenisLayanan(v); setPage(1); }}
-            options={JENIS_LAYANAN_LIST} icon={Layers} placeholder="Jenis Layanan"
+            options={JENIS_LAYANAN_LIST}
           />
-          <CustomSelect
+          <FilterSelect
             value={tahun} onChange={setTahun}
-            options={TAHUN_LIST} icon={Calendar} placeholder="Tahun"
+            options={TAHUN_LIST}
           />
-          <CustomSelect
+          <FilterSelect
             value={bulan} onChange={setBulan}
-            options={BULAN_LIST} icon={Calendar} placeholder="Bulan"
+            options={BULAN_LIST}
           />
         </div>
 
         {/* ─── Row 3: Stat Cards ──────────────────────────────────────── */}
-        <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
-          <StatCard label="Usulan" count={stats.usulan} icon={FileText} color="#d97706" bgColor="#fef3c7" />
-          <StatCard label="Proses" count={stats.proses} icon={Clock} color="#2563eb" bgColor="#dbeafe" />
-          <StatCard label="Selesai" count={stats.selesai} icon={CheckCircle2} color="#059669" bgColor="#d1fae5" />
+        <div className="layanan-kpi-grid">
+          <KpiCard 
+            label="Usulan" 
+            value={loading ? '…' : stats.usulan} 
+            icon={FileText} 
+            color="#d97706" 
+            iconBg="#fef3c7" 
+            cssClass="layanan-kpi-card"
+          />
+          <KpiCard 
+            label="Proses" 
+            value={loading ? '…' : stats.proses} 
+            icon={Clock} 
+            color="#2563eb" 
+            iconBg="#dbeafe" 
+            cssClass="layanan-kpi-card"
+          />
+          <KpiCard 
+            label="Selesai" 
+            value={loading ? '…' : stats.selesai} 
+            icon={CheckCircle2} 
+            color="#059669" 
+            iconBg="#d1fae5" 
+            cssClass="layanan-kpi-card"
+          />
         </div>
 
         {/* ─── Row 4: Search & Table ──────────────────────────────────── */}
@@ -510,9 +450,9 @@ export default function Layanan() {
             padding: '16px 20px', borderBottom: '1px solid var(--border)',
             display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
           }}>
-            <CustomSelect
+            <FilterSelect
               value={perangkatDaerah} onChange={v => { setPerangkatDaerah(v); setPage(1); }}
-              options={PERANGKAT_DAERAH_LIST} icon={Building2} placeholder="Perangkat Daerah"
+              options={PERANGKAT_DAERAH_LIST}
             />
 
             {/* Search Nama */}
@@ -595,11 +535,11 @@ export default function Layanan() {
                     <td style={{ ...tdStyle, color: 'var(--text-muted)', fontWeight: 600 }}>
                       {(page - 1) * perPage + idx + 1}
                     </td>
-                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '1.2rem', color: '#475569', fontWeight: 600 }}>
+                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '1.2rem', color: '#000000', fontWeight: 'bold', fontWeight: 600 }}>
                       {row.nip}
                     </td>
                     <td style={{ ...tdStyle, fontWeight: 700 }}>{row.nama}</td>
-                    <td style={{ ...tdStyle, color: '#475569', fontSize: '1.15rem' }}>{row.nomorSurat}</td>
+                    <td style={{ ...tdStyle, color: '#000000', fontWeight: 'bold', fontSize: '1.15rem' }}>{row.nomorSurat}</td>
                     <td style={{ ...tdStyle }}>
                       <span style={{
                         background: '#f0fdf4', color: '#065f46', padding: '4px 12px',
@@ -608,7 +548,7 @@ export default function Layanan() {
                         {row.layanan}
                       </span>
                     </td>
-                    <td style={{ ...tdStyle, color: '#475569' }}>{row.tanggalPengajuan}</td>
+                    <td style={{ ...tdStyle, color: '#000000', fontWeight: 'bold' }}>{row.tanggalPengajuan}</td>
                     <td style={{ ...tdStyle, color: row.tanggalKirim === '-' ? '#cbd5e1' : '#475569' }}>
                       {row.tanggalKirim}
                     </td>

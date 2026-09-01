@@ -7,8 +7,20 @@ use Illuminate\Support\Facades\DB;
 
 class PengembanganKompetensiSeeder extends Seeder
 {
+    /**
+     * Mengisi tabel pengembangan_kompetensi dengan data sampel.
+     *
+     * PERINGATAN: Seeder ini menggunakan truncate() dan HANYA boleh dijalankan
+     * di environment local/development, tidak di production.
+     */
     public function run(): void
     {
+        // Guard: Cegah eksekusi di production untuk menghindari data loss
+        if (app()->isProduction()) {
+            $this->command->warn('[SKIPPED] PengembanganKompetensiSeeder: Tidak aman dijalankan di production.');
+            return;
+        }
+
         DB::table('pengembangan_kompetensi')->truncate();
 
         $satkerList = [
@@ -35,36 +47,36 @@ class PengembanganKompetensiSeeder extends Seeder
 
         $asnData = [
             // Format: [nip, nama, satker]
-            ['196801011990011001', 'Ahmad Fauzi', $satkerList[0]],
-            ['197002151992012002', 'Siti Rahayu', $satkerList[0]],
-            ['198503201010011003', 'Budi Santoso', $satkerList[0]],
-            ['197805102000031004', 'Dewi Lestari', $satkerList[1]],
-            ['196912251991011005', 'Eko Prasetyo', $satkerList[1]],
-            ['199001052015041006', 'Fitria Nanda', $satkerList[1]],
-            ['197407181998031007', 'Gunawan Wibowo', $satkerList[2]],
-            ['198811122010011008', 'Hana Pertiwi', $satkerList[2]],
-            ['197603041997031009', 'Irwan Setiawan', $satkerList[3]],
-            ['199205152016041010', 'Juwita Sari', $satkerList[3]],
-            ['197109091993011011', 'Krisna Aditya', $satkerList[4]],
-            ['198402282006012012', 'Linda Maharani', $satkerList[4]],
-            ['197806162001011013', 'Muhammad Rizky', $satkerList[4]],
-            ['199108102015041014', 'Nita Kusumawati', $satkerList[5]],
-            ['197304071996031015', 'Oka Suryadi', $satkerList[5]],
-            ['198901272012041016', 'Puspita Dewi', $satkerList[6]],
-            ['197512301997031017', 'Qomaruddin', $satkerList[6]],
-            ['199307152018041018', 'Rina Fitriani', $satkerList[7]],
-            ['197803121999031019', 'Slamet Riyadi', $satkerList[7]],
-            ['198607072009041020', 'Tuti Alawiyah', $satkerList[8]],
-            ['199104032014041021', 'Udin Saefudin', $satkerList[8]],
-            ['197210201995032022', 'Vera Susanti', $satkerList[9]],
-            ['198204062005011023', 'Wahyu Pratama', $satkerList[9]],
-            ['199209182017041024', 'Xenia Pramudya', $satkerList[0]],
-            ['197506221998031025', 'Yusuf Hanafi', $satkerList[1]],
-            ['198703152008011026', 'Zainab Mutia', $satkerList[2]],
-            ['199011282013041027', 'Agus Hermawan', $satkerList[3]],
-            ['197901052003011028', 'Bayu Nugroho', $satkerList[4]],
-            ['198512102009042029', 'Citra Permata', $satkerList[5]],
-            ['199306072017042030', 'Dian Ratnasari', $satkerList[6]],
+            ['196801011990011001', 'Dr. Ahmad Fauzi, S.Kom., M.T.', $satkerList[0]],
+            ['197002151992012002', 'Siti Rahayu, S.E., M.Si.', $satkerList[0]],
+            ['198503201010011003', 'Ir. Budi Santoso, M.Eng.', $satkerList[0]],
+            ['197805102000031004', 'Hj. Dewi Lestari, S.Pd., M.Pd.', $satkerList[1]],
+            ['196912251991011005', 'Drs. Eko Prasetyo, M.M.', $satkerList[1]],
+            ['199001052015041006', 'Fitria Nanda, S.STP., M.Si.', $satkerList[1]],
+            ['197407181998031007', 'Gunawan Wibowo, S.H., M.H.', $satkerList[2]],
+            ['198811122010011008', 'dr. Hana Pertiwi, Sp.A.', $satkerList[2]],
+            ['197603041997031009', 'Irwan Setiawan, S.T.', $satkerList[3]],
+            ['199205152016041010', 'Juwita Sari, S.E.', $satkerList[3]],
+            ['197109091993011011', 'Krisna Aditya, S.Sos., M.AP.', $satkerList[4]],
+            ['198402282006012012', 'Linda Maharani, S.KM., M.Kes.', $satkerList[4]],
+            ['197806162001011013', 'Muhammad Rizky, S.IP., M.Si.', $satkerList[4]],
+            ['199108102015041014', 'Nita Kusumawati, S.Farm., Apt.', $satkerList[5]],
+            ['197304071996031015', 'Oka Suryadi, S.H.', $satkerList[5]],
+            ['198901272012041016', 'Puspita Dewi, S.Pd.', $satkerList[6]],
+            ['197512301997031017', 'Drs. Qomaruddin, M.Ag.', $satkerList[6]],
+            ['199307152018041018', 'Rina Fitriani, S.K.M.', $satkerList[7]],
+            ['197803121999031019', 'Slamet Riyadi, S.T., M.T.', $satkerList[7]],
+            ['198607072009041020', 'Tuti Alawiyah, S.E., Ak.', $satkerList[8]],
+            ['199104032014041021', 'Udin Saefudin, A.Md.', $satkerList[8]],
+            ['197210201995032022', 'Vera Susanti, S.Psi., M.Psi.', $satkerList[9]],
+            ['198204062005011023', 'Wahyu Pratama, S.Kom.', $satkerList[9]],
+            ['199209182017041024', 'Xenia Pramudya, S.ST.', $satkerList[0]],
+            ['197506221998031025', 'Dr. Yusuf Hanafi, M.A.', $satkerList[1]],
+            ['198703152008011026', 'Zainab Mutia, S.Gz.', $satkerList[2]],
+            ['199011282013041027', 'Agus Hermawan, S.H., M.Kn.', $satkerList[3]],
+            ['197901052003011028', 'Bayu Nugroho, S.Pt.', $satkerList[4]],
+            ['198512102009042029', 'Citra Permata, S.Kep., Ns.', $satkerList[5]],
+            ['199306072017042030', 'Dian Ratnasari, S.I.Kom.', $satkerList[6]],
         ];
 
         $bulan = 'Agustus';
@@ -72,39 +84,38 @@ class PengembanganKompetensiSeeder extends Seeder
 
         $records = [];
 
-        // Skenario JP per ASN yang bervariasi (beberapa kurang, beberapa pas, beberapa lebih)
+        // Skenario JP per ASN: Dominan KURANG (<20), sebagian LEBIH (>20), tidak ada/sangat jarang yang pas.
         $jpSkenario = [
-            // index ASN => array of jp pelatihan (total akan dihitung)
-            0  => [8, 15],          // total 23 JP → memenuhi + reward
-            1  => [5, 10],          // total 15 JP → kurang 5 JP
-            2  => [10, 12],         // total 22 JP → memenuhi + reward
-            3  => [6],              // total 6 JP  → kurang 14 JP
-            4  => [20],             // total 20 JP → tepat target
-            5  => [7, 5, 10],       // total 22 JP → memenuhi + reward
-            6  => [4, 8],           // total 12 JP → kurang 8 JP
-            7  => [10, 15, 8],      // total 33 JP → reward besar
-            8  => [12, 10],         // total 22 JP → memenuhi + reward
-            9  => [3, 5],           // total 8 JP  → kurang 12 JP
-            10 => [20, 10],         // total 30 JP → reward
-            11 => [8, 4],           // total 12 JP → kurang 8 JP
-            12 => [5, 10, 8],       // total 23 JP → memenuhi + reward
-            13 => [6, 6],           // total 12 JP → kurang 8 JP
-            14 => [20],             // total 20 JP → tepat target
-            15 => [15, 8],          // total 23 JP → memenuhi + reward
-            16 => [5],              // total 5 JP  → kurang 15 JP
-            17 => [10, 12],         // total 22 JP → memenuhi + reward
-            18 => [8, 3],           // total 11 JP → kurang 9 JP
-            19 => [20, 15],         // total 35 JP → reward besar
-            20 => [6, 10],          // total 16 JP → kurang 4 JP
-            21 => [12, 10],         // total 22 JP → memenuhi + reward
-            22 => [4, 8, 5],        // total 17 JP → kurang 3 JP
-            23 => [20],             // total 20 JP → tepat target
-            24 => [6, 8],           // total 14 JP → kurang 6 JP
-            25 => [10, 12, 5],      // total 27 JP → reward
-            26 => [5, 6],           // total 11 JP → kurang 9 JP
-            27 => [20, 8],          // total 28 JP → reward
-            28 => [4, 6],           // total 10 JP → kurang 10 JP
-            29 => [10, 12],         // total 22 JP → memenuhi + reward
+            0  => [10, 5],          // 15 (Kurang)
+            1  => [8],              // 8 (Kurang)
+            2  => [5, 4],           // 9 (Kurang)
+            3  => [15, 10],         // 25 (Lebih/Reward)
+            4  => [6, 6],           // 12 (Kurang)
+            5  => [10, 3],          // 13 (Kurang)
+            6  => [5],              // 5 (Kurang)
+            7  => [12, 10],         // 22 (Lebih/Reward)
+            8  => [8, 4],           // 12 (Kurang)
+            9  => [6, 8],           // 14 (Kurang)
+            10 => [30],             // 30 (Lebih/Reward)
+            11 => [5, 2],           // 7 (Kurang)
+            12 => [10],             // 10 (Kurang)
+            13 => [4, 4],           // 8 (Kurang)
+            14 => [18, 5],          // 23 (Lebih/Reward)
+            15 => [12],             // 12 (Kurang)
+            16 => [8, 2, 4],        // 14 (Kurang)
+            17 => [20, 5],          // 25 (Lebih/Reward)
+            18 => [10, 5],          // 15 (Kurang)
+            19 => [4],              // 4 (Kurang)
+            20 => [5, 6],           // 11 (Kurang)
+            21 => [15, 10],         // 25 (Lebih/Reward)
+            22 => [10, 8],          // 18 (Kurang)
+            23 => [5, 5],           // 10 (Kurang)
+            24 => [8, 2],           // 10 (Kurang)
+            25 => [14, 8],          // 22 (Lebih/Reward)
+            26 => [10],             // 10 (Kurang)
+            27 => [7, 6],           // 13 (Kurang)
+            28 => [16],             // 16 (Kurang)
+            29 => [8, 8, 8],        // 24 (Lebih/Reward)
         ];
 
         foreach ($asnData as $idx => $asn) {
@@ -115,12 +126,23 @@ class PengembanganKompetensiSeeder extends Seeder
                 $pilihanNama = $namaPelatihan[$jenisKey];
                 $namaPil = $pilihanNama[$idx % count($pilihanNama)];
 
+                $bidangList = ['Bidang Perencanaan', 'Bidang Mutasi dan Promosi', 'Bidang Pengembangan Aparatur', 'Bidang Penilaian Kinerja', 'Sekretariat'];
+                $penyelenggaraList = ['BKN Regional', 'LAN RI', 'BPSDM Provinsi', 'Pusdiklat Kemendagri', 'Lembaga Pelatihan Swasta'];
+                
+                $bidang = $bidangList[$idx % count($bidangList)];
+                $penyelenggara = $penyelenggaraList[($idx + $jpVal) % count($penyelenggaraList)];
+                $hari = ($idx + $jpVal) % 28 + 1;
+                $tanggal = sprintf("2026-08-%02d", $hari);
+
                 $records[] = [
                     'nip'              => $asn[0],
                     'nama_asn'         => $asn[1],
                     'satuan_kerja'     => $asn[2],
+                    'bidang'           => $bidang,
                     'nama_pelatihan'   => $namaPil,
                     'jenis_pelatihan'  => $jenisKey,
+                    'tanggal'          => $tanggal,
+                    'penyelenggara'    => $penyelenggara,
                     'jp'               => $jpVal,
                     'bulan'            => $bulan,
                     'tahun'            => $tahun,
