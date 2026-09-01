@@ -30,3 +30,7 @@ Route::get('/pemberhentian/{id}', [\App\Http\Controllers\PemberhentianController
 Route::post('/pemberhentian/{id}/send-email', [\App\Http\Controllers\PemberhentianController::class, 'sendEmail']);
 Route::put('/pemberhentian/{id}/update-status', [\App\Http\Controllers\PemberhentianController::class, 'updateStatus']);
 
+// Klasifikasi Jabatan Routes
+Route::get('/klasifikasi-jabatan', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'index']);
+Route::get('/klasifikasi-jabatan/statistics', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'statistics']);
+Route::get('/klasifikasi-jabatan/{id}', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'show']);
