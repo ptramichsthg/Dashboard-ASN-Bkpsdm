@@ -132,6 +132,89 @@ class KlasifikasiJabatanController extends Controller
     }
 
     /**
+     * Get aggregated data for MANAJERIAL jabatan only.
+     * Returns:
+     *  - rekap: bezetting/kebutuhan/selisih per subklasifikasi + eselon
+     *  - jabatan_kosong: list of positions where bezetting < kebutuhan
+     *
+     * @return JsonResponse
+     */
+    public function manajerial(): JsonResponse
+    {
+        try {
+            // Urutan eselon yang diinginkan
+            $eselonOrder = [
+                'Eselon II.a' => 1,
+                'Eselon II.b' => 2,
+                'Eselon III.a' => 3,
+                'Eselon III.b' => 4,
+                'Eselon IV.a' => 5,
+                'Eselon IV.b' => 6,
+            ];
+
+            // Rekap per subklasifikasi + eselon
+            $rekap = KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
+                ->selectRaw('
+                    subklasifikasi,
+                    jenis_eselon,
+                    SUM(bezetting) as total_bezetting,
+                    SUM(kebutuhan) as total_kebutuhan,
+                    SUM(selisih) as total_selisih,
+                    COUNT(*) as total_jabatan
+                ')
+                ->groupBy('subklasifikasi', 'jenis_eselon')
+                ->get()
+                ->sortBy(function ($item) use ($eselonOrder) {
+                    return $eselonOrder[$item->jenis_eselon] ?? 99;
+                })
+                ->values();
+
+            // Ringkasan total
+            $summary = KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
+                ->selectRaw('
+                    SUM(bezetting) as total_bezetting,
+                    SUM(kebutuhan) as total_kebutuhan,
+                    SUM(selisih) as total_selisih,
+                    COUNT(CASE WHEN bezetting < kebutuhan THEN 1 END) as total_jabatan_kosong
+                ')
+                ->first();
+
+            // List jabatan yang kosong/lowong (bezetting < kebutuhan)
+            $jabatanKosong = KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
+                ->whereRaw('bezetting < kebutuhan')
+                ->select(
+                    'id',
+                    'perangkat_daerah',
+                    'jabatan',
+                    'unit_kerja',
+                    'subklasifikasi',
+                    'jenis_eselon',
+                    'bezetting',
+                    'kebutuhan',
+                    'selisih'
+                )
+                ->orderByRaw('FIELD(jenis_eselon, "Eselon II.a", "Eselon II.b", "Eselon III.a", "Eselon III.b", "Eselon IV.a", "Eselon IV.b")')
+                ->orderBy('perangkat_daerah')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data jabatan manajerial berhasil diambil',
+                'data' => [
+                    'rekap' => $rekap,
+                    'summary' => $summary,
+                    'jabatan_kosong' => $jabatanKosong,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Display the specified klasifikasi jabatan.
      *
      * @param int $id

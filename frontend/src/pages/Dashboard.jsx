@@ -507,46 +507,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* ── ADMIN MENU ── */}
-          <div className="admin-menu-container">
-            <div className="admin-menu-grid-row1">
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/sebaran-pegawai'); }} className="admin-menu-card">
-                <div className="admin-menu-icon"><Users size={32} /></div>
-                <span className="admin-menu-label">SEBARAN PEGAWAI</span>
-              </a>
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/layanan'); }} className="admin-menu-card">
-                <div className="admin-menu-icon"><ClipboardList size={32} /></div>
-                <span className="admin-menu-label">LAYANAN</span>
-              </a>
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/perencanaan'); }} className="admin-menu-card">
-                <div className="admin-menu-icon"><LayoutDashboard size={32} /></div>
-                <span className="admin-menu-label">PERENCANAAN</span>
-              </a>
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/pengembangan-kompetensi'); }} className="admin-menu-card">
-                <div className="admin-menu-icon"><Award size={32} /></div>
-                <span className="admin-menu-label">PENGEMBANGAN<br />KOMPETENSI</span>
-              </a>
-            </div>
-            <div className="admin-menu-grid-row2">
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/dashboard/pemberhentian'); }} className="admin-menu-card">
-                <div className="admin-menu-icon"><LogOut size={32} /></div>
-                <span className="admin-menu-label">PEMBERHENTIAN</span>
-              </a>
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/dashboard/tracking'); }} className="admin-menu-card">
-                <div className="admin-menu-icon"><Activity size={32} /></div>
-                <span className="admin-menu-label">TRACKING</span>
-              </a>
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/dashboard/perpustakaan'); }} className="admin-menu-card">
-                <div className="admin-menu-icon"><BookOpen size={32} /></div>
-                <span className="admin-menu-label">PERPUSTAKAAN</span>
-              </a>
-              <a href="#" className="admin-menu-card">
-                <div className="admin-menu-icon"><Menu size={32} /></div>
-                <span className="admin-menu-label">LAINNYA</span>
-              </a>
-            </div>
-          </div>
-          <div className="admin-divider"></div>
+
 
           {/* ── KPI & FILTERS ── */}
           <div className="admin-kpi-filter-wrapper">

@@ -11,7 +11,9 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/main/bezetting-jenis-kelamin', [\App\Http\Controllers\DashboardController::class, 'bezettingJenisKelamin']);
+Route::get('/profil', [\App\Http\Controllers\DashboardController::class, 'profil']);
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
+
 Route::get('/satuan-kerja', [\App\Http\Controllers\SatuanKerjaController::class, 'index']);
 Route::get('/pengembangan-kompetensi', [\App\Http\Controllers\PengembanganKompetensiController::class, 'index']);
 Route::get('/pengembangan-kompetensi/{nip}/history', [\App\Http\Controllers\PengembanganKompetensiController::class, 'history']);
@@ -33,4 +35,6 @@ Route::put('/pemberhentian/{id}/update-status', [\App\Http\Controllers\Pemberhen
 // Klasifikasi Jabatan Routes
 Route::get('/klasifikasi-jabatan', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'index']);
 Route::get('/klasifikasi-jabatan/statistics', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'statistics']);
+Route::get('/klasifikasi-jabatan/manajerial', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'manajerial']);
 Route::get('/klasifikasi-jabatan/{id}', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'show']);
+

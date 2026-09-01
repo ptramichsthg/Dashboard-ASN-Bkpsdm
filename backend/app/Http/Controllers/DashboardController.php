@@ -7,8 +7,63 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    /**
+     * Endpoint untuk halaman Profil ASN.
+     * Mengembalikan data Jenis ASN: CPNS, PNS, PPPK, PPPK PW (pppk_p)
+     * dari tabel satuan_kerja (bisa difilter per satker).
+     */
+    public function profil(Request $request)
+    {
+        $satker = $request->query('satker', 'Semua Satuan Kerja');
+
+        // Untuk filter semua satker, gunakan tabel status_pegawai (lebih akurat)
+        // Untuk filter per satker, fallback ke satuan_kerja
+        if ($satker === 'Semua Satuan Kerja') {
+            $spQuery = DB::table('status_pegawai')
+                ->selectRaw('status_pegawai, jumlah')
+                ->pluck('jumlah', 'status_pegawai');
+
+            $cpns = (int) ($spQuery['CPNS'] ?? 0);
+            $pns  = (int) ($spQuery['PNS']  ?? 0);
+
+            // PPPK split: ambil pppk_l (full-time) dan pppk_p (PW) dari satuan_kerja
+            $pppkRow = DB::table('satuan_kerja')
+                ->selectRaw('SUM(pppk_l) as pppk_l, SUM(pppk_p) as pppk_p, SUM(total) as total_asn')
+                ->first();
+
+            $pppk   = (int) $pppkRow->pppk_l;
+            $pppkPw = (int) $pppkRow->pppk_p;
+            $total  = $cpns + $pns + $pppk + $pppkPw;
+        } else {
+            $row = DB::table('satuan_kerja')
+                ->where('satuan_kerja', $satker)
+                ->selectRaw('SUM(cpns_l) as cpns_l, SUM(cpns_p) as cpns_p, SUM(pns_l) as pns_l, SUM(pns_p) as pns_p, SUM(pppk_l) as pppk_l, SUM(pppk_p) as pppk_p, SUM(total) as total_asn')
+                ->first();
+
+            $cpns   = (int) $row->cpns_l + (int) $row->cpns_p;
+            $pns    = (int) $row->pns_l  + (int) $row->pns_p;
+            $pppk   = (int) $row->pppk_l;
+            $pppkPw = (int) $row->pppk_p;
+            $total  = (int) $row->total_asn;
+        }
+
+        $satuanKerjaList = DB::table('satuan_kerja')->pluck('satuan_kerja')->toArray();
+
+        return response()->json([
+            'jenis_asn' => [
+                ['label' => 'CPNS',    'value' => $cpns,   'icon' => 'cpns'],
+                ['label' => 'PNS',     'value' => $pns,    'icon' => 'pns'],
+                ['label' => 'PPPK',    'value' => $pppk,   'icon' => 'pppk'],
+                ['label' => 'PPPK PW', 'value' => $pppkPw, 'icon' => 'pppkpw'],
+            ],
+            'total_asn' => $total,
+            'satuan_kerja_list' => $satuanKerjaList,
+        ]);
+    }
+
     public function index(Request $request)
     {
+
         $satker = $request->query('satker', 'Semua Satuan Kerja');
         $tahunReq = $request->query('tahun');
         $bulanReq = $request->query('bulan');

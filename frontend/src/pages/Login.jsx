@@ -45,7 +45,7 @@ const Login = () => {
           await new Promise(resolve => setTimeout(resolve, remainingTime));
         }
 
-        navigate('/dashboard');
+        navigate('/profil');
       }
     } catch (err) {
       // Hitung waktu yang sudah berlalu
