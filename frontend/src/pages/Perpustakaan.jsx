@@ -61,7 +61,7 @@ export default function Perpustakaan() {
         <header className="topbar">
           <div className="topbar-inner">
             <div className="topbar-left">
-              <div className="topbar-brand">
+              <div className="topbar-brand" onClick={() => navigate('/profil')} style={{ cursor: 'pointer' }}>
                 <Activity size={28} className="brand-icon" />
                 <div className="brand-text">
                   <h2>BKPSDM PANEL</h2>
@@ -117,7 +117,9 @@ export default function Perpustakaan() {
         <div className="content-area">
           {/* Breadcrumb */}
           <div style={{ marginTop: '-1rem', marginBottom: '0.75rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
-            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
+            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/profil')}>Profil ASN</span>
+            <span>/</span>
+            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/lainnya')}>Lainnya</span>
             <span>/</span>
             <span style={{ color: '#0f172a' }}>Perpustakaan BKN & BKPSDM</span>
           </div>

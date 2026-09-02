@@ -148,7 +148,7 @@ export default function DataPegawai() {
         <header className="topbar">
           <div className="topbar-inner">
             <div className="topbar-left">
-              <div className="topbar-brand">
+              <div className="topbar-brand" onClick={() => navigate('/profil')} style={{ cursor: 'pointer' }}>
                 <Activity size={28} className="brand-icon" />
                 <div className="brand-text">
                   <h2>BKPSDM PANEL</h2>
@@ -227,7 +227,9 @@ export default function DataPegawai() {
 
           {/* Breadcrumb */}
           <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
-            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Dashboard</span>
+            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/profil')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Profil ASN</span>
+            <span>/</span>
+            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/lainnya')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Lainnya</span>
             <span>/</span>
             <span style={{ color: '#0f172a' }}>Sebaran Pegawai</span>
           </div>

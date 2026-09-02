@@ -253,7 +253,7 @@ const Profil = () => {
         <header className="topbar">
           <div className="topbar-inner">
             <div className="topbar-left">
-              <div className="topbar-brand">
+              <div className="topbar-brand" style={{ cursor: 'default' }}>
                 <Activity size={28} className="brand-icon" />
                 <div className="brand-text">
                   <h2>BKPSDM PANEL</h2>

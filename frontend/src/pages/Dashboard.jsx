@@ -329,7 +329,7 @@ const Dashboard = () => {
         <header className="topbar">
           <div className="topbar-inner">
             <div className="topbar-left">
-              <div className="topbar-brand">
+              <div className="topbar-brand" onClick={() => navigate('/profil')} style={{ cursor: 'pointer' }}>
                 <Activity size={28} className="brand-icon" />
                 <div className="brand-text">
                   <h2>BKPSDM PANEL</h2>
@@ -408,6 +408,10 @@ const Dashboard = () => {
 
           {/* Breadcrumb */}
           <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
+            <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/profil')}>Profil ASN</span>
+            <span>/</span>
+            <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/lainnya')}>Lainnya</span>
+            <span>/</span>
             <span style={{ color: '#0f172a' }}>Dashboard</span>
           </div>
 
