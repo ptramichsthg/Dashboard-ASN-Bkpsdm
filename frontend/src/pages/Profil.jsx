@@ -5,12 +5,9 @@ import useKlasifikasiJabatan from '../hooks/useKlasifikasiJabatan';
 import bgCard from '../assets/bg-card.png';
 import '../styles/Profil.css';
 
+import TopBar from '../components/shared/TopBar';
+
 import {
-  LogOut,
-  Activity,
-  Bell,
-  RefreshCw,
-  Settings,
   Search,
   Users,
   UserCheck,
@@ -24,8 +21,6 @@ import {
   Menu,
   Database,
 } from 'lucide-react';
-
-import LiveDateTime from '../components/shared/LiveDateTime';
 
 // Konfigurasi tiap jenis ASN
 const ASN_CONFIG = {
@@ -149,8 +144,6 @@ function ManajerialTree({ activeEselon, onSelect }) {
 // ── Main Component ────────────────────────────────────────────────────────────
 const Profil = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Data profil (jenis ASN)
@@ -180,8 +173,6 @@ const Profil = () => {
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
     if (!token) { navigate('/'); return; }
-    const userData = localStorage.getItem('user');
-    if (userData) setUser(JSON.parse(userData));
   }, [navigate]);
 
   // Fetch data profil
@@ -205,14 +196,6 @@ const Profil = () => {
     await Promise.all([fetchProfil(), refetch()]);
     setIsRefreshing(false);
   };
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    navigate('/');
-  };
-
-  const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';
 
   // Filtered rekap tabel (berdasarkan klik pohon)
   const rekapFiltered = useMemo(() => {
@@ -250,74 +233,7 @@ const Profil = () => {
       <main className="main-content" style={{ marginLeft: 0 }}>
 
         {/* ── TOPBAR ── */}
-        <header className="topbar">
-          <div className="topbar-inner">
-            <div className="topbar-left">
-              <div className="topbar-brand" style={{ cursor: 'default' }}>
-                <Activity size={28} className="brand-icon" />
-                <div className="brand-text">
-                  <h2>BKPSDM PANEL</h2>
-                  <span>SISTEM INFORMASI ASN</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="topbar-right">
-              <div className="live-data-indicator">
-                <LiveDateTime />
-                <div className="status"><span className="dot"></span> LIVE DATA</div>
-              </div>
-
-              <button
-                className="btn-refresh"
-                title="Muat Ulang Data"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                style={{ cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.7 : 1 }}
-              >
-                <RefreshCw size={18} className={isRefreshing ? 'spinner' : ''} />
-              </button>
-
-              <button className="btn-notification">
-                <Bell size={20} />
-              </button>
-
-              <div className="profile-container" style={{ position: 'relative' }}>
-                <div
-                  className="user-profile"
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)', transition: 'background-color 0.2s' }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--input-bg)'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <div className="user-info">
-                    <div className="user-name">{user?.name || 'Administrator'}</div>
-                  </div>
-                  <div className="avatar">{getInitials(user?.name)}</div>
-                </div>
-                {profileOpen && (
-                  <div className="profile-dropdown">
-                    <div className="dropdown-header">
-                      <strong>{user?.name || 'Administrator'}</strong>
-                      <span>{user?.nip || '198001012010011001'}</span>
-                    </div>
-                    <hr className="dropdown-divider" />
-                    <button
-                      className="dropdown-item"
-                      onClick={() => { navigate('/lainnya'); setProfileOpen(false); }}
-                    >
-                      <Menu size={16} /> Menu Lainnya
-                    </button>
-                    <button className="dropdown-item"><Settings size={16} /> Pengaturan Akun</button>
-                    <button onClick={handleLogout} className="dropdown-item logout-text">
-                      <LogOut size={16} /> Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+        <TopBar onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
         {/* ── CONTENT ── */}
         <div className="content-area">

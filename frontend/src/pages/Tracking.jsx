@@ -3,11 +3,11 @@ import bgCard from '../assets/bg-card.png';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import '../styles/Tracking.css';
+import TopBar from '../components/shared/TopBar';
 import {
-  Activity, Bell, RefreshCw, Settings, LogOut, Database,
   Users, CheckCircle2, Clock, Search, ChevronLeft,
   ChevronRight, BarChart2, ClipboardList, ArrowUpDown, ArrowUp, ArrowDown,
-  FileText, History,
+  FileText, History, Database
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -17,7 +17,6 @@ import {
 import { useTracking } from '../hooks/useTracking';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
-import LiveDateTime from '../components/shared/LiveDateTime';
 
 const PAGE_SIZE = 10;
 const CHART_PAGE_SIZE = 12;
@@ -105,8 +104,6 @@ export default function Tracking() {
 
   // State UI
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [profileOpen, setProfileOpen]   = useState(false);
-  const [user, setUser]                 = useState(null);
 
   // Modal State
   const [selectedItem, setSelectedItem]   = useState(null);
@@ -132,11 +129,6 @@ export default function Tracking() {
   const [chartPage, setChartPage]   = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
-  useEffect(() => {
-    const u = localStorage.getItem('user');
-    if (u) setUser(JSON.parse(u));
-  }, []);
-
   // Reset halaman saat filter berubah
   useEffect(() => {
     setPage(1);
@@ -153,13 +145,6 @@ export default function Tracking() {
     setIsRefreshing(true);
     await refresh();
     setTimeout(() => setIsRefreshing(false), 600);
-  };
-
-  const handleLogout = () => { localStorage.clear(); navigate('/'); };
-
-  const getInitials = (name) => {
-    if (!name) return 'A';
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
   const handleDetail = async (item) => {
@@ -221,59 +206,7 @@ export default function Tracking() {
         <main className="main-content" style={{ marginLeft: 0 }}>
 
           {/* ── Topbar ── */}
-          <header className="topbar">
-            <div className="topbar-inner">
-              <div className="topbar-left">
-                <div className="topbar-brand" onClick={() => navigate('/profil')} style={{ cursor: 'pointer' }}>
-                  <Activity size={28} className="brand-icon" />
-                  <div className="brand-text">
-                    <h2>BKPSDM PANEL</h2>
-                    <span>SISTEM INFORMASI ASN</span>
-                  </div>
-                </div>
-              </div>
-              <div className="topbar-right">
-                <div className="live-data-indicator">
-                  <LiveDateTime />
-                  <div className="status"><span className="dot" /> LIVE DATA</div>
-                </div>
-                <button
-                  className="btn-refresh"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  style={{ cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.7 : 1 }}
-                >
-                  <RefreshCw size={18} className={isRefreshing ? 'spinner' : ''} />
-                </button>
-                <button className="btn-notification"><Bell size={20} /></button>
-                <div className="profile-container" style={{ position: 'relative' }}>
-                  <div
-                    className="user-profile"
-                    onClick={() => setProfileOpen(!profileOpen)}
-                    style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)' }}
-                    onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--input-bg)'}
-                    onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <div className="user-info">
-                      <div className="user-name">{user?.name || 'Administrator'}</div>
-                    </div>
-                    <div className="avatar">{getInitials(user?.name)}</div>
-                  </div>
-                  {profileOpen && (
-                    <div className="profile-dropdown">
-                      <div className="dropdown-header">
-                        <strong>{user?.name || 'Administrator'}</strong>
-                        <span>{user?.nip || '198001012010011001'}</span>
-                      </div>
-                      <hr className="dropdown-divider" />
-                      <button className="dropdown-item"><Settings size={16} /> Pengaturan Akun</button>
-                      <button onClick={handleLogout} className="dropdown-item logout-text"><LogOut size={16} /> Logout</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </header>
+          <TopBar onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
           {/* ── Content Area ── */}
           <div className="content-area">

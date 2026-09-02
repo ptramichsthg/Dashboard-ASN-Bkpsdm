@@ -3,17 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import bgCard from '../assets/bg-card.png';
 import '../styles/Dashboard.css';
-import LiveDateTime from '../components/shared/LiveDateTime';
+import TopBar from '../components/shared/TopBar';
 
 import {
-  LogOut,
   Users,
-  Settings,
-  Menu,
   X,
-  Bell,
-  RefreshCw,
-  Activity,
+  Menu,
   Database,
   Filter,
   BarChart2,
@@ -169,7 +164,6 @@ const CustomYAxisTick = (props) => {
 // ─── Main Dashboard Component ─────────────────────────────────────────────────
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
 
   // Filters
   const [tahun, setTahun] = useState('Semua');
@@ -180,7 +174,6 @@ const Dashboard = () => {
   const [eselonFilter, setEselonFilter] = useState('Semua');
 
   // UI State
-  const [profileOpen, setProfileOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -239,19 +232,6 @@ const Dashboard = () => {
     fetchData();
   }, [satker, tahun, bulan]);
 
-  useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) { navigate('/'); return; }
-    const userData = localStorage.getItem('user');
-    if (userData) setUser(JSON.parse(userData));
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    navigate('/');
-  };
-
   const handleRefresh = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
@@ -284,7 +264,6 @@ const Dashboard = () => {
     }
   };
 
-  const getInitials = (name) => (name ? name.charAt(0).toUpperCase() : 'U');
 
   const totalOpdPages = Math.max(1, Math.ceil(sebaranOPDData.length / ITEMS_PER_CHART_PAGE));
   const paginatedOpdData = useMemo(() => {
@@ -326,74 +305,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="main-content" style={{ marginLeft: 0 }}>
         {/* Topbar */}
-        <header className="topbar">
-          <div className="topbar-inner">
-            <div className="topbar-left">
-              <div className="topbar-brand" onClick={() => navigate('/profil')} style={{ cursor: 'pointer' }}>
-                <Activity size={28} className="brand-icon" />
-                <div className="brand-text">
-                  <h2>BKPSDM PANEL</h2>
-                  <span>SISTEM INFORMASI ASN</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="topbar-right">
-              <div className="live-data-indicator">
-                <LiveDateTime />
-                <div className="status"><span className="dot"></span> LIVE DATA</div>
-              </div>
-
-              <button
-                className="btn-refresh"
-                title="Muat Ulang Data"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                style={{ cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.7 : 1 }}
-              >
-                <RefreshCw size={18} className={isRefreshing ? 'spinner' : ''} />
-              </button>
-
-              <button className="btn-notification">
-                <Bell size={20} />
-              </button>
-
-              <div className="profile-container" style={{ position: 'relative' }}>
-                <div
-                  className="user-profile"
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)', transition: 'background-color 0.2s' }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--input-bg)'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <div className="user-info">
-                    <div className="user-name">{user?.name || 'Administrator'}</div>
-                  </div>
-                  <div className="avatar">{getInitials(user?.name)}</div>
-                </div>
-
-                {/* Profile Dropdown */}
-                {profileOpen && (
-                  <div className="profile-dropdown">
-                    <div className="dropdown-header">
-                      <strong>{user?.name || 'Administrator'}</strong>
-                      <span>{user?.nip || '198001012010011001'}</span>
-                    </div>
-                    <hr className="dropdown-divider" />
-                    <button className="dropdown-item">
-                      <Settings size={16} />
-                      Pengaturan Akun
-                    </button>
-                    <button onClick={handleLogout} className="dropdown-item logout-text">
-                      <LogOut size={16} />
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+        <TopBar onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
         {/* Content */}
         <div className="content-area">

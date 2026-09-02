@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bgCard from '../assets/bg-card.png';
+import TopBar from '../components/shared/TopBar';
 import {
-  Activity, Bell, Settings, LogOut, BookOpen, FileText, Download,
+  BookOpen, FileText, Download,
   Search, Eye, Sparkles, Folder, Calendar, Layers, CheckCircle,
   X, RefreshCw, Bookmark, Award
 } from 'lucide-react';
@@ -12,12 +13,9 @@ import '../styles/Perpustakaan.css';
 import { usePerpustakaan } from '../hooks/usePerpustakaan';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
-import LiveDateTime from '../components/shared/LiveDateTime';
 
 export default function Perpustakaan() {
   const navigate = useNavigate();
-  const [profileOpen, setProfileOpen] = useState(false);
-  const user = JSON.parse(localStorage.getItem('user')) || { name: 'Administrator' };
 
   // Filter States
   const [selectedKategori, setSelectedKategori] = useState('Semua');
@@ -36,14 +34,6 @@ export default function Perpustakaan() {
     recordDownload
   } = usePerpustakaan(selectedKategori, selectedTahun, searchQuery);
 
-  const getInitials = (name) => (name ? name.charAt(0).toUpperCase() : 'U');
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    navigate('/');
-  };
-
   const handleDownload = (item) => {
     recordDownload(item.id);
     setDownloadSuccessMsg(`Berhasil mengunduh dokumen "${item.judul.substring(0, 30)}..."`);
@@ -58,60 +48,7 @@ export default function Perpustakaan() {
     <div className="dashboard-layout perpustakaan-page">
       <main className="main-content" style={{ marginLeft: 0 }}>
         {/* ── Topbar ── */}
-        <header className="topbar">
-          <div className="topbar-inner">
-            <div className="topbar-left">
-              <div className="topbar-brand" onClick={() => navigate('/profil')} style={{ cursor: 'pointer' }}>
-                <Activity size={28} className="brand-icon" />
-                <div className="brand-text">
-                  <h2>BKPSDM PANEL</h2>
-                  <span>SISTEM INFORMASI ASN</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="topbar-right">
-              <div className="live-data-indicator">
-                <LiveDateTime />
-                <div className="status"><span className="dot"></span> LIVE DATA</div>
-              </div>
-
-              <button className="btn-notification" title="Notifikasi">
-                <Bell size={20} />
-              </button>
-
-              <div className="profile-container" style={{ position: 'relative' }}>
-                <div
-                  className="user-profile"
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)', transition: 'background-color 0.2s' }}
-                >
-                  <div className="user-info">
-                    <div className="user-name">{user?.name || 'Administrator'}</div>
-                  </div>
-                  <div className="avatar">{getInitials(user?.name)}</div>
-                </div>
-
-                {profileOpen && (
-                  <div className="profile-dropdown">
-                    <div className="dropdown-header">
-                      <strong>{user?.name || 'Administrator'}</strong>
-                    </div>
-                    <hr className="dropdown-divider" />
-                    <button className="dropdown-item">
-                      <Settings size={16} />
-                      Pengaturan Akun
-                    </button>
-                    <button onClick={handleLogout} className="dropdown-item logout-text">
-                      <LogOut size={16} />
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+        <TopBar onRefresh={refresh} isRefreshing={loading} />
 
         {/* ── Content Area ── */}
         <div className="content-area">
