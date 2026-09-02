@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 
 /**
@@ -24,7 +24,7 @@ export function usePengembanganKompetensi(bulan, tahun, satker, search) {
   const [satkerList, setSatkerList] = useState([]);
   const [loading, setLoading]       = useState(true);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/pengembangan-kompetensi', {
@@ -40,11 +40,11 @@ export function usePengembanganKompetensi(bulan, tahun, satker, search) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bulan, tahun, satker, search]);
 
   useEffect(() => {
     fetchData();
-  }, [bulan, tahun, satker, search]);
+  }, [fetchData]);
 
   return { data, ringkasan, perOpd, bulanList, satkerList, loading, refresh: fetchData };
 }

@@ -17,24 +17,10 @@ import {
 import { useTracking } from '../hooks/useTracking';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
+import LiveDateTime from '../components/shared/LiveDateTime';
 
 const PAGE_SIZE = 10;
 const CHART_PAGE_SIZE = 12;
-
-// ─── Live DateTime ────────────────────────────────────────────────────────────
-const LiveDateTime = () => {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="date-text">
-      {now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-      {' '}{now.toLocaleTimeString('id-ID')}
-    </div>
-  );
-};
 
 // ─── Status Chip ──────────────────────────────────────────────────────────────
 const StatusChip = ({ status }) => {
@@ -56,36 +42,6 @@ const StatusChip = ({ status }) => {
     <span className="tr-status-chip usulan">
       <FileText size={13} /> Usulan
     </span>
-  );
-};
-
-// ─── Stepper kecil (di tabel) ─────────────────────────────────────────────────
-const StepperMini = ({ status }) => {
-  const steps = ['Usulan', 'Proses', 'Selesai'];
-  const idx = steps.indexOf(status);
-
-  return (
-    <div className="tr-stepper">
-      {steps.map((step, i) => {
-        const isDone   = i < idx;
-        const isActive = i === idx;
-        return (
-          <React.Fragment key={step}>
-            {i > 0 && (
-              <div className={`tr-step-line${isDone ? ' done' : ''}`} />
-            )}
-            <div className="tr-step">
-              <div className={`tr-step-dot${isDone ? ' done' : isActive ? ' active' : ''}`}>
-                {isDone && <CheckCircle2 size={11} color="#fff" />}
-              </div>
-              <span className={`tr-step-label${isDone ? ' done' : isActive ? ' active' : ''}`}>
-                {step}
-              </span>
-            </div>
-          </React.Fragment>
-        );
-      })}
-    </div>
   );
 };
 
@@ -323,7 +279,7 @@ export default function Tracking() {
           <div className="content-area">
 
             {/* Breadcrumb */}
-            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
               <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
               <span>/</span>
               <span style={{ color: '#0f172a' }}>Tracking ASN</span>

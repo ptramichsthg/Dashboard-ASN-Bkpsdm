@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 
 /**
@@ -23,7 +23,7 @@ export function useTracking(jenisLayanan, tahun, bulan, satker, search) {
   const [tahunList, setTahunList]   = useState([]);
   const [loading, setLoading]       = useState(true);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/tracking', {
@@ -41,11 +41,11 @@ export function useTracking(jenisLayanan, tahun, bulan, satker, search) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jenisLayanan, tahun, bulan, satker, search]);
 
   useEffect(() => {
     fetchData();
-  }, [jenisLayanan, tahun, bulan, satker, search]);
+  }, [fetchData]);
 
   return { data, ringkasan, perLayanan, satkerList, jenisList, bulanList, tahunList, loading, refresh: fetchData };
 }

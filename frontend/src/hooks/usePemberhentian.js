@@ -10,7 +10,7 @@ import api from '../api/axios';
  * @param {string} bulan  - Filter bulan
  * @param {string} satker - Filter satuan kerja / OPD
  * @param {string} search - Kata kunci pencarian (nama/NIP)
- * @returns {{ data, stats, perJenis, perStatus, tahunList, satkerList, loading, error, refresh, sendEmail, updateStatus }}
+ * @returns {{ data, stats, perJenis, perStatus, tahunList, satkerList, loading, error, refresh, sendEmail, updateStatus, getDetail }}
  */
 export function usePemberhentian(jenis, status, tahun, bulan, satker, search) {
   const [data, setData] = useState([]);
@@ -31,26 +31,12 @@ export function usePemberhentian(jenis, status, tahun, bulan, satker, search) {
   const [error, setError] = useState(null);
 
   const fetchData = useCallback(async () => {
-    const startTime = performance.now();
     setLoading(true);
     setError(null);
     try {
-      console.log('[usePemberhentian] Fetching data with params:', {
-        jenis,
-        status,
-        tahun,
-        bulan,
-        satker,
-        search,
-      });
-
       const res = await api.get('/pemberhentian', {
         params: { jenis, status, tahun, bulan, satker, search },
       });
-
-      const endTime = performance.now();
-      console.log(`[usePemberhentian] Data fetched in ${(endTime - startTime).toFixed(2)}ms`);
-      console.log('[usePemberhentian] Response:', res.data);
 
       const responseData = res.data.data || {};
 
@@ -105,12 +91,10 @@ export function usePemberhentian(jenis, status, tahun, bulan, satker, search) {
    */
   const sendEmail = async (id, emailType = 'all', notificationType = 'status_update') => {
     try {
-      console.log(`[usePemberhentian] Sending email for ID ${id}, type: ${emailType}`);
       const res = await api.post(`/pemberhentian/${id}/send-email`, {
         email_type: emailType,
         notification_type: notificationType,
       });
-      console.log('[usePemberhentian] Email sent successfully:', res.data);
       return { success: true, data: res.data };
     } catch (err) {
       console.error('[usePemberhentian] Failed to send email:', err);
@@ -128,10 +112,7 @@ export function usePemberhentian(jenis, status, tahun, bulan, satker, search) {
    */
   const updateStatus = async (id, updateData) => {
     try {
-      console.log(`[usePemberhentian] Updating status for ID ${id}:`, updateData);
       const res = await api.put(`/pemberhentian/${id}/update-status`, updateData);
-      console.log('[usePemberhentian] Status updated successfully:', res.data);
-      // Refresh data after update
       await fetchData();
       return { success: true, data: res.data };
     } catch (err) {
@@ -149,9 +130,7 @@ export function usePemberhentian(jenis, status, tahun, bulan, satker, search) {
    */
   const getDetail = async (id) => {
     try {
-      console.log(`[usePemberhentian] Fetching detail for ID ${id}`);
       const res = await api.get(`/pemberhentian/${id}`);
-      console.log('[usePemberhentian] Detail fetched:', res.data);
       return { success: true, data: res.data.data };
     } catch (err) {
       console.error('[usePemberhentian] Failed to fetch detail:', err);

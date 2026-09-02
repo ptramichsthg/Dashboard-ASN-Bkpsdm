@@ -1,18 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bgCard from '../assets/bg-card.png';
 import '../styles/Pemberhentian.css';
 import {
   Activity, Bell, Settings, LogOut, Database, RefreshCw, Filter,
   FileText, Clock, CheckCircle2, XCircle, Search, ChevronLeft,
-  ChevronRight, BarChart2, PieChart, Mail, Eye, Edit, X,
-  UserX, Calendar, Award, AlertTriangle
+  ChevronRight, BarChart2, PieChart, Mail, Eye, X,
+  Calendar
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, PieChart as RechartsPie, Pie, Legend
+  ResponsiveContainer, Cell, PieChart as RechartsPie, Pie
 } from 'recharts';
 import { usePemberhentian } from '../hooks/usePemberhentian';
+import LiveDateTime from '../components/shared/LiveDateTime';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const JENIS_LIST = [
@@ -56,21 +57,6 @@ const STATUS_COLORS = {
   'SK Terbit': '#059669',
   'Selesai': '#065f46',
   'Ditolak': '#dc2626',
-};
-
-// ─── Live DateTime Component ─────────────────────────────────────────────────
-const LiveDateTime = () => {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="date-text">
-      {now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-      {' '}{now.toLocaleTimeString('id-ID')}
-    </div>
-  );
 };
 
 // ─── Status Badge Component ─────────────────────────────────────────────────
@@ -291,7 +277,7 @@ export default function Pemberhentian() {
           {/* ── Content Area ── */}
           <div className="content-area">
             {/* Breadcrumb */}
-            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}>
+            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
               <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
               <span>/</span>
               <span style={{ color: '#0f172a' }}>Pemberhentian ASN</span>

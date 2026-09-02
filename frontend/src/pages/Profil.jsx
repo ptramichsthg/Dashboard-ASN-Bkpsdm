@@ -22,25 +22,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
-  X,
   Database,
 } from 'lucide-react';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-const LiveDateTime = () => {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="date-text">
-      {now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-      {' '}
-      {now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-    </div>
-  );
-};
+import LiveDateTime from '../components/shared/LiveDateTime';
 
 // Konfigurasi tiap jenis ASN
 const ASN_CONFIG = {
@@ -130,7 +115,7 @@ function ManajerialTree({ activeEselon, onSelect }) {
       <div className="manajerial-tree-title">Hirarki Jabatan</div>
       <div className="tree-root">
         {TREE_STRUCTURE.map((branch) => {
-          const { dot, badgeClass } = SUB_COLOR[branch.label] || {};
+          const { dot, badgeClass: _badgeClass } = SUB_COLOR[branch.label] || {};
           const isAnyChildActive = branch.children.includes(activeEselon);
           return (
             <div key={branch.label} className="tree-branch">

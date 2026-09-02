@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bgCard from '../assets/bg-card.png';
+import LiveDateTime from '../components/shared/LiveDateTime';
 
 import {
   Users,
@@ -11,7 +12,6 @@ import {
   Activity,
   BookOpen,
   BarChart2,
-  UserCheck,
   ChevronRight,
   LogOut,
   Settings,
@@ -95,21 +95,6 @@ const MENU_ITEMS = [
     border: '#c084fc',
   },
 ];
-
-const LiveDateTime = () => {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="date-text">
-      {now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-      {' '}
-      {now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-    </div>
-  );
-};
 
 const Lainnya = () => {
   const navigate = useNavigate();

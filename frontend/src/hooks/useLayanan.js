@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Trophy, Medal, Award } from 'lucide-react';
 import api from '../api/axios';
 
@@ -22,7 +22,7 @@ export function useLayanan(jenisLayanan, tahun, bulan, perangkatDaerah, search) 
   const [top3, setTop3]         = useState([]);
   const [loading, setLoading]   = useState(true);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/layanan', {
@@ -54,11 +54,11 @@ export function useLayanan(jenisLayanan, tahun, bulan, perangkatDaerah, search) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [jenisLayanan, tahun, bulan, perangkatDaerah, search]);
 
   useEffect(() => {
     fetchData();
-  }, [jenisLayanan, tahun, bulan, perangkatDaerah, search]);
+  }, [fetchData]);
 
   return { layanans, stats, top3, loading, refresh: fetchData };
 }

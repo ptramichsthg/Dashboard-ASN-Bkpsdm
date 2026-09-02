@@ -23,17 +23,12 @@ export function usePerencanaan(tahun, satker, search) {
   const [error, setError]       = useState(null);
 
   const fetchData = useCallback(async () => {
-    const startTime = performance.now();
     setLoading(true);
     setError(null);
     try {
-      console.log('[usePerencanaan] Fetching data with params:', { tahun, opd: satker, search });
       const res = await api.get('/perencanaan', {
         params: { tahun, opd: satker, search },
       });
-      const endTime = performance.now();
-      console.log(`[usePerencanaan] Data fetched in ${(endTime - startTime).toFixed(2)}ms`);
-      console.log('[usePerencanaan] Response:', res.data);
       
       setData(res.data.data || []);
       setRingkasan(res.data.ringkasan || {

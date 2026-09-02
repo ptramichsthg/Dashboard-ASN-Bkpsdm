@@ -1,35 +1,22 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import bgLogin from '../assets/bg-login.png';
 import bgCard from '../assets/bg-card.png';
 import '../styles/Dashboard.css';
+import LiveDateTime from '../components/shared/LiveDateTime';
 
 import {
   LogOut,
-  LayoutDashboard,
   Users,
   Settings,
-  Briefcase,
-  FileText,
   Menu,
   X,
-  MapPin,
-  Calendar,
-  CalendarDays,
   Bell,
   RefreshCw,
   Activity,
   Database,
   Filter,
-  UserCheck,
-  GraduationCap,
   BarChart2,
-  ClipboardList,
-  Building2,
-  Award,
-  ShieldCheck,
-  BookOpen,
   ChevronRight,
   ChevronLeft
 } from 'lucide-react';
@@ -45,14 +32,10 @@ import {
   LabelList,
   PieChart,
   Pie,
-  Legend,
 } from 'recharts';
 
 // ─── Initial Empty State ─────────────────────────────────────────────
 const INITIAL_SUMMARY = { total: 0, laki: 0, perempuan: 0 };
-
-const GENDER_COLORS = ['#3b82f6', '#ec4899'];
-const OPD_COLOR = '#0e7490';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function DataCard({ title, laki, perempuan }) {
@@ -114,29 +97,6 @@ function HorizontalChart({ data, color = '#266210', customColors = null, yAxisWi
     </ResponsiveContainer>
   );
 }
-
-
-const LiveDateTime = () => {
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentDateTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formattedDateTime = currentDateTime.toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }) + ' ' + currentDateTime.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
-
-  return <div className="date-text">{formattedDateTime}</div>;
-};
 
 const formatOPDName = (name) => {
   if (!name) return '';
@@ -211,23 +171,18 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
-
   // Filters
   const [tahun, setTahun] = useState('Semua');
   const [bulan, setBulan] = useState('Semua');
-  const [satker, setSatker] = useState('Semua Satuan Kerja');
+  const satker = 'Semua Satuan Kerja';
   const [golonganPNSFilter, setGolonganPNSFilter] = useState('Semua');
   const [golonganPPPKFilter, setGolonganPPPKFilter] = useState('Semua');
   const [eselonFilter, setEselonFilter] = useState('Semua');
 
   // UI State
   const [profileOpen, setProfileOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-
-  const showNavbar = true;
-  const showSidebar = false;
 
   // Data State
   const [summaryData, setSummaryData] = useState(INITIAL_SUMMARY);
@@ -245,7 +200,6 @@ const Dashboard = () => {
   const [opdPage, setOpdPage] = useState(0);
 
   // Filter Options State from API
-  const [satuanKerjaOptions, setSatuanKerjaOptions] = useState(['Semua Satuan Kerja']);
   const [tahunOptions, setTahunOptions] = useState([]);
   const [bulanOptions, setBulanOptions] = useState([]);
 
@@ -268,20 +222,11 @@ const Dashboard = () => {
           setDistribusiGenderData(data.distribusiGender || []);
           setSebaranOPDData(data.sebaranOPD || []);
 
-          if (data.satuanKerjaList) {
-            setSatuanKerjaOptions(['Semua Satuan Kerja', ...data.satuanKerjaList]);
-          }
           if (data.tahunList) {
             setTahunOptions(data.tahunList);
-            if (!tahunOptions.includes(tahun) && data.tahunList.length > 0) {
-              setTahun(data.tahunList[0]);
-            }
           }
           if (data.bulanList) {
             setBulanOptions(data.bulanList);
-            if (!bulanOptions.includes(bulan) && data.bulanList.length > 0) {
-              setBulan(data.bulanList[0]);
-            }
           }
         }
       } catch (error) {
@@ -313,7 +258,6 @@ const Dashboard = () => {
     setErrorMsg('');
 
     try {
-      // Ambil ulang data Dashboard Admin dari API Laravel
       const response = await api.get('/dashboard', {
         params: { satker, tahun, bulan }
       });
@@ -330,9 +274,6 @@ const Dashboard = () => {
         setDistribusiGenderData(data.distribusiGender || []);
         setSebaranOPDData(data.sebaranOPD || []);
 
-        if (data.satuanKerjaList) {
-          setSatuanKerjaOptions(['Semua Satuan Kerja', ...data.satuanKerjaList]);
-        }
         if (data.tahunList) setTahunOptions(data.tahunList);
         if (data.bulanList) setBulanOptions(data.bulanList);
       }
@@ -375,8 +316,7 @@ const Dashboard = () => {
       if (eselonFilter === 'Struktural') return item.name !== 'Non Eselon';
       if (eselonFilter === 'Non Eselon') return item.name === 'Non Eselon';
 
-      // For 'Eselon I', 'Eselon II', etc.
-      const eselonLevel = eselonFilter.replace('Eselon ', ''); // "I", "II", "III", "IV"
+      const eselonLevel = eselonFilter.replace('Eselon ', '');
       return item.name.startsWith(eselonLevel + '.');
     });
   }, [eselonData, eselonFilter]);
@@ -386,84 +326,74 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="main-content" style={{ marginLeft: 0 }}>
         {/* Topbar */}
-        {showNavbar && (
-          <header className="topbar">
-            <div className="topbar-inner">
-              <div className="topbar-left">
-                <div className="topbar-brand">
-                  <Activity size={28} className="brand-icon" />
-                  <div className="brand-text">
-                    <h2>BKPSDM PANEL</h2>
-                    <span>SISTEM INFORMASI ASN</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Filter di topbar disembunyikan sesuai instruksi */}
-              {/* 
-          <div className="topbar-filters">
-            ... 
-          </div> 
-          */
-              }
-
-              <div className="topbar-right">
-                <div className="live-data-indicator">
-                  <LiveDateTime />
-                  <div className="status"><span className="dot"></span> LIVE DATA</div>
-                </div>
-
-                <button
-                  className="btn-refresh"
-                  title="Muat Ulang Data"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  style={{ cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.7 : 1 }}
-                >
-                  <RefreshCw size={18} className={isRefreshing ? 'spinner' : ''} />
-                </button>
-
-                <button className="btn-notification">
-                  <Bell size={20} />
-                </button>
-
-                <div className="profile-container" style={{ position: 'relative' }}>
-                  <div
-                    className="user-profile"
-                    onClick={() => setProfileOpen(!profileOpen)}
-                    style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)', transition: 'background-color 0.2s' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--input-bg)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <div className="user-info">
-                      <div className="user-name">{user?.name || 'Administrator'}</div>
-                    </div>
-                    <div className="avatar">{getInitials(user?.name)}</div>
-                  </div>
-
-                  {/* Profile Dropdown */}
-                  {profileOpen && (
-                    <div className="profile-dropdown">
-                      <div className="dropdown-header">
-                        <strong>{user?.name || 'Administrator'}</strong>
-                        <span>{user?.nip || '198001012010011001'}</span>
-                      </div>
-                      <hr className="dropdown-divider" />
-                      <button className="dropdown-item">
-                        <Settings size={16} />
-                        Pengaturan Akun
-                      </button>
-                      <button onClick={handleLogout} className="dropdown-item logout-text">
-                        <LogOut size={16} />
-                        Logout
-                      </button>
-                    </div>
-                  )}
+        <header className="topbar">
+          <div className="topbar-inner">
+            <div className="topbar-left">
+              <div className="topbar-brand">
+                <Activity size={28} className="brand-icon" />
+                <div className="brand-text">
+                  <h2>BKPSDM PANEL</h2>
+                  <span>SISTEM INFORMASI ASN</span>
                 </div>
               </div>
             </div>
-          </header>
-        )}
+
+            <div className="topbar-right">
+              <div className="live-data-indicator">
+                <LiveDateTime />
+                <div className="status"><span className="dot"></span> LIVE DATA</div>
+              </div>
+
+              <button
+                className="btn-refresh"
+                title="Muat Ulang Data"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                style={{ cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.7 : 1 }}
+              >
+                <RefreshCw size={18} className={isRefreshing ? 'spinner' : ''} />
+              </button>
+
+              <button className="btn-notification">
+                <Bell size={20} />
+              </button>
+
+              <div className="profile-container" style={{ position: 'relative' }}>
+                <div
+                  className="user-profile"
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)', transition: 'background-color 0.2s' }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--input-bg)'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <div className="user-info">
+                    <div className="user-name">{user?.name || 'Administrator'}</div>
+                  </div>
+                  <div className="avatar">{getInitials(user?.name)}</div>
+                </div>
+
+                {/* Profile Dropdown */}
+                {profileOpen && (
+                  <div className="profile-dropdown">
+                    <div className="dropdown-header">
+                      <strong>{user?.name || 'Administrator'}</strong>
+                      <span>{user?.nip || '198001012010011001'}</span>
+                    </div>
+                    <hr className="dropdown-divider" />
+                    <button className="dropdown-item">
+                      <Settings size={16} />
+                      Pengaturan Akun
+                    </button>
+                    <button onClick={handleLogout} className="dropdown-item logout-text">
+                      <LogOut size={16} />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
 
         {/* Content */}
         <div className="content-area">
@@ -477,7 +407,7 @@ const Dashboard = () => {
           )}
 
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
             <span style={{ color: '#0f172a' }}>Dashboard</span>
           </div>
 
@@ -506,8 +436,6 @@ const Dashboard = () => {
               />
             </div>
           </div>
-
-
 
           {/* ── KPI & FILTERS ── */}
           <div className="admin-kpi-filter-wrapper">
@@ -580,7 +508,7 @@ const Dashboard = () => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', marginTop: '0.5rem', padding: '0 1rem' }}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0d9488' }}>{summaryData.laki.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#000000', fontWeight: 'bold', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
+                    <div style={{ fontSize: '0.8rem', color: '#000000', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
                     <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#334155', marginTop: '2px' }}>
                       {summaryData.total > 0 ? ((summaryData.laki / summaryData.total) * 100).toFixed(1) : 0}%
                     </div>
@@ -590,7 +518,7 @@ const Dashboard = () => {
 
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#34d399' }}>{summaryData.perempuan.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#000000', fontWeight: 'bold', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
+                    <div style={{ fontSize: '0.8rem', color: '#000000', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
                     <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#334155', marginTop: '2px' }}>
                       {summaryData.total > 0 ? ((summaryData.perempuan / summaryData.total) * 100).toFixed(1) : 0}%
                     </div>
@@ -643,8 +571,8 @@ const Dashboard = () => {
               <ResponsiveContainer width="100%" height={360}>
                 <BarChart data={paginatedOpdData} margin={{ top: 20, right: 10, left: -10, bottom: 100 }}>
                   <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 600 }} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
-                  <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 500 }} tickLine={false} axisLine={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 13, fill: '#000000', fontWeight: 600 }} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
+                  <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 500 }} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={{ fontSize: 14, borderRadius: 8, border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontWeight: 600 }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
                   <Bar dataKey="total" fill="#2ca27b" radius={[6, 6, 0, 0]} barSize={34} animationDuration={500}>
                     <LabelList dataKey="total" content={<CustomBarLabel />} />
@@ -653,8 +581,6 @@ const Dashboard = () => {
               </ResponsiveContainer>
             </div>
           </div>
-
-
 
           {/* ── STATUS PEGAWAI ── */}
           <div className="section-title">Status Pegawai</div>
@@ -680,7 +606,6 @@ const Dashboard = () => {
             <span className="admin-total-bar-value">{summaryData.total.toLocaleString()}</span>
           </div>
 
-          {/* ── CHARTS ── */}
           {/* ── CHARTS ── */}
           <div className="chart-section">
             {/* Row 2: Distribusi Golongan & Eselonering */}

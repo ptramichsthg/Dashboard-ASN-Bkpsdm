@@ -26,16 +26,12 @@ export function usePerpustakaan(kategori, tahun, search) {
   const [error, setError]               = useState(null);
 
   const fetchData = useCallback(async () => {
-    const startTime = performance.now();
     setLoading(true);
     setError(null);
     try {
-      console.log('[usePerpustakaan] Fetching data with params:', { kategori, tahun, search });
       const res = await api.get('/perpustakaan', {
         params: { kategori, tahun, search },
       });
-      const endTime = performance.now();
-      console.log(`[usePerpustakaan] Data fetched in ${(endTime - startTime).toFixed(2)}ms`);
 
       setData(res.data.data || []);
       setRingkasan(res.data.ringkasan || {

@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bgCard from '../assets/bg-card.png';
 import {
   Activity, Bell, Settings, LogOut, BookOpen, FileText, Download,
   Search, Eye, Sparkles, Folder, Calendar, Layers, CheckCircle,
-  ExternalLink, X, RefreshCw, Bookmark, Award
+  X, RefreshCw, Bookmark, Award
 } from 'lucide-react';
 import '../index.css';
 import '../styles/Perpustakaan.css';
@@ -12,21 +12,7 @@ import '../styles/Perpustakaan.css';
 import { usePerpustakaan } from '../hooks/usePerpustakaan';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
-
-// ─── Live DateTime ────────────────────────────────────────────────────────────
-const LiveDateTime = () => {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="date-text">
-      {now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-      {' '}{now.toLocaleTimeString('id-ID')}
-    </div>
-  );
-};
+import LiveDateTime from '../components/shared/LiveDateTime';
 
 export default function Perpustakaan() {
   const navigate = useNavigate();
@@ -43,9 +29,7 @@ export default function Perpustakaan() {
   const {
     data,
     ringkasan,
-    kategoriList,
     tahunList,
-    totalFiltered,
     loading,
     error,
     refresh,
@@ -65,10 +49,6 @@ export default function Perpustakaan() {
     setDownloadSuccessMsg(`Berhasil mengunduh dokumen "${item.judul.substring(0, 30)}..."`);
     setTimeout(() => setDownloadSuccessMsg(''), 4000);
   };
-
-  const kategoriOptions = useMemo(() => {
-    return ['Semua', ...kategoriList];
-  }, [kategoriList]);
 
   const tahunOptions = useMemo(() => {
     return ['Semua', ...tahunList.map(String)];
@@ -136,7 +116,7 @@ export default function Perpustakaan() {
         {/* ── Content Area ── */}
         <div className="content-area">
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '0.75rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+          <div style={{ marginTop: '-1rem', marginBottom: '0.75rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
             <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
             <span>/</span>
             <span style={{ color: '#0f172a' }}>Perpustakaan BKN & BKPSDM</span>

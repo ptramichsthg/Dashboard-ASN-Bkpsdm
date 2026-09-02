@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import '../styles/DataPegawai.css';
 import {
-  LogOut, LayoutDashboard, Users, Briefcase, FileText,
-  Menu, X, Activity, Bell, Search, RefreshCw,
+  LogOut, Users, Activity, Bell, Search, RefreshCw,
   Building2, ChevronLeft, ChevronRight, ChevronDown, Settings, BarChart2
 } from 'lucide-react';
 import {
@@ -13,47 +12,12 @@ import {
 } from 'recharts';
 import bgCard from '../assets/bg-card.png';
 import '../index.css';
-
-const OPD_ABBREVIATIONS = {
-  'DINAS KEBUDAYAAN': 'DISBUD',
-  'DINAS KEPENDUDUKAN DAN PENCATATAN SIPIL': 'DISDUKCAPIL',
-  'DINAS KESEHATAN': 'DINKES',
-  'DINAS KETAHANAN PANGAN DAN PERIKANAN': 'DISKKP',
-  'DINAS KETENAGAKERJAAN': 'DISNAKER',
-  'DINAS KOMUNIKASI DAN INFORMATIKA, STATISTIK DAN PERSANDIAN': 'DISKOMINFO',
-  'DINAS KOPERASI DAN USAHA KECIL DAN MENENGAH': 'DISKOPUKM',
-  'DINAS LINGKUNGAN HIDUP': 'DLH',
-  'DINAS PARIWISATA DAN EKONOMI KREATIF': 'DISPAREKRAF',
-  'DINAS PEKERJAAN UMUM DAN TATA RUANG': 'DPUPR',
-  'DINAS PEMADAM KEBAKARAN DAN PENYELAMATAN': 'DISDAMKAR',
-  'DINAS PEMBERDAYAAN MASYARAKAT DAN DESA': 'DPMD',
-  'DINAS PEMUDA DAN OLAHRAGA': 'DISPORA',
-  'DINAS PENANAMAN MODAL DAN PELAYANAN TERPADU SATU PINTU': 'DPMPTSP',
-  'DINAS PENDIDIKAN': 'DISDIK',
-  'DINAS PENGENDALIAN PENDUDUK, KELUARGA BERENCANA, PEMBERDAYAAN PEREMPUAN DAN PERLINDUNGAN ANAK': 'DP2KBP3A',
-  'DINAS PERDAGANGAN DAN PERINDUSTRIAN': 'DISDAGIN',
-  'DINAS PERHUBUNGAN': 'DISHUB',
-  'DINAS PERPUSTAKAAN DAN ARSIP': 'DISPUSIP',
-  'DINAS PERTANIAN': 'DISTAN',
-  'DINAS PERUMAHAN, KAWASAN PERMUKIMAN DAN PERTANAHAN': 'DISPERKIMTAN',
-  'DINAS SOSIAL': 'DINSOS',
-  'BADAN KEPEGAWAIAN DAN PENGEMBANGAN SUMBER DAYA MANUSIA': 'BKPSDM',
-  'BADAN KESATUAN BANGSA DAN POLITIK': 'BAKESBANGPOL',
-  'BADAN KEUANGAN DAN ASET DAERAH': 'BKAD',
-  'BADAN PENANGGULANGAN BENCANA DAERAH': 'BPBD',
-  'BADAN PENDAPATAN DAERAH': 'BAPENDA',
-  'BADAN PERENCANAAN PEMBANGUNAN, RISET DAN INOVASI DAERAH': 'BAPPERIDA',
-  'INSPEKTORAT DAERAH': 'INSPEKTORAT',
-  'SATUAN POLISI PAMONG PRAJA': 'SATPOL PP',
-  'SEKRETARIAT DAERAH': 'SETDA',
-  'SEKRETARIAT DPRD': 'SETWAN'
-};
+import LiveDateTime from '../components/shared/LiveDateTime';
 
 export default function DataPegawai() {
   const navigate = useNavigate();
 
   // App Shell States
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const user = JSON.parse(localStorage.getItem('user')) || { name: 'Administrator' };
@@ -67,19 +31,10 @@ export default function DataPegawai() {
     const cached = localStorage.getItem('dataPegawaiCache');
     return cached ? JSON.parse(cached) : [];
   });
-  const [loading, setLoading] = useState(false);
 
   // Filters
   const [search, setSearch] = useState('');
   const [filterSatker, setFilterSatker] = useState('Semua Satuan Kerja');
-  const filterContainerRef = React.useRef(null);
-
-  const scrollFilters = (direction) => {
-    if (filterContainerRef.current) {
-      const scrollAmount = 300; // Adjust scroll distance as needed
-      filterContainerRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
-    }
-  };
 
   // Pagination
   const ITEMS_PER_CHART_PAGE = 5;
@@ -95,7 +50,6 @@ export default function DataPegawai() {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
       setErrorMsg('');
       setIsRefreshing(true);
       const res = await api.get('/satuan-kerja');
@@ -115,7 +69,6 @@ export default function DataPegawai() {
       console.error('Error fetching data:', error);
       setErrorMsg('Gagal memuat data dari server. Silakan periksa koneksi atau muat ulang halaman.');
     } finally {
-      setLoading(false);
       setIsRefreshing(false);
     }
   };
@@ -164,12 +117,6 @@ export default function DataPegawai() {
   const totalLaki = totalLakiVal.toLocaleString();
   const totalPerempuan = totalPerempuanVal.toLocaleString();
 
-  const genderData = [
-    { name: 'Laki-laki', value: totalLakiVal },
-    { name: 'Perempuan', value: totalPerempuanVal },
-  ];
-  const GENDER_COLORS = ['#3b82f6', '#10b981'];
-
   const opdDistributionData = filteredData.map(d => ({
     name: d.satuan_kerja,
     total: parseInt(d.total) || 0,
@@ -192,22 +139,6 @@ export default function DataPegawai() {
       dynamicFilters.push({ label: satker, value: satker });
     }
   });
-
-
-
-  // Live Date Time Component
-  const LiveDateTime = () => {
-    const [time, setTime] = useState(new Date());
-    useEffect(() => {
-      const timer = setInterval(() => setTime(new Date()), 1000);
-      return () => clearInterval(timer);
-    }, []);
-    return (
-      <div className="datetime">
-        {time.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} - {time.toLocaleTimeString('id-ID', { hour12: false })}
-      </div>
-    );
-  };
 
   return (
     <div className="dashboard-layout">
@@ -295,7 +226,7 @@ export default function DataPegawai() {
           )}
 
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
             <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Dashboard</span>
             <span>/</span>
             <span style={{ color: '#0f172a' }}>Sebaran Pegawai</span>
@@ -365,13 +296,13 @@ export default function DataPegawai() {
             {/* ── Stats Strip ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '1rem' }}>
               {[
-                { label: 'Total ASN', val: totalASN, color: '#10b981', bg: '#f0fdf4' },
-                { label: 'PNS', val: totalPNS, color: '#3b82f6', bg: '#eff6ff' },
-                { label: 'CPNS', val: totalCPNS, color: '#d97706', bg: '#fffbeb' },
-                { label: 'PPPK', val: totalPPPK, color: '#16a34a', bg: '#dcfce7' },
-                { label: 'Laki-laki', val: totalLaki, color: '#3b82f6', bg: '#eff6ff' },
-                { label: 'Perempuan', val: totalPerempuan, color: '#db2777', bg: '#fdf2f8' },
-              ].map(({ label, val, color, bg }) => (
+                { label: 'Total ASN', val: totalASN, color: '#10b981' },
+                { label: 'PNS', val: totalPNS, color: '#3b82f6' },
+                { label: 'CPNS', val: totalCPNS, color: '#d97706' },
+                { label: 'PPPK', val: totalPPPK, color: '#16a34a' },
+                { label: 'Laki-laki', val: totalLaki, color: '#3b82f6' },
+                { label: 'Perempuan', val: totalPerempuan, color: '#db2777' },
+              ].map(({ label, val, color }) => (
                 <div key={label} className="kpi-card" style={{ padding: '1rem 1.25rem', backgroundColor: '#fff', border: '1px solid #0f172a', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
                   <div className="kpi-label">{label}</div>
                   <div className="kpi-value" style={{ color, fontSize: '1.6rem' }}>{val}</div>
@@ -381,7 +312,6 @@ export default function DataPegawai() {
 
             {/* ── Charts Area ── */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 2fr', gap: '1.5rem' }}>
-              {/* Gender Donut Chart */}
               {/* Gender Donut Chart */}
               <div className="chart-card chart-card-gender">
                 <div className="chart-card-header" style={{ justifyContent: 'flex-start' }}>
@@ -418,7 +348,7 @@ export default function DataPegawai() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', marginTop: '0.5rem', padding: '0 1rem' }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0d9488' }}>{totalLakiVal.toLocaleString()}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#000000', fontWeight: 'bold', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
+                      <div style={{ fontSize: '0.7rem', color: '#000000', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>LAKI-LAKI</div>
                       <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
                         {totalASNVal > 0 ? ((totalLakiVal / totalASNVal) * 100).toFixed(1) : 0}%
                       </div>
@@ -428,7 +358,7 @@ export default function DataPegawai() {
 
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#34d399' }}>{totalPerempuanVal.toLocaleString()}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#000000', fontWeight: 'bold', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
+                      <div style={{ fontSize: '0.7rem', color: '#000000', fontWeight: 600, letterSpacing: '0.5px', marginTop: '2px' }}>PEREMPUAN</div>
                       <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginTop: '2px' }}>
                         {totalASNVal > 0 ? ((totalPerempuanVal / totalASNVal) * 100).toFixed(1) : 0}%
                       </div>
@@ -524,30 +454,30 @@ export default function DataPegawai() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>No</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Satuan Kerja / OPD</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (L)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (P)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CPNS (P)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (L)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (P)</th>
-                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Total</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>No</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Satuan Kerja / OPD</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (L)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (P)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CPNS (P)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (L)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (P)</th>
+                        <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {currentTableData.map((row, i) => (
                         <tr key={row.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>
                             {(currentPage - 1) * itemsPerPage + i + 1}
                           </td>
                           <td style={{ padding: '1rem 1.5rem' }}>
                             <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0f172a' }}>{row.satuan_kerja}</div>
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.pns_l}</td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.pns_p}</td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.cpns_p}</td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.pppk_l}</td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>{row.pppk_p}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pns_l}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pns_p}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.cpns_p}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pppk_l}</td>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pppk_p}</td>
                           <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', padding: '0.25rem 0.75rem', backgroundColor: '#ecfdf5', color: '#10b981', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700 }}>
                               {row.total}
@@ -558,7 +488,7 @@ export default function DataPegawai() {
                     </tbody>
                   </table>
                 ) : (
-                  <div style={{ padding: '3rem', textAlign: 'center', color: '#000000', fontWeight: 'bold' }}>
+                  <div style={{ padding: '3rem', textAlign: 'center', color: '#000000', fontWeight: 600 }}>
                     Tidak ada data ditemukan.
                   </div>
                 )}
@@ -567,7 +497,7 @@ export default function DataPegawai() {
               {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px' }}>
-                  <div style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 'bold' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>
                     Menampilkan <span style={{ fontWeight: 600, color: '#0f172a' }}>{(currentPage - 1) * itemsPerPage + 1}</span> hingga <span style={{ fontWeight: 600, color: '#0f172a' }}>{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> dari <span style={{ fontWeight: 600, color: '#0f172a' }}>{filteredData.length}</span> data
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>

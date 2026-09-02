@@ -1,35 +1,24 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import api from '../api/axios';
 import bgCard from '../assets/bg-card.png';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Layanan.css';
 import {
-  ArrowLeft,
-  Home,
   Trophy,
-  ChevronDown,
   FileText,
   Clock,
   CheckCircle2,
   Search,
-  Building2,
-  User,
   CreditCard,
   ChevronLeft,
   ChevronRight,
   Filter,
-  Calendar,
-  Layers,
-  TrendingUp,
-  Medal,
-  Award,
-  Star,
-  Activity, Bell, Settings, LogOut, Database, RefreshCw, X,
+  Activity, Bell, Settings, LogOut, Database, RefreshCw,
 } from 'lucide-react';
 
 import { useLayanan } from '../hooks/useLayanan';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
+import LiveDateTime from '../components/shared/LiveDateTime';
 
 // ─── Mock Data ─────────────────────────────────────────────────────────────────
 const JENIS_LAYANAN_LIST = [
@@ -65,14 +54,6 @@ const PERANGKAT_DAERAH_LIST = [
   'Bapenda',
 ];
 
-const TOP3_LAYANAN = [
-  { rank: 1, name: 'Kenaikan Pangkat Reguler', total: 1247, icon: Trophy, color: '#f59e0b' },
-  { rank: 2, name: 'Pensiun BUP', total: 834, icon: Medal, color: '#000000', fontWeight: 'bold' },
-  { rank: 3, name: 'Cuti Tahunan', total: 612, icon: Award, color: '#b45309' },
-];
-
-// Data will be fetched from API
-
 // ─── Status Badge Component ────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const config = {
@@ -93,29 +74,6 @@ function StatusBadge({ status }) {
     </span>
   );
 }
-
-
-const LiveDateTime = () => {
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentDateTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formattedDateTime = currentDateTime.toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }) + ' ' + currentDateTime.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
-
-  return <div className="date-text">{formattedDateTime}</div>;
-};
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function Layanan() {
@@ -155,6 +113,8 @@ export default function Layanan() {
   };
   
   const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
     navigate('/');
   };
 
@@ -162,7 +122,6 @@ export default function Layanan() {
     if (!name) return 'A';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
-
 
   // Table sort
   const [sortField, setSortField] = useState(null);
@@ -299,7 +258,7 @@ export default function Layanan() {
         {/* Content */}
         <div className="content-area">
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
+          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
             <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Dashboard</span>
             <span>/</span>
             <span style={{ color: '#0f172a' }}>Layanan</span>
@@ -535,11 +494,11 @@ export default function Layanan() {
                     <td style={{ ...tdStyle, color: 'var(--text-muted)', fontWeight: 600 }}>
                       {(page - 1) * perPage + idx + 1}
                     </td>
-                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '1.2rem', color: '#000000', fontWeight: 'bold', fontWeight: 600 }}>
+                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '1.2rem', color: '#000000', fontWeight: 600 }}>
                       {row.nip}
                     </td>
                     <td style={{ ...tdStyle, fontWeight: 700 }}>{row.nama}</td>
-                    <td style={{ ...tdStyle, color: '#000000', fontWeight: 'bold', fontSize: '1.15rem' }}>{row.nomorSurat}</td>
+                    <td style={{ ...tdStyle, color: '#000000', fontWeight: 600, fontSize: '1.15rem' }}>{row.nomorSurat}</td>
                     <td style={{ ...tdStyle }}>
                       <span style={{
                         background: '#f0fdf4', color: '#065f46', padding: '4px 12px',
@@ -548,7 +507,7 @@ export default function Layanan() {
                         {row.layanan}
                       </span>
                     </td>
-                    <td style={{ ...tdStyle, color: '#000000', fontWeight: 'bold' }}>{row.tanggalPengajuan}</td>
+                    <td style={{ ...tdStyle, color: '#000000', fontWeight: 600 }}>{row.tanggalPengajuan}</td>
                     <td style={{ ...tdStyle, color: row.tanggalKirim === '-' ? '#cbd5e1' : '#475569' }}>
                       {row.tanggalKirim}
                     </td>

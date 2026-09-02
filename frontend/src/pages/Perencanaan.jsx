@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import bgCard from '../assets/bg-card.png';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
 import '../styles/Perencanaan.css';
 import {
   Activity, Bell, RefreshCw, Settings, LogOut, Database,
-  Users, UserMinus, Building, ClipboardList, Search, ChevronLeft,
+  UserMinus, Building, ClipboardList, Search, ChevronLeft,
   ChevronRight, BarChart2, Briefcase, ArrowUpDown, ArrowUp, ArrowDown, X
 } from 'lucide-react';
 import {
@@ -16,24 +15,10 @@ import {
 import { usePerencanaan } from '../hooks/usePerencanaan';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
+import LiveDateTime from '../components/shared/LiveDateTime';
 
 const PAGE_SIZE = 10;
 const CHART_PAGE_SIZE = 15;
-
-// ─── Live DateTime ────────────────────────────────────────────────────────────
-const LiveDateTime = () => {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="date-text">
-      {now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-      {' '}{now.toLocaleTimeString('id-ID')}
-    </div>
-  );
-};
 
 // ─── Status Chip ─────────────────────────────────────────────────────────────
 const StatusChip = ({ status }) => {
@@ -211,7 +196,7 @@ export default function Perencanaan() {
     setSortConfig({ key, direction });
   };
 
-  const sortedData = React.useMemo(() => {
+  const sortedData = useMemo(() => {
     let sortableItems = [...data];
     
     // Sort the data
@@ -309,7 +294,7 @@ export default function Perencanaan() {
           {/* ── Content Area ── */}
           <div className="content-area">
             {/* Breadcrumb */}
-            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}>
+            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
               <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
               <span>/</span>
               <span style={{ color: '#0f172a' }}>Perencanaan Jabatan</span>
@@ -401,7 +386,6 @@ export default function Perencanaan() {
                 </div>
               </div>
             </div>
-
 
             {/* ── Tabel Jabatan Kosong ── */}
             <div className="pr-table-card">
@@ -502,8 +486,8 @@ export default function Perencanaan() {
                       <tbody>
                         {pagedData.map((row, i) => (
                           <tr key={row.id}>
-                            <td style={{ color: '#000000', fontWeight: 'bold', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
-                            <td style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 'bold', maxWidth: '250px', whiteSpace: 'normal' }}>
+                            <td style={{ color: '#000000', fontWeight: 600 }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
+                            <td style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 600, maxWidth: '250px', whiteSpace: 'normal' }}>
                               {row.opd}
                             </td>
                             <td><span style={{ fontWeight: 700, color: '#0f172a' }}>{row.jabatan}</span></td>
@@ -573,7 +557,7 @@ export default function Perencanaan() {
                       >
                         <ChevronLeft size={14} />
                       </button>
-                      <span style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 'bold', display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#000000', display: 'flex', alignItems: 'center', padding: '0 0.5rem', fontWeight: 600 }}>
                         {chartPage} / {totalChartPages}
                       </span>
                       <button
@@ -592,12 +576,12 @@ export default function Perencanaan() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis
                       dataKey="short"
-                      tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 500 }}
+                      tick={{ fontSize: 13, fill: '#000000', fontWeight: 600 }}
                       angle={-40}
                       textAnchor="end"
                       interval={0}
                     />
-                    <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 'bold', fontWeight: 500 }} allowDecimals={false} />
+                    <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 600 }} allowDecimals={false} />
                     <Tooltip content={<TooltipOPD />} labelFormatter={(label) => {
                       const found = opdChartData.find(d => d.short === label);
                       return found ? found.full : label;
