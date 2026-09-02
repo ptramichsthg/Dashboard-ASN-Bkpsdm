@@ -13,6 +13,9 @@ import {
   ResponsiveContainer, Legend
 } from 'recharts';
 
+import { shortenOPD } from '../utils/formatters';
+import ChartTooltip from '../components/shared/ChartTooltip';
+
 import { usePerencanaan } from '../hooks/usePerencanaan';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
@@ -48,68 +51,6 @@ const StatusChip = ({ status }) => {
       )}
     </div>
   );
-};
-
-// ─── Custom Tooltip OPD Chart ─────────────────────────────────────────────────
-const TooltipOPD = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div style={{ background: 'white', padding: '10px 14px', border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,.1)' }}>
-      <p style={{ fontWeight: 700, marginBottom: 6, fontSize: '0.85rem' }}>{label}</p>
-      {payload.map((p, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', marginTop: 3 }}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: p.fill, display: 'inline-block' }} />
-          {p.name}: <strong>{p.value}</strong>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// ─── Helper untuk Singkatan OPD ───────────────────────────────────────────────
-const shortenOPD = (name) => {
-  if (!name) return '';
-  const upper = name.toUpperCase().trim();
-
-  const known = {
-    'BADAN KEPEGAWAIAN DAN PENGEMBANGAN SUMBER DAYA MANUSIA': 'BKPSDM',
-    'BADAN KEUANGAN DAN ASET DAERAH': 'BKAD',
-    'BADAN PENANGGULANGAN BENCANA DAERAH': 'BPBD',
-    'BADAN PENDAPATAN DAERAH': 'BAPENDA',
-    'BADAN PERENCANAAN PEMBANGUNAN, RISET DAN INOVASI DAERAH': 'BAPPERIDA',
-    'BADAN KESATUAN BANGSA DAN POLITIK': 'BAKESBANGPOL',
-    'DINAS KEPENDUDUKAN DAN PENCATATAN SIPIL': 'DISDUKCAPIL',
-    'DINAS KESEHATAN': 'DINKES',
-    'DINAS PENDIDIKAN': 'DISDIK',
-    'DINAS SOSIAL': 'DINSOS',
-    'DINAS PERHUBUNGAN': 'DISHUB',
-    'DINAS PERPUSTAKAAN DAN KEARSIPAN': 'DISPUSIP',
-    'DINAS KOMUNIKASI DAN INFORMATIKA': 'DISKOMINFO',
-    'DINAS PEKERJAAN UMUM DAN TATA RUANG': 'DPUTR',
-    'DINAS PERUMAHAN, KAWASAN PERMUKIMAN DAN PERTANAHAN': 'DISPERKIMTAN',
-    'DINAS PEMBERDAYAAN MASYARAKAT DAN DESA': 'DPMD',
-    'DINAS KETENAGAKERJAAN': 'DISNAKER',
-    'DINAS PENANAMAN MODAL DAN PELAYANAN TERPADU SATU PINTU': 'DPMPTSP',
-    'RUMAH SAKIT UMUM DAERAH': 'RSUD',
-    'SEKRETARIAT DAERAH': 'SETDA',
-    'SEKRETARIAT DPRD': 'SETWAN',
-    'INSPEKTORAT DAERAH': 'INSPEKTORAT'
-  };
-
-  if (known[upper]) return known[upper];
-  if (upper.startsWith('RUMAH SAKIT UMUM DAERAH')) return upper.replace('RUMAH SAKIT UMUM DAERAH', 'RSUD');
-  if (upper.startsWith('KECAMATAN')) return upper.replace('KECAMATAN', 'Kec.');
-
-  let shortened = name;
-  if (shortened.length > 20) {
-    const words = shortened.split(' ');
-    if (words.length >= 3 && !upper.includes('KECAMATAN')) {
-      const acronym = words.map(w => w[0]).join('').toUpperCase();
-      if (acronym.length > 2) return acronym;
-    }
-    return shortened.substring(0, 18) + '…';
-  }
-  return shortened;
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -526,7 +467,7 @@ export default function Perencanaan() {
                       interval={0}
                     />
                     <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 600 }} allowDecimals={false} />
-                    <Tooltip content={<TooltipOPD />} labelFormatter={(label) => {
+                    <Tooltip content={<ChartTooltip />} labelFormatter={(label) => {
                       const found = opdChartData.find(d => d.short === label);
                       return found ? found.full : label;
                     }} />

@@ -14,6 +14,7 @@ import {
   ResponsiveContainer, Cell, PieChart as RechartsPie, Pie
 } from 'recharts';
 import { usePemberhentian } from '../hooks/usePemberhentian';
+import { defaultTooltipStyle } from '../utils/formatters';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const JENIS_LIST = [
@@ -295,7 +296,7 @@ export default function Pemberhentian() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#000000', fontWeight: 'bold' }} angle={-15} textAnchor="end" height={80} />
                     <YAxis tick={{ fontSize: 12, fill: '#000000', fontWeight: 'bold' }} />
-                    <Tooltip contentStyle={{ fontSize: 13, borderRadius: 8, border: '1px solid #e2e8f0', fontWeight: 600 }} />
+                    <Tooltip {...defaultTooltipStyle} />
                     <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={40}>
                       {barChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={JENIS_COLORS[entry.name] || '#3b82f6'} />
@@ -337,7 +338,7 @@ export default function Pemberhentian() {
                         <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name] || '#3b82f6'} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ fontSize: 13, borderRadius: 8, fontWeight: 600 }} />
+                    <Tooltip {...defaultTooltipStyle} />
                   </RechartsPie>
                 </ResponsiveContainer>
               </div>

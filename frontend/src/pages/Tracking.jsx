@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 
 import { useTracking } from '../hooks/useTracking';
+import ChartTooltip from '../components/shared/ChartTooltip';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
 
@@ -78,22 +79,6 @@ const StepperModal = ({ status, tanggalPengajuan, tanggalKirim }) => {
           </React.Fragment>
         );
       })}
-    </div>
-  );
-};
-
-// ─── Custom Tooltip Chart ─────────────────────────────────────────────────────
-const TooltipLayanan = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div style={{ background: 'white', padding: '10px 14px', border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,.1)' }}>
-      <p style={{ fontWeight: 700, marginBottom: 6, fontSize: '0.85rem' }}>{label}</p>
-      {payload.map((p, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', marginTop: 3 }}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: p.fill, display: 'inline-block' }} />
-          {p.name}: <strong>{p.value} pengajuan</strong>
-        </div>
-      ))}
     </div>
   );
 };
@@ -351,7 +336,7 @@ export default function Tracking() {
                       interval={0}
                     />
                     <YAxis tick={{ fontSize: 12, fill: '#000', fontWeight: 500 }} allowDecimals={false} />
-                    <Tooltip content={<TooltipLayanan />} />
+                    <Tooltip content={<ChartTooltip unit="pengajuan" />} />
                     <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '0.95rem', fontWeight: 600, paddingBottom: 10 }} />
                     <Bar dataKey="usulan"  name="Usulan"  fill="#6366f1" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="proses"  name="Proses"  fill="#f59e0b" radius={[4, 4, 0, 0]} />
