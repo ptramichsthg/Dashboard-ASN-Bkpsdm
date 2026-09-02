@@ -13,28 +13,123 @@ import Tracking from './pages/Tracking';
 import Perpustakaan from './pages/Perpustakaan';
 import './index.css';
 
+// Komponen untuk memastikan user yang belum login tidak bisa masuk dashboard
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
+// Komponen untuk memastikan user yang sudah login tidak melihat halaman login lagi
+const GuestRoute = ({ children }) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    return <Navigate to="/profil" replace />;
+  }
+  return children;
+};
+
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Auth */}
-        <Route path="/" element={<Login />} />
+        {/* Auth: Hanya untuk tamu yang belum login */}
+        <Route
+          path="/"
+          element={
+            <GuestRoute>
+              <Login />
+            </GuestRoute>
+          }
+        />
 
         {/* Halaman utama setelah login → Profil ASN */}
-        <Route path="/profil" element={<Profil />} />
+        <Route
+          path="/profil"
+          element={
+            <ProtectedRoute>
+              <Profil />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Menu Lainnya → grid semua fitur */}
-        <Route path="/lainnya" element={<Lainnya />} />
+        <Route
+          path="/lainnya"
+          element={
+            <ProtectedRoute>
+              <Lainnya />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Halaman-halaman fitur (diakses dari /lainnya) */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/sebaran-pegawai" element={<DataPegawai />} />
-        <Route path="/layanan" element={<Layanan />} />
-        <Route path="/pengembangan-kompetensi" element={<PengembanganKompetensi />} />
-        <Route path="/perencanaan" element={<Perencanaan />} />
-        <Route path="/dashboard/pemberhentian" element={<Pemberhentian />} />
-        <Route path="/dashboard/tracking" element={<Tracking />} />
-        <Route path="/dashboard/perpustakaan" element={<Perpustakaan />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sebaran-pegawai"
+          element={
+            <ProtectedRoute>
+              <DataPegawai />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/layanan"
+          element={
+            <ProtectedRoute>
+              <Layanan />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pengembangan-kompetensi"
+          element={
+            <ProtectedRoute>
+              <PengembanganKompetensi />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/perencanaan"
+          element={
+            <ProtectedRoute>
+              <Perencanaan />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/pemberhentian"
+          element={
+            <ProtectedRoute>
+              <Pemberhentian />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/tracking"
+          element={
+            <ProtectedRoute>
+              <Tracking />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/perpustakaan"
+          element={
+            <ProtectedRoute>
+              <Perpustakaan />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

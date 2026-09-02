@@ -19,6 +19,7 @@ import {
   Award,
   AlertCircle,
   BarChart2,
+  ChevronLeft,
   ChevronRight,
   Menu,
   X,
@@ -102,7 +103,7 @@ function JenisAsnCard({ label, value }) {
       <div className="jenis-asn-card-icon" style={{ background: cfg.bg }}>
         {cfg.icon}
       </div>
-      <div>
+      <div className="jenis-asn-card-content">
         <div className="jenis-asn-card-label">{label}</div>
         <div className="jenis-asn-card-value">{value.toLocaleString('id-ID')}</div>
       </div>
@@ -110,22 +111,6 @@ function JenisAsnCard({ label, value }) {
   );
 }
 
-// Progress fill berdasarkan persentase keterisian
-function ProgressFill({ bezetting, kebutuhan }) {
-  const pct = kebutuhan > 0 ? Math.min((bezetting / kebutuhan) * 100, 100) : 100;
-  const cls = pct >= 95 ? '' : pct >= 80 ? 'warning' : 'danger';
-  return (
-    <div className="bezetting-progress-wrap">
-      <span className="num-cell">{bezetting}</span>
-      <div className="bezetting-progress-bar">
-        <div
-          className={`bezetting-progress-fill ${cls}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
 
 // Badge selisih +/-
 function SelisihBadge({ value }) {
@@ -197,6 +182,15 @@ const Profil = () => {
   const [searchKosong, setSearchKosong] = useState('');
   const [filterEselon, setFilterEselon] = useState('Semua');
 
+  // Pagination jabatan kosong (15 per halaman)
+  const [pageKosong, setPageKosong] = useState(1);
+  const itemsPerPageKosong = 15;
+
+  // Reset page saat filter/search berubah
+  useEffect(() => {
+    setPageKosong(1);
+  }, [searchKosong, filterEselon]);
+
   // Auth
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -255,6 +249,13 @@ const Profil = () => {
       return matchSearch && matchEselon;
     });
   }, [manajerialData, searchKosong, filterEselon]);
+
+  // Pagination perhitungan
+  const totalPagesKosong = Math.max(1, Math.ceil(jabatanKosongFiltered.length / itemsPerPageKosong));
+  const pagedJabatanKosong = useMemo(() => {
+    const start = (pageKosong - 1) * itemsPerPageKosong;
+    return jabatanKosongFiltered.slice(start, start + itemsPerPageKosong);
+  }, [jabatanKosongFiltered, pageKosong, itemsPerPageKosong]);
 
   // Summary
   const summary = manajerialData?.summary;
@@ -377,14 +378,14 @@ const Profil = () => {
           {/* ═══════════════════════════════════════════════
               SECTION 1 — JENIS ASN
           ═══════════════════════════════════════════════ */}
-          <div className="profil-section-header" style={{ marginTop: '1.5rem' }}>
-            <div className="profil-section-icon" style={{ background: '#ecfdf5' }}>
-              <Users size={18} color="#059669" />
+          <div className="profil-section-header first-section">
+            <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+              <Users size={22} color="#059669" />
             </div>
-            <div>
-              <div className="profil-section-title">Jenis ASN</div>
-              <div className="profil-section-subtitle">Komposisi pegawai berdasarkan status kepegawaian</div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Jenis ASN</h2>
             </div>
+            <div className="profil-section-line" />
           </div>
 
           {profilLoading ? (
@@ -413,15 +414,13 @@ const Profil = () => {
               SECTION 2 — JABATAN MANAJERIAL
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
-            <div className="profil-section-icon" style={{ background: '#fdf4ff' }}>
-              <Award size={18} color="#7e22ce" />
+            <div className="profil-section-icon" style={{ background: '#fdf4ff', border: '1px solid #f5d0fe', boxShadow: '0 4px 12px rgba(168, 85, 247, 0.15)' }}>
+              <Award size={22} color="#7e22ce" />
             </div>
-            <div>
-              <div className="profil-section-title">Jabatan Manajerial</div>
-              <div className="profil-section-subtitle">
-                Bezetting (terisi) vs Kebutuhan (formasi) per Eselon — klik hirarki untuk filter
-              </div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Jabatan Manajerial</h2>
             </div>
+            <div className="profil-section-line" />
           </div>
 
           {manajerialLoading ? (
@@ -449,9 +448,6 @@ const Profil = () => {
                       </span>
                     )}
                   </div>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                    Ket: Bezetting = Terisi, Kebutuhan = Formasi
-                  </span>
                 </div>
 
                 {/* KPI Summary */}
@@ -480,20 +476,16 @@ const Profil = () => {
                       <th className="text-center">Bezetting</th>
                       <th className="text-center">Kebutuhan</th>
                       <th className="text-center">+/-</th>
-                      <th>Keterisian</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rekapFiltered.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="no-data-row">Tidak ada data</td>
+                        <td colSpan={5} className="no-data-row">Tidak ada data</td>
                       </tr>
                     ) : (
                       rekapFiltered.map((row) => {
                         const { badgeClass } = SUB_COLOR[row.subklasifikasi] || {};
-                        const pct = row.total_kebutuhan > 0
-                          ? Math.round((row.total_bezetting / row.total_kebutuhan) * 100)
-                          : 100;
                         return (
                           <tr key={`${row.subklasifikasi}-${row.jenis_eselon}`}>
                             <td>
@@ -504,9 +496,6 @@ const Profil = () => {
                             <td className="text-center num-cell">{row.total_kebutuhan}</td>
                             <td className="text-center">
                               <SelisihBadge value={Number(row.total_selisih)} />
-                            </td>
-                            <td>
-                              <ProgressFill bezetting={row.total_bezetting} kebutuhan={row.total_kebutuhan} />
                             </td>
                           </tr>
                         );
@@ -522,15 +511,13 @@ const Profil = () => {
               SECTION 3 — DETAIL JABATAN KOSONG
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
-            <div className="profil-section-icon" style={{ background: '#fee2e2' }}>
-              <AlertCircle size={18} color="#dc2626" />
+            <div className="profil-section-icon" style={{ background: '#fee2e2', border: '1px solid #fecaca', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)' }}>
+              <AlertCircle size={22} color="#dc2626" />
             </div>
-            <div>
-              <div className="profil-section-title">Detail Jabatan Manajerial Kosong / Lowong</div>
-              <div className="profil-section-subtitle">
-                Jabatan yang bezetting-nya di bawah kebutuhan (formasi belum terpenuhi)
-              </div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Detail Jabatan Manajerial Kosong / Lowong</h2>
             </div>
+            <div className="profil-section-line" />
           </div>
 
           <div className="jabatan-kosong-card">
@@ -573,7 +560,7 @@ const Profil = () => {
                 <tr>
                   <th>#</th>
                   <th>Nama Jabatan</th>
-                  <th>OPD / Perangkat Daerah</th>
+                  <th>OPD</th>
                   <th>Eselon</th>
                   <th className="text-center">Bezetting</th>
                   <th className="text-center">Kebutuhan</th>
@@ -594,11 +581,12 @@ const Profil = () => {
                     </td>
                   </tr>
                 ) : (
-                  jabatanKosongFiltered.map((j, idx) => {
+                  pagedJabatanKosong.map((j, idx) => {
                     const { badgeClass } = SUB_COLOR[j.subklasifikasi] || {};
+                    const absoluteIndex = (pageKosong - 1) * itemsPerPageKosong + idx + 1;
                     return (
                       <tr key={j.id}>
-                        <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{idx + 1}</td>
+                        <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{absoluteIndex}</td>
                         <td>
                           <div className="jabatan-name">{j.jabatan}</div>
                           <div className="jabatan-unit">{j.unit_kerja}</div>
@@ -618,26 +606,67 @@ const Profil = () => {
                 )}
               </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            {!manajerialLoading && jabatanKosongFiltered.length > 0 && (
+              <div className="profil-pagination">
+                <span>
+                  Menampilkan {((pageKosong - 1) * itemsPerPageKosong) + 1}–{Math.min(pageKosong * itemsPerPageKosong, jabatanKosongFiltered.length)} dari {jabatanKosongFiltered.length} jabatan
+                </span>
+                <div className="profil-pagination-btns">
+                  <button
+                    className="profil-page-btn"
+                    onClick={() => setPageKosong((p) => Math.max(1, p - 1))}
+                    disabled={pageKosong === 1}
+                    title="Halaman sebelumnya"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+
+                  {Array.from({ length: totalPagesKosong }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalPagesKosong || Math.abs(p - pageKosong) <= 1)
+                    .map((p, idx, arr) => (
+                      <React.Fragment key={p}>
+                        {idx > 0 && arr[idx - 1] !== p - 1 && (
+                          <span className="profil-pagination-dots">…</span>
+                        )}
+                        <button
+                          className={`profil-page-btn ${pageKosong === p ? 'active' : ''}`}
+                          onClick={() => setPageKosong(p)}
+                        >
+                          {p}
+                        </button>
+                      </React.Fragment>
+                    ))}
+
+                  <button
+                    className="profil-page-btn"
+                    onClick={() => setPageKosong((p) => Math.min(totalPagesKosong, p + 1))}
+                    disabled={pageKosong === totalPagesKosong}
+                    title="Halaman berikutnya"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ═══════════════════════════════════════════════
               SECTION 4 — STATISTIK UMUM (Skeleton)
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
-            <div className="profil-section-icon" style={{ background: '#f1f5f9' }}>
-              <BarChart2 size={18} color="#64748b" />
+            <div className="profil-section-icon" style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', boxShadow: '0 4px 12px rgba(100, 116, 139, 0.12)' }}>
+              <BarChart2 size={22} color="#64748b" />
             </div>
-            <div>
-              <div className="profil-section-title">Statistik Umum</div>
-              <div className="profil-section-subtitle">Generasi, sebaran jabatan, dan statistik pendukung lainnya</div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Statistik Umum</h2>
             </div>
+            <div className="profil-section-line" />
           </div>
           <div className="statistik-skeleton-card">
             <div className="statistik-skeleton-icon">📊</div>
             <div className="statistik-skeleton-text">Statistik Umum sedang dalam pengembangan</div>
-            <div style={{ fontSize: '0.78rem', marginTop: '0.5rem', opacity: 0.5 }}>
-              Akan mencakup data generasi ASN, sebaran jabatan fungsional, dan statistik pendukung lainnya
-            </div>
           </div>
 
         </div>

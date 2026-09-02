@@ -17,6 +17,14 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Jika sudah memiliki token aktif, otomatis alihkan ke /profil
+  React.useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      navigate('/profil', { replace: true });
+    }
+  }, [navigate]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -45,7 +53,8 @@ const Login = () => {
           await new Promise(resolve => setTimeout(resolve, remainingTime));
         }
 
-        navigate('/profil');
+        setIsLoading(false);
+        navigate('/profil', { replace: true });
       }
     } catch (err) {
       // Hitung waktu yang sudah berlalu
@@ -57,11 +66,17 @@ const Login = () => {
         await new Promise(resolve => setTimeout(resolve, remainingTime));
       }
 
-      if (err.response && err.response.data && err.response.data.errors) {
-        const firstError = Object.values(err.response.data.errors)[0];
-        setError(firstError[0] || 'Terjadi kesalahan saat login.');
+      if (err.response && err.response.data) {
+        if (err.response.data.errors) {
+          const firstError = Object.values(err.response.data.errors)[0];
+          setError(Array.isArray(firstError) ? firstError[0] : firstError || 'Terjadi kesalahan saat login.');
+        } else if (err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError('Username/NIP atau password salah.');
+        }
       } else {
-        setError('Koneksi ke server gagal. Silakan coba lagi.');
+        setError('Koneksi ke server backend gagal. Pastikan server aktif.');
       }
     } finally {
       setIsLoading(false);
@@ -80,7 +95,9 @@ const Login = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          display: isLoading ? 'none' : 'flex', // Sembunyikan saat loading
+          opacity: isLoading ? 0 : 1,
+          pointerEvents: isLoading ? 'none' : 'auto',
+          transition: 'opacity 0.25s ease-in-out',
         }}
       >
       <div className="loginCard">

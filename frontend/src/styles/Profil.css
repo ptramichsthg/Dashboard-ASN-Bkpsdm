@@ -2,35 +2,60 @@
    Profil.css — Halaman Profil ASN
    =================================================== */
 
-/* ── Section Header ──────────────────────────────── */
+/* ── Section Header with Divider & Special Styling ── */
 .profil-section-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1.1rem;
+  margin-top: 1.5rem;
   margin-bottom: 1.25rem;
-  margin-top: 0.5rem;
+  padding-top: 0;
+  position: relative;
+}
+
+.profil-section-header.first-section {
+  margin-top: 1.25rem;
 }
 
 .profil-section-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.profil-section-header:hover .profil-section-icon {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.09);
+}
+
+.profil-section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .profil-section-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-main);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
 }
 
-.profil-section-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 1px;
+.profil-section-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, #1e293b 0%, #475569 50%, rgba(71, 85, 105, 0.25) 100%);
+  border-radius: 99px;
+  margin-left: 0.5rem;
 }
 
 /* ── Jenis ASN Cards ─────────────────────────────── */
@@ -44,12 +69,13 @@
 .jenis-asn-card {
   background: #ffffff;
   border-radius: var(--radius);
-  padding: 1.5rem 1.25rem;
+  padding: 1.1rem 1.25rem;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border);
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -72,48 +98,56 @@
 }
 
 .jenis-asn-card-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.jenis-asn-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 .jenis-asn-card-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
 .jenis-asn-card-value {
-  font-size: 2.4rem;
+  font-size: 2rem;
   font-weight: 800;
-  color: var(--text-main);
-  line-height: 1;
+  color: #000000;
+  line-height: 1.1;
 }
 
 .jenis-asn-total-bar {
   background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
   border-radius: var(--radius-sm);
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   color: white;
 }
 
 .jenis-asn-total-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  opacity: 0.9;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  opacity: 1;
 }
 
 .jenis-asn-total-value {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 800;
 }
 
@@ -129,7 +163,7 @@
 /* Tree / Hirarki */
 .manajerial-tree-card {
   background: #ffffff;
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius);
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
@@ -137,8 +171,8 @@
 
 .manajerial-tree-title {
   font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-weight: 800;
+  color: #1e293b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 1.25rem;
@@ -187,7 +221,7 @@
 
 .tree-children {
   margin-left: 1.5rem;
-  border-left: 2px solid #e2e8f0;
+  border-left: 2px solid #cbd5e1;
   padding-left: 0.75rem;
   margin-top: 0.25rem;
   display: flex;
@@ -203,9 +237,9 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.15s;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  font-weight: 500;
+  font-size: 0.82rem;
+  color: #334155;
+  font-weight: 600;
   position: relative;
 }
 
@@ -216,7 +250,7 @@
   top: 50%;
   width: 0.75rem;
   height: 2px;
-  background: #e2e8f0;
+  background: #cbd5e1;
 }
 
 .tree-leaf:hover {
@@ -233,7 +267,7 @@
 /* Tabel Bezetting */
 .bezetting-table-card {
   background: #ffffff;
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
@@ -241,7 +275,7 @@
 
 .bezetting-table-header {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #cbd5e1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -251,13 +285,13 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #cbd5e1;
 }
 
 .bezetting-kpi-item {
   padding: 1rem 1.5rem;
   text-align: center;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #cbd5e1;
 }
 
 .bezetting-kpi-item:last-child {
@@ -266,8 +300,8 @@
 
 .bezetting-kpi-label {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: #334155;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 0.25rem;
@@ -290,18 +324,18 @@ table.bezetting-table {
 }
 
 table.bezetting-table thead tr {
-  background: #f8fafc;
+  background: #f1f5f9;
 }
 
 table.bezetting-table thead th {
-  padding: 0.85rem 1.25rem;
+  padding: 0.95rem 1.25rem;
   text-align: left;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid #94a3b8;
 }
 
 table.bezetting-table thead th.text-center {
@@ -309,7 +343,7 @@ table.bezetting-table thead th.text-center {
 }
 
 table.bezetting-table tbody tr {
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #cbd5e1;
   transition: background 0.15s;
 }
 
@@ -318,7 +352,7 @@ table.bezetting-table tbody tr:last-child {
 }
 
 table.bezetting-table tbody tr:hover {
-  background: #fafafa;
+  background: #f8fafc;
 }
 
 table.bezetting-table tbody td {
@@ -356,14 +390,15 @@ table.bezetting-table tbody td.text-center {
 }
 
 .eselon-text {
-  font-weight: 600;
-  color: #334155;
+  font-weight: 700;
+  color: #0f172a;
   font-size: 0.875rem;
 }
 
 .num-cell {
   font-size: 1rem;
   font-weight: 700;
+  color: #0f172a;
   text-align: center;
 }
 
@@ -428,7 +463,7 @@ table.bezetting-table tbody td.text-center {
 /* ── Jabatan Kosong Section ──────────────────────── */
 .jabatan-kosong-card {
   background: #ffffff;
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   margin-bottom: 2rem;
@@ -437,7 +472,7 @@ table.bezetting-table tbody td.text-center {
 
 .jabatan-kosong-toolbar {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #cbd5e1;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -451,7 +486,7 @@ table.bezetting-table tbody td.text-center {
   align-items: center;
   gap: 0.5rem;
   background: var(--input-bg);
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   padding: 0.5rem 0.85rem;
 }
@@ -471,7 +506,7 @@ table.bezetting-table tbody td.text-center {
 }
 
 .jabatan-kosong-filter select {
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   padding: 0.5rem 0.85rem;
   font-size: 0.875rem;
@@ -499,22 +534,22 @@ table.jabatan-kosong-table {
 }
 
 table.jabatan-kosong-table thead tr {
-  background: #f8fafc;
+  background: #f1f5f9;
 }
 
 table.jabatan-kosong-table thead th {
-  padding: 0.85rem 1.25rem;
+  padding: 0.95rem 1.25rem;
   text-align: left;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid #94a3b8;
 }
 
 table.jabatan-kosong-table tbody tr {
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #cbd5e1;
   transition: background 0.15s;
 }
 
@@ -533,27 +568,89 @@ table.jabatan-kosong-table tbody td {
 }
 
 .jabatan-name {
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 2px;
+  font-weight: 750;
+  color: #000000;
+  margin-bottom: 3px;
 }
 
 .jabatan-unit {
-  font-size: 0.78rem;
-  color: var(--text-muted);
+  font-size: 0.8rem;
+  color: #334155;
+  font-weight: 500;
 }
 
 .opd-text {
-  font-size: 0.8rem;
-  color: #334155;
+  font-size: 0.82rem;
+  color: #0f172a;
   font-weight: 600;
 }
 
 .no-data-row {
   text-align: center;
   padding: 3rem 1.5rem;
-  color: var(--text-muted);
+  color: #475569;
   font-size: 0.9rem;
+}
+
+/* ── Pagination Jabatan Kosong ───────────────────── */
+.profil-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #cbd5e1;
+  font-size: 0.85rem;
+  color: #334155;
+  font-weight: 600;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.profil-pagination-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.profil-page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.profil-page-btn:hover:not(:disabled) {
+  border-color: #ef4444;
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.profil-page-btn.active {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.profil-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.profil-pagination-dots {
+  padding: 0 4px;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 /* ── Statistik Umum Skeleton ─────────────────────── */
