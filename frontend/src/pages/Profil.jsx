@@ -20,6 +20,8 @@ import {
   ChevronRight,
   Menu,
   Database,
+  X,
+  CheckCircle2,
 } from 'lucide-react';
 
 // Konfigurasi tiap jenis ASN
@@ -85,17 +87,34 @@ function JenisAsnCard({ label, value }) {
       </div>
       <div className="jenis-asn-card-content">
         <div className="jenis-asn-card-label">{label}</div>
-        <div className="jenis-asn-card-value">{value.toLocaleString('id-ID')}</div>
+        <div className="jenis-asn-card-value">
+          {value.toLocaleString('id-ID')} <span className="jenis-asn-card-unit">orang</span>
+        </div>
       </div>
     </div>
   );
 }
 
 
-// Badge selisih +/-
-function SelisihBadge({ value }) {
+// Badge selisih +/- (bisa menjadi tombol interaktif jika onClick disediakan)
+function SelisihBadge({ value, onClick, title }) {
   const cls = value === 0 ? 'zero' : value > 0 ? 'plus' : 'minus';
   const prefix = value > 0 ? '+' : '';
+  const isClickable = typeof onClick === 'function';
+
+  if (isClickable) {
+    return (
+      <button
+        type="button"
+        className={`selisih-badge ${cls} clickable`}
+        onClick={onClick}
+        title={title || 'Klik untuk melihat rincian jabatan'}
+      >
+        {prefix}{value}
+      </button>
+    );
+  }
+
   return (
     <span className={`selisih-badge ${cls}`}>
       {prefix}{value}
@@ -164,10 +183,52 @@ const Profil = () => {
   const [pageKosong, setPageKosong] = useState(1);
   const itemsPerPageKosong = 15;
 
+  // State Modal Detail Selisih Bezetting
+  const [selectedModalRow, setSelectedModalRow] = useState(null);
+  const [searchModal, setSearchModal] = useState('');
+  const [pageModal, setPageModal] = useState(1);
+  const itemsPerPageModal = 10;
+
+  const handleOpenModal = (row) => {
+    setSelectedModalRow(row);
+    setSearchModal('');
+    setPageModal(1);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedModalRow(null);
+    setSearchModal('');
+    setPageModal(1);
+  };
+
+  // Keyboard shortcut ESC to close modal and body scroll lock
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && selectedModalRow) {
+        handleCloseModal();
+      }
+    };
+    if (selectedModalRow) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedModalRow]);
+
   // Reset page saat filter/search berubah
   useEffect(() => {
     setPageKosong(1);
   }, [searchKosong, filterEselon]);
+
+  // Reset page modal saat searchModal berubah
+  useEffect(() => {
+    setPageModal(1);
+  }, [searchModal]);
 
   // Auth
   useEffect(() => {
@@ -224,6 +285,30 @@ const Profil = () => {
     const start = (pageKosong - 1) * itemsPerPageKosong;
     return jabatanKosongFiltered.slice(start, start + itemsPerPageKosong);
   }, [jabatanKosongFiltered, pageKosong, itemsPerPageKosong]);
+
+  // Filtered jabatan untuk Pop-up Modal
+  const modalJabatanFiltered = useMemo(() => {
+    if (!selectedModalRow || !manajerialData?.jabatan_kosong) return [];
+    return manajerialData.jabatan_kosong.filter((j) => {
+      const matchEselon = j.jenis_eselon === selectedModalRow.jenis_eselon;
+      const matchSub = !selectedModalRow.subklasifikasi || j.subklasifikasi === selectedModalRow.subklasifikasi;
+      if (!matchEselon || !matchSub) return false;
+
+      if (!searchModal) return true;
+      const q = searchModal.toLowerCase();
+      return (
+        j.jabatan?.toLowerCase().includes(q) ||
+        j.perangkat_daerah?.toLowerCase().includes(q) ||
+        j.unit_kerja?.toLowerCase().includes(q)
+      );
+    });
+  }, [selectedModalRow, manajerialData, searchModal]);
+
+  const totalPagesModal = Math.max(1, Math.ceil(modalJabatanFiltered.length / itemsPerPageModal));
+  const pagedModalJabatan = useMemo(() => {
+    const start = (pageModal - 1) * itemsPerPageModal;
+    return modalJabatanFiltered.slice(start, start + itemsPerPageModal);
+  }, [modalJabatanFiltered, pageModal, itemsPerPageModal]);
 
   // Summary
   const summary = manajerialData?.summary;
@@ -307,7 +392,7 @@ const Profil = () => {
           <div className="jenis-asn-total-bar">
             <span className="jenis-asn-total-label">Total ASN Kabupaten Bandung</span>
             <span className="jenis-asn-total-value">
-              {profilLoading ? '—' : (profilData?.total_asn || 0).toLocaleString('id-ID')}
+              {profilLoading ? '—' : `${(profilData?.total_asn || 0).toLocaleString('id-ID')} orang`}
             </span>
           </div>
 
@@ -396,7 +481,11 @@ const Profil = () => {
                             <td className="text-center num-cell">{row.total_bezetting}</td>
                             <td className="text-center num-cell">{row.total_kebutuhan}</td>
                             <td className="text-center">
-                              <SelisihBadge value={Number(row.total_selisih)} />
+                              <SelisihBadge
+                                value={Number(row.total_selisih)}
+                                onClick={() => handleOpenModal(row)}
+                                title={`Klik untuk melihat rincian jabatan ${row.jenis_eselon}`}
+                              />
                             </td>
                           </tr>
                         );
@@ -571,6 +660,202 @@ const Profil = () => {
           </div>
 
         </div>
+
+        {/* ── MODAL DETAIL JABATAN PER ESELON ── */}
+        {selectedModalRow && (
+          <div className="bezetting-modal-backdrop" onClick={handleCloseModal}>
+            <div
+              className="bezetting-modal-container"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+            >
+              {/* Header */}
+              <div className="bezetting-modal-header">
+                <div className="bezetting-modal-title-wrap">
+                  <div className="bezetting-modal-subtitle">
+                    <span>Rincian Formasi Jabatan Manajerial</span>
+                  </div>
+                  <h3 className="bezetting-modal-title">
+                    <span>{selectedModalRow.jenis_eselon}</span>
+                    <span className={`sub-badge ${SUB_COLOR[selectedModalRow.subklasifikasi]?.badgeClass}`}>
+                      {selectedModalRow.subklasifikasi}
+                    </span>
+                    <SelisihBadge value={Number(selectedModalRow.total_selisih)} />
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  className="bezetting-modal-close-btn"
+                  onClick={handleCloseModal}
+                  title="Tutup (Esc)"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Quick Summary Bar */}
+              <div className="bezetting-modal-summary-bar">
+                <div className="modal-summary-item">
+                  <span className="modal-summary-label">Total Bezetting</span>
+                  <span className="modal-summary-val">{selectedModalRow.total_bezetting}</span>
+                </div>
+                <div className="modal-summary-item">
+                  <span className="modal-summary-label">Total Kebutuhan</span>
+                  <span className="modal-summary-val">{selectedModalRow.total_kebutuhan}</span>
+                </div>
+                <div className="modal-summary-item">
+                  <span className="modal-summary-label">Total Selisih</span>
+                  <span
+                    className={`modal-summary-val ${
+                      Number(selectedModalRow.total_selisih) === 0
+                        ? 'success'
+                        : Number(selectedModalRow.total_selisih) < 0
+                        ? 'danger'
+                        : ''
+                    }`}
+                  >
+                    {Number(selectedModalRow.total_selisih) > 0
+                      ? `+${selectedModalRow.total_selisih}`
+                      : selectedModalRow.total_selisih}
+                  </span>
+                </div>
+              </div>
+
+              {/* Jika Selisih === 0: Zero State */}
+              {Number(selectedModalRow.total_selisih) === 0 ? (
+                <div className="bezetting-modal-body">
+                  <div className="bezetting-modal-zero-state">
+                    <div className="zero-state-icon-circle">
+                      <CheckCircle2 size={34} />
+                    </div>
+                    <div className="zero-state-title">Semua Formasi Terpenuhi</div>
+                    <div className="zero-state-desc">
+                      Seluruh formasi jabatan pada <strong>{selectedModalRow.subklasifikasi}</strong> (
+                      <strong>{selectedModalRow.jenis_eselon}</strong>) telah terisi lengkap. Jumlah bezetting saat ini
+                      telah mencukupi total kebutuhan dan tidak terdapat kekosongan jabatan manajerial.
+                    </div>
+                    <div className="zero-state-stat-pill">
+                      <span>Bezetting: <strong>{selectedModalRow.total_bezetting}</strong></span>
+                      <span>•</span>
+                      <span>Kebutuhan: <strong>{selectedModalRow.total_kebutuhan}</strong></span>
+                      <span>•</span>
+                      <span>Selisih: <strong>0</strong></span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Jika Selisih Negatif / Ada Kekosongan */
+                <>
+                  <div className="bezetting-modal-toolbar">
+                    <div className="bezetting-modal-search">
+                      <Search size={15} color="#64748b" />
+                      <input
+                        type="text"
+                        placeholder="Cari nama jabatan atau OPD..."
+                        value={searchModal}
+                        onChange={(e) => setSearchModal(e.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="bezetting-modal-count-badge">
+                      {modalJabatanFiltered.length} jabatan kosong
+                    </div>
+                  </div>
+
+                  <div className="bezetting-modal-body">
+                    {modalJabatanFiltered.length === 0 ? (
+                      <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#64748b' }}>
+                        {searchModal ? 'Tidak ada jabatan yang sesuai dengan pencarian.' : 'Tidak ada data rincian jabatan.'}
+                      </div>
+                    ) : (
+                      <div className="bezetting-modal-table-wrap">
+                        <table className="bezetting-modal-table">
+                          <thead>
+                            <tr>
+                              <th style={{ width: 45 }}>#</th>
+                              <th>Nama Jabatan</th>
+                              <th>OPD / Perangkat Daerah</th>
+                              <th className="text-center" style={{ width: 90 }}>Bezetting</th>
+                              <th className="text-center" style={{ width: 90 }}>Kebutuhan</th>
+                              <th className="text-center" style={{ width: 80 }}>Selisih</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {pagedModalJabatan.map((j, idx) => {
+                              const absIdx = (pageModal - 1) * itemsPerPageModal + idx + 1;
+                              return (
+                                <tr key={j.id}>
+                                  <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{absIdx}</td>
+                                  <td>
+                                    <div className="jabatan-name">{j.jabatan}</div>
+                                    <div className="jabatan-unit">{j.unit_kerja}</div>
+                                  </td>
+                                  <td className="opd-text">{j.perangkat_daerah}</td>
+                                  <td className="text-center num-cell">{j.bezetting}</td>
+                                  <td className="text-center num-cell">{j.kebutuhan}</td>
+                                  <td className="text-center">
+                                    <SelisihBadge value={j.selisih} />
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer / Pagination jika data > itemsPerPageModal */}
+                  {modalJabatanFiltered.length > itemsPerPageModal && (
+                    <div className="bezetting-modal-footer">
+                      <span>
+                        Menampilkan {(pageModal - 1) * itemsPerPageModal + 1}–{Math.min(pageModal * itemsPerPageModal, modalJabatanFiltered.length)} dari {modalJabatanFiltered.length} jabatan
+                      </span>
+                      <div className="profil-pagination-btns">
+                        <button
+                          type="button"
+                          className="profil-page-btn"
+                          onClick={() => setPageModal((p) => Math.max(1, p - 1))}
+                          disabled={pageModal === 1}
+                          title="Halaman sebelumnya"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        {Array.from({ length: totalPagesModal }, (_, i) => i + 1)
+                          .filter((p) => p === 1 || p === totalPagesModal || Math.abs(p - pageModal) <= 1)
+                          .map((p, idx, arr) => (
+                            <React.Fragment key={p}>
+                              {idx > 0 && arr[idx - 1] !== p - 1 && (
+                                <span className="profil-pagination-dots">…</span>
+                              )}
+                              <button
+                                type="button"
+                                className={`profil-page-btn ${pageModal === p ? 'active' : ''}`}
+                                onClick={() => setPageModal(p)}
+                              >
+                                {p}
+                              </button>
+                            </React.Fragment>
+                          ))}
+                        <button
+                          type="button"
+                          className="profil-page-btn"
+                          onClick={() => setPageModal((p) => Math.min(totalPagesModal, p + 1))}
+                          disabled={pageModal === totalPagesModal}
+                          title="Halaman berikutnya"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );
