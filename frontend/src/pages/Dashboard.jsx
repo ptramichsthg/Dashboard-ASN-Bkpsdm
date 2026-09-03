@@ -10,6 +10,8 @@ import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 import {
   Users,
+  Shield,
+  UserCheck,
   X,
   Menu,
   Database,
@@ -52,25 +54,71 @@ import {
 // ─── Initial Empty State ─────────────────────────────────────────────
 const INITIAL_SUMMARY = { total: 0, laki: 0, perempuan: 0 };
 
+// Konfigurasi tiap jenis ASN
+const ASN_CONFIG = {
+  CPNS: {
+    color: '#1d4ed8',
+    bg: '#eff6ff',
+    accent: '#3b82f6',
+    icon: <Shield size={22} color="#1d4ed8" />,
+  },
+  PNS: {
+    color: '#059669',
+    bg: '#ecfdf5',
+    accent: '#10b981',
+    icon: <Users size={22} color="#059669" />,
+  },
+  PPPK: {
+    color: '#7e22ce',
+    bg: '#fdf4ff',
+    accent: '#a855f7',
+    icon: <UserCheck size={22} color="#7e22ce" />,
+  },
+  'PPPK PW': {
+    color: '#c2410c',
+    bg: '#fff7ed',
+    accent: '#f97316',
+    icon: <Briefcase size={22} color="#c2410c" />,
+  },
+};
+
+// Card Jenis ASN
+function JenisAsnCard({ label, value }) {
+  const cfg = ASN_CONFIG[label] || ASN_CONFIG['PNS'];
+  return (
+    <div className="jenis-asn-card" style={{ '--card-accent': cfg.accent }}>
+      <div className="jenis-asn-card-icon" style={{ background: cfg.bg }}>
+        {cfg.icon}
+      </div>
+      <div className="jenis-asn-card-content">
+        <div className="jenis-asn-card-label">{label}</div>
+        <div className="jenis-asn-card-value">
+          {Number(value || 0).toLocaleString('id-ID')} <span className="jenis-asn-card-unit">orang</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
-function DataCard({ title, laki, perempuan }) {
-  const total = laki + perempuan;
+function DataCard({ title, laki, perempuan, total: customTotal }) {
+  const total = customTotal !== undefined ? customTotal : ((Number(laki) || 0) + (Number(perempuan) || 0));
   return (
     <div className="data-card">
       <div className="data-card-title">{title}</div>
       <div className="data-card-gender-row">
         <div className="gender-col laki">
           <div className="gender-label">Laki-laki</div>
-          <div className="gender-value">{laki.toLocaleString()}</div>
+          <div className="gender-value">{Number(laki || 0).toLocaleString('id-ID')}</div>
         </div>
         <div className="gender-col perempuan">
           <div className="gender-label">Perempuan</div>
-          <div className="gender-value">{perempuan.toLocaleString()}</div>
+          <div className="gender-value">{Number(perempuan || 0).toLocaleString('id-ID')}</div>
         </div>
       </div>
       <div className="data-card-total">
         <span className="total-label">Total</span>
-        <span className="total-value">{total.toLocaleString()}</span>
+        <span className="total-value">{Number(total || 0).toLocaleString('id-ID')}</span>
       </div>
     </div>
   );
@@ -178,6 +226,10 @@ const Dashboard = () => {
   // Satker Data State (from /satuan-kerja)
   const [satkerRawData, setSatkerRawData] = useState([]);
 
+  // Data Profil (Jenis ASN)
+  const [profilData, setProfilData] = useState(null);
+  const [profilLoading, setProfilLoading] = useState(true);
+
   // Struktur Hierarki OPD State (from /struktur-hierarki-opd)
   const [hierarkiRawData, setHierarkiRawData] = useState([]);
   const [searchHierarki, setSearchHierarki] = useState('');
@@ -209,6 +261,7 @@ const Dashboard = () => {
 
   const loadData = React.useCallback(async () => {
     setIsRefreshing(true);
+    setProfilLoading(true);
     setErrorMsg('');
     try {
       // Convert 'Tahun' to 'Semua' and 'Bulan' to 'Semua' for backend compatibility
@@ -216,10 +269,11 @@ const Dashboard = () => {
       const apiBulan = bulan === 'Bulan' ? 'Semua' : bulan;
       const apiSatker = satker === 'Satuan Kerja' ? 'Semua Satuan Kerja' : satker;
       
-      const [dashRes, satkerRes, hierarkiRes] = await Promise.all([
+      const [dashRes, satkerRes, hierarkiRes, profilRes] = await Promise.all([
         api.get('/dashboard', { params: { satker: apiSatker, tahun: apiTahun, bulan: apiBulan } }),
         api.get('/satuan-kerja'),
-        api.get('/struktur-hierarki-opd')
+        api.get('/struktur-hierarki-opd'),
+        api.get('/profil', { params: { satker: apiSatker } })
       ]);
 
       const data = dashRes.data;
@@ -258,11 +312,16 @@ const Dashboard = () => {
       if (hierarkiRes.data && Array.isArray(hierarkiRes.data)) {
         setHierarkiRawData(hierarkiRes.data);
       }
+
+      if (profilRes.data) {
+        setProfilData(profilRes.data);
+      }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       setErrorMsg(error.response?.data?.message || 'Gagal mengambil data dari server. Silakan coba lagi.');
     } finally {
       setIsRefreshing(false);
+      setProfilLoading(false);
     }
   }, [satker, tahun, bulan]);
 
@@ -275,7 +334,7 @@ const Dashboard = () => {
     loadData();
   };
 
-  // Filter data satuan kerja untuk 6 Kartu Ringkasan & Grafik Stacked
+  // Filter data satuan kerja untuk Grafik Stacked & fallback perhitungan
   const filteredSatkerData = useMemo(() => {
     let result = satkerRawData;
 
@@ -293,14 +352,63 @@ const Dashboard = () => {
     setStackedOpdPage(0);
   }, [satker]);
 
-  // 6 Kartu Ringkasan (Stats Strip)
-  const sumField = (field) => filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr[field], 10) || 0), 0);
-  const stripTotalASN = sumField('total').toLocaleString();
-  const stripPNS = (sumField('pns_l') + sumField('pns_p')).toLocaleString();
-  const stripCPNS = sumField('cpns_p').toLocaleString();
-  const stripPPPK = (sumField('pppk_l') + sumField('pppk_p')).toLocaleString();
-  const stripLaki = (sumField('pns_l') + sumField('pppk_l')).toLocaleString();
-  const stripPerempuan = (sumField('pns_p') + sumField('cpns_p') + sumField('pppk_p')).toLocaleString();
+  // Data Jenis ASN (CPNS, PNS, PPPK, PPPK PW)
+  const displayedJenisAsn = useMemo(() => {
+    if (profilData?.jenis_asn) return profilData.jenis_asn;
+    const cpns = filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.cpns_l, 10) || 0) + (parseInt(curr.cpns_p, 10) || 0), 0);
+    const pns = filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.pns_l, 10) || 0) + (parseInt(curr.pns_p, 10) || 0), 0);
+    const pppk = filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.pppk_l, 10) || 0), 0);
+    const pppkPw = filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.pppk_p, 10) || 0), 0);
+    return [
+      { label: 'CPNS', value: cpns },
+      { label: 'PNS', value: pns },
+      { label: 'PPPK', value: pppk },
+      { label: 'PPPK PW', value: pppkPw },
+    ];
+  }, [profilData, filteredSatkerData]);
+
+  const displayedTotalAsn = useMemo(() => {
+    if (profilData?.total_asn !== undefined) return profilData.total_asn;
+    return filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.total, 10) || 0), 0);
+  }, [profilData, filteredSatkerData]);
+
+  // Data Status Pegawai (CPNS, PNS, PPPK, PPPK PW) selaras dengan Jenis ASN
+  const computedStatusPegawai = useMemo(() => {
+    const cpnsTotal = displayedJenisAsn.find(x => x.label === 'CPNS')?.value ?? 0;
+    const pnsTotal = displayedJenisAsn.find(x => x.label === 'PNS')?.value ?? 0;
+    const pppkTotal = displayedJenisAsn.find(x => x.label === 'PPPK')?.value ?? 0;
+    const pppkPwTotal = displayedJenisAsn.find(x => x.label === 'PPPK PW')?.value ?? 0;
+
+    const cpnsL = filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.cpns_l, 10) || 0), 0);
+    const cpnsP = cpnsTotal >= cpnsL ? cpnsTotal - cpnsL : filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.cpns_p, 10) || 0), 0);
+
+    const pnsL = filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.pns_l, 10) || 0), 0);
+    const pnsP = pnsTotal >= pnsL ? pnsTotal - pnsL : filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.pns_p, 10) || 0), 0);
+
+    const rawPppkL = filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.pppk_l, 10) || 0), 0);
+    const rawPppkP = filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr.pppk_p, 10) || 0), 0);
+    const totalPppkCombined = rawPppkL + rawPppkP;
+
+    let pppkL = 0;
+    let pppkP = 0;
+    let pppkPwL = 0;
+    let pppkPwP = 0;
+
+    if (totalPppkCombined > 0 && pppkTotal > 0) {
+      const ratioL = rawPppkL / totalPppkCombined;
+      pppkL = Math.round(pppkTotal * ratioL);
+      pppkP = Math.max(0, pppkTotal - pppkL);
+      pppkPwL = Math.max(0, rawPppkL - pppkL);
+      pppkPwP = Math.max(0, pppkPwTotal - pppkPwL);
+    }
+
+    return [
+      { title: 'CPNS', laki: cpnsL, perempuan: cpnsP, total: cpnsTotal },
+      { title: 'PNS', laki: pnsL, perempuan: pnsP, total: pnsTotal },
+      { title: 'PPPK', laki: pppkL, perempuan: pppkP, total: pppkTotal },
+      { title: 'PPPK PW', laki: pppkPwL, perempuan: pppkPwP, total: pppkPwTotal },
+    ];
+  }, [displayedJenisAsn, filteredSatkerData]);
 
   // Stacked OPD Chart Data
   const stackedOpdDistributionData = useMemo(() => {
@@ -652,84 +760,56 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* ── SECTION TITLE: DATA SEBARAN SATUAN KERJA ── */}
+          {/* ═══════════════════════════════════════════════
+              SECTION — JENIS ASN
+          ═══════════════════════════════════════════════ */}
           <div className="profil-section-header" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }}>
-            <div className="profil-section-icon" style={{ background: '#eff6ff', border: '1px solid #bfdbfe', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)' }}>
-              <Building2 size={22} color="#1d4ed8" />
+            <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+              <Users size={22} color="#059669" />
             </div>
             <div className="profil-section-title-wrap">
-              <h2 className="profil-section-title">Data Sebaran Satuan Kerja</h2>
+              <h2 className="profil-section-title">Jenis ASN</h2>
             </div>
             <div className="profil-section-line" />
           </div>
-          
-          {/* ── 6 Kartu Ringkasan Data Sebaran Satuan Kerja ── */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(6, 1fr)', 
-            gap: '1rem', 
-            marginBottom: '2rem'
-          }}>
-            {[
-              { label: 'Total ASN', val: stripTotalASN, color: '#10b981' },
-              { label: 'PNS', val: stripPNS, color: '#3b82f6' },
-              { label: 'CPNS', val: stripCPNS, color: '#d97706' },
-              { label: 'PPPK', val: stripPPPK, color: '#16a34a' },
-              { label: 'Laki-laki', val: stripLaki, color: '#3b82f6' },
-              { label: 'Perempuan', val: stripPerempuan, color: '#db2777' },
-            ].map(({ label, val, color }) => (
-              <div 
-                key={label} 
-                className="stats-summary-card" 
-                style={{ 
-                  padding: '1.5rem 1.25rem', 
-                  backgroundColor: '#fff', 
-                  border: '2px solid #0f172a',
-                  borderRadius: '12px', 
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  minHeight: '120px',
-                  transition: 'all 0.3s ease',
-                  cursor: 'default'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
-                }}
-              >
-                <div 
-                  style={{ 
-                    fontSize: '0.875rem', 
-                    color: '#64748b', 
-                    fontWeight: 700, 
-                    marginBottom: '0.5rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    lineHeight: '1.4'
-                  }}
-                >
-                  {label}
-                </div>
-                <div 
-                  style={{ 
-                    color, 
-                    fontSize: '1.75rem', 
-                    fontWeight: 800,
-                    lineHeight: '1.2'
-                  }}
-                >
-                  {val}
-                </div>
-              </div>
-            ))}
+
+          {/* Total bar */}
+          <div className="jenis-asn-total-bar">
+            <span className="jenis-asn-total-label">
+              Total ASN {satker && satker !== 'Satuan Kerja' ? `– ${satker}` : 'Kabupaten Bandung'}
+            </span>
+            <span className="jenis-asn-total-value">
+              {profilLoading ? '—' : `${Number(displayedTotalAsn || 0).toLocaleString('id-ID')} orang`}
+            </span>
+          </div>
+
+          {profilLoading ? (
+            <div className="skeleton-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="skeleton-block" style={{ height: 100 }} />
+              ))}
+            </div>
+          ) : (
+            <div className="jenis-asn-grid">
+              {displayedJenisAsn.map(item => (
+                <JenisAsnCard key={item.label} label={item.label} value={item.value} />
+              ))}
+            </div>
+          )}
+
+          {/* ── SECTION TITLE: STATUS PEGAWAI ── */}
+          <div className="profil-section-header" style={{ marginTop: '1.5rem', marginBottom: '1.25rem' }}>
+            <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+              <Users size={22} color="#059669" />
+            </div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Status Pegawai</h2>
+            </div>
+            <div className="profil-section-line" />
+          </div>
+
+          <div className="status-pegawai-grid">
+            {computedStatusPegawai.map(d => <DataCard key={d.title} {...d} />)}
           </div>
 
           {/* Row 1: Distribusi Gender (Donat) + Sebaran OPD (Bar Total) */}
@@ -894,20 +974,6 @@ const Dashboard = () => {
                 <Bar dataKey="PPPK" stackId="a" fill="#10b981" animationDuration={500} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-
-          {/* ── SECTION TITLE: STATUS PEGAWAI ── */}
-          <div className="profil-section-header" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }}>
-            <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
-              <Users size={22} color="#059669" />
-            </div>
-            <div className="profil-section-title-wrap">
-              <h2 className="profil-section-title">Status Pegawai</h2>
-            </div>
-            <div className="profil-section-line" />
-          </div>
-          <div className="grid-3" style={{ marginBottom: '1.5rem' }}>
-            {statusPegawaiData.map(d => <DataCard key={d.title} {...d} />)}
           </div>
 
           {/* ── CHARTS: DISTRIBUSI GOLONGAN & ESELONERING ── */}

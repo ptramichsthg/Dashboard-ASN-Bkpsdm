@@ -431,6 +431,155 @@
   margin-left: 0.5rem;
 }
 
+/* ── Jenis ASN Cards (Sama seperti di Profil) ────── */
+.jenis-asn-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+/* ── Status Pegawai Grid ─────────────────────────── */
+.status-pegawai-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.jenis-asn-card {
+  background: #ffffff;
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.jenis-asn-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--card-accent, var(--primary));
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.jenis-asn-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.jenis-asn-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.jenis-asn-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.jenis-asn-card-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.jenis-asn-card-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #000000;
+  line-height: 1.1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.jenis-asn-card-unit {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: none;
+}
+
+.jenis-asn-total-bar {
+  background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
+  border-radius: var(--radius-sm);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  color: white;
+}
+
+.jenis-asn-total-label {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  opacity: 1;
+}
+
+.jenis-asn-total-value {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.skeleton-block {
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 1024px) {
+  .jenis-asn-grid,
+  .status-pegawai-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .jenis-asn-grid,
+  .status-pegawai-grid {
+    grid-template-columns: 1fr;
+  }
+  .jenis-asn-total-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+  }
+  .jenis-asn-total-label {
+    font-size: 1.15rem;
+  }
+  .jenis-asn-total-value {
+    font-size: 1.5rem;
+  }
+}
+
 /* ── Struktur Hierarki OPD Table (Gaya Profil Jabatan Kosong) ── */
 .hierarki-opd-card {
   background: #ffffff;
