@@ -113,13 +113,15 @@ export default function Perencanaan() {
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
-  // Sorting logic
+  // Sorting logic (3-state: asc -> desc -> reset)
   const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
+    if (sortConfig.key !== key) {
+      setSortConfig({ key, direction: 'asc' });
+    } else if (sortConfig.direction === 'asc') {
+      setSortConfig({ key, direction: 'desc' });
+    } else {
+      setSortConfig({ key: null, direction: 'asc' });
     }
-    setSortConfig({ key, direction });
   };
 
   const sortedData = useMemo(() => {

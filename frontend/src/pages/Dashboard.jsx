@@ -19,8 +19,20 @@ import {
   Building2,
   Search,
   ExternalLink,
-  Briefcase
+  Briefcase,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown
 } from 'lucide-react';
+
+const SortIcon = ({ active, direction }) => {
+  if (!active) return <ArrowUpDown size={13} color="#94a3b8" opacity={0.6} />;
+  return direction === 'asc' ? (
+    <ArrowUp size={13} color="#0f172a" strokeWidth={2.5} />
+  ) : (
+    <ArrowDown size={13} color="#0f172a" strokeWidth={2.5} />
+  );
+};
 import {
   BarChart,
   Bar,
@@ -177,6 +189,7 @@ const Dashboard = () => {
   const [loadingUnitModal, setLoadingUnitModal] = useState(false);
   const [modalJabatanList, setModalJabatanList] = useState([]);
   const [searchModalJabatan, setSearchModalJabatan] = useState('');
+  const [filterEselonModal, setFilterEselonModal] = useState('Semua');
   const [pageModalJabatan, setPageModalJabatan] = useState(1);
   const itemsPerPageModalJabatan = 10;
 
@@ -332,11 +345,58 @@ const Dashboard = () => {
     setPageHierarki(1);
   }, [searchHierarki, filterSelisihHierarki]);
 
-  const totalHierarkiPages = Math.max(1, Math.ceil(filteredHierarkiData.length / itemsPerPageHierarki));
+  // Sorting State
+  const [sortHierarki, setSortHierarki] = useState({ key: null, direction: 'asc' });
+  const [sortModalJabatan, setSortModalJabatan] = useState({ key: null, direction: 'asc' });
+
+  const handleSortHierarki = (key) => {
+    if (sortHierarki.key !== key) {
+      setSortHierarki({ key, direction: 'asc' });
+    } else if (sortHierarki.direction === 'asc') {
+      setSortHierarki({ key, direction: 'desc' });
+    } else {
+      setSortHierarki({ key: null, direction: 'asc' });
+    }
+    setPageHierarki(1);
+  };
+
+  const handleSortModalJabatan = (key) => {
+    if (sortModalJabatan.key !== key) {
+      setSortModalJabatan({ key, direction: 'asc' });
+    } else if (sortModalJabatan.direction === 'asc') {
+      setSortModalJabatan({ key, direction: 'desc' });
+    } else {
+      setSortModalJabatan({ key: null, direction: 'asc' });
+    }
+    setPageModalJabatan(1);
+  };
+
+  const sortedHierarkiData = useMemo(() => {
+    let items = [...filteredHierarkiData];
+    if (sortHierarki.key !== null) {
+      items.sort((a, b) => {
+        let aVal = a[sortHierarki.key];
+        let bVal = b[sortHierarki.key];
+        if (['bezetting', 'kebutuhan', 'selisih'].includes(sortHierarki.key)) {
+          aVal = Number(aVal || 0);
+          bVal = Number(bVal || 0);
+        } else {
+          aVal = (aVal || '').toString().toLowerCase();
+          bVal = (bVal || '').toString().toLowerCase();
+        }
+        if (aVal < bVal) return sortHierarki.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortHierarki.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return items;
+  }, [filteredHierarkiData, sortHierarki]);
+
+  const totalHierarkiPages = Math.max(1, Math.ceil(sortedHierarkiData.length / itemsPerPageHierarki));
   const currentHierarkiData = useMemo(() => {
     const start = (pageHierarki - 1) * itemsPerPageHierarki;
-    return filteredHierarkiData.slice(start, start + itemsPerPageHierarki);
-  }, [filteredHierarkiData, pageHierarki, itemsPerPageHierarki]);
+    return sortedHierarkiData.slice(start, start + itemsPerPageHierarki);
+  }, [sortedHierarkiData, pageHierarki, itemsPerPageHierarki]);
 
   // Handler Modal Rincian Jabatan per Unit Kerja
   const handleOpenUnitModal = async (unitRow) => {
@@ -344,6 +404,8 @@ const Dashboard = () => {
     setLoadingUnitModal(true);
     setModalJabatanList([]);
     setSearchModalJabatan('');
+    setFilterEselonModal('Semua');
+    setSortModalJabatan({ key: null, direction: 'asc' });
     setPageModalJabatan(1);
 
     try {
@@ -379,24 +441,79 @@ const Dashboard = () => {
     setSelectedUnitModal(null);
     setModalJabatanList([]);
     setSearchModalJabatan('');
+    setFilterEselonModal('Semua');
   };
+
+  // Opsi unik Eselon & Subklasifikasi untuk unit yang sedang dibuka
+  const eselonSubOptions = useMemo(() => {
+    if (!modalJabatanList.length) return { eselons: [], subs: [] };
+    const eselons = new Set();
+    const subs = new Set();
+    modalJabatanList.forEach(j => {
+      if (j.jenis_eselon && j.jenis_eselon.trim()) {
+        eselons.add(j.jenis_eselon.trim());
+      }
+      if (j.subklasifikasi && j.subklasifikasi.trim()) {
+        subs.add(j.subklasifikasi.trim());
+      }
+    });
+    return {
+      eselons: Array.from(eselons).sort(),
+      subs: Array.from(subs).sort()
+    };
+  }, [modalJabatanList]);
 
   const filteredModalJabatan = useMemo(() => {
     if (!modalJabatanList.length) return [];
-    if (!searchModalJabatan.trim()) return modalJabatanList;
-    const q = searchModalJabatan.toLowerCase();
-    return modalJabatanList.filter(j =>
-      (j.jabatan && j.jabatan.toLowerCase().includes(q)) ||
-      (j.jenis_eselon && j.jenis_eselon.toLowerCase().includes(q)) ||
-      (j.subklasifikasi && j.subklasifikasi.toLowerCase().includes(q))
-    );
-  }, [modalJabatanList, searchModalJabatan]);
+    let items = modalJabatanList;
 
-  const totalPagesModalJabatan = Math.max(1, Math.ceil(filteredModalJabatan.length / itemsPerPageModalJabatan));
+    // Filter Eselon / Subklasifikasi
+    if (filterEselonModal && filterEselonModal !== 'Semua') {
+      items = items.filter(j =>
+        (j.jenis_eselon && j.jenis_eselon === filterEselonModal) ||
+        (j.subklasifikasi && j.subklasifikasi.toLowerCase() === filterEselonModal.toLowerCase())
+      );
+    }
+
+    // Filter Search
+    if (searchModalJabatan.trim()) {
+      const q = searchModalJabatan.toLowerCase();
+      items = items.filter(j =>
+        (j.jabatan && j.jabatan.toLowerCase().includes(q)) ||
+        (j.jenis_eselon && j.jenis_eselon.toLowerCase().includes(q)) ||
+        (j.subklasifikasi && j.subklasifikasi.toLowerCase().includes(q))
+      );
+    }
+
+    return items;
+  }, [modalJabatanList, filterEselonModal, searchModalJabatan]);
+
+  const sortedModalJabatan = useMemo(() => {
+    let items = [...filteredModalJabatan];
+    if (sortModalJabatan.key !== null) {
+      items.sort((a, b) => {
+        let aVal = a[sortModalJabatan.key];
+        let bVal = b[sortModalJabatan.key];
+        if (['bezetting', 'kebutuhan', 'selisih'].includes(sortModalJabatan.key)) {
+          aVal = Number(aVal || 0);
+          bVal = Number(bVal || 0);
+        } else {
+          aVal = (aVal || '').toString().toLowerCase();
+          bVal = (bVal || '').toString().toLowerCase();
+        }
+        if (aVal < bVal) return sortModalJabatan.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortModalJabatan.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return items;
+  }, [filteredModalJabatan, sortModalJabatan]);
+
+  const totalPagesModalJabatan = Math.max(1, Math.ceil(sortedModalJabatan.length / itemsPerPageModalJabatan));
   const pagedModalJabatan = useMemo(() => {
     const start = (pageModalJabatan - 1) * itemsPerPageModalJabatan;
-    return filteredModalJabatan.slice(start, start + itemsPerPageModalJabatan);
-  }, [filteredModalJabatan, pageModalJabatan, itemsPerPageModalJabatan]);
+    return sortedModalJabatan.slice(start, start + itemsPerPageModalJabatan);
+  }, [sortedModalJabatan, pageModalJabatan, itemsPerPageModalJabatan]);
 
   // Single OPD Chart Pagination
   const totalOpdPages = Math.max(1, Math.ceil(sebaranOPDData.length / ITEMS_PER_CHART_PAGE));
@@ -920,9 +1037,24 @@ const Dashboard = () => {
                   <tr>
                     <th style={{ width: '60px', textAlign: 'center' }}>#</th>
                     <th>Nama Unit Kerja</th>
-                    <th className="text-center" style={{ width: '130px' }}>Bezetting</th>
-                    <th className="text-center" style={{ width: '130px' }}>Kebutuhan</th>
-                    <th className="text-center" style={{ width: '120px' }}>Selisih</th>
+                    <th onClick={() => handleSortHierarki('bezetting')} className="text-center" style={{ width: '135px', cursor: 'pointer', userSelect: 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                        <span>Bezetting</span>
+                        <SortIcon active={sortHierarki.key === 'bezetting'} direction={sortHierarki.direction} />
+                      </div>
+                    </th>
+                    <th onClick={() => handleSortHierarki('kebutuhan')} className="text-center" style={{ width: '135px', cursor: 'pointer', userSelect: 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                        <span>Kebutuhan</span>
+                        <SortIcon active={sortHierarki.key === 'kebutuhan'} direction={sortHierarki.direction} />
+                      </div>
+                    </th>
+                    <th onClick={() => handleSortHierarki('selisih')} className="text-center" style={{ width: '125px', cursor: 'pointer', userSelect: 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                        <span>Selisih</span>
+                        <SortIcon active={sortHierarki.key === 'selisih'} direction={sortHierarki.direction} />
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1093,27 +1225,57 @@ const Dashboard = () => {
 
               {/* Toolbar */}
               <div className="unit-modal-toolbar">
-                <div className="unit-modal-search">
-                  <Search size={15} color="#64748b" />
-                  <input
-                    type="text"
-                    placeholder="Cari nama jabatan di unit ini..."
-                    value={searchModalJabatan}
-                    onChange={(e) => {
-                      setSearchModalJabatan(e.target.value);
-                      setPageModalJabatan(1);
-                    }}
-                    autoFocus
-                  />
-                  {searchModalJabatan && (
-                    <X
-                      size={14}
-                      color="#94a3b8"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => setSearchModalJabatan('')}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, flexWrap: 'wrap' }}>
+                  <div className="unit-modal-search">
+                    <Search size={15} color="#64748b" />
+                    <input
+                      type="text"
+                      placeholder="Cari nama jabatan di unit ini..."
+                      value={searchModalJabatan}
+                      onChange={(e) => {
+                        setSearchModalJabatan(e.target.value);
+                        setPageModalJabatan(1);
+                      }}
+                      autoFocus
                     />
-                  )}
+                    {searchModalJabatan && (
+                      <X
+                        size={14}
+                        color="#94a3b8"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSearchModalJabatan('')}
+                      />
+                    )}
+                  </div>
+
+                  <div className="unit-modal-filter">
+                    <Filter size={15} color="#64748b" />
+                    <select
+                      value={filterEselonModal}
+                      onChange={(e) => {
+                        setFilterEselonModal(e.target.value);
+                        setPageModalJabatan(1);
+                      }}
+                    >
+                      <option value="Semua">Semua Eselon / Subklasifikasi</option>
+                      {eselonSubOptions.eselons.length > 0 && (
+                        <optgroup label="Tingkat Eselon">
+                          {eselonSubOptions.eselons.map(opt => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {eselonSubOptions.subs.length > 0 && (
+                        <optgroup label="Subklasifikasi">
+                          {eselonSubOptions.subs.map(opt => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </select>
+                  </div>
                 </div>
+
                 <div className="unit-modal-count-badge">
                   {filteredModalJabatan.length} Jabatan Ditemukan
                 </div>
@@ -1145,9 +1307,24 @@ const Dashboard = () => {
                           <th style={{ width: 45 }}>#</th>
                           <th>Nama Jabatan</th>
                           <th>Eselon / Subklasifikasi</th>
-                          <th className="text-center" style={{ width: 90 }}>Bezetting</th>
-                          <th className="text-center" style={{ width: 90 }}>Kebutuhan</th>
-                          <th className="text-center" style={{ width: 85 }}>Selisih</th>
+                          <th onClick={() => handleSortModalJabatan('bezetting')} className="text-center" style={{ width: 95, cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                              <span>Bezetting</span>
+                              <SortIcon active={sortModalJabatan.key === 'bezetting'} direction={sortModalJabatan.direction} />
+                            </div>
+                          </th>
+                          <th onClick={() => handleSortModalJabatan('kebutuhan')} className="text-center" style={{ width: 95, cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                              <span>Kebutuhan</span>
+                              <SortIcon active={sortModalJabatan.key === 'kebutuhan'} direction={sortModalJabatan.direction} />
+                            </div>
+                          </th>
+                          <th onClick={() => handleSortModalJabatan('selisih')} className="text-center" style={{ width: 85, cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                              <span>Selisih</span>
+                              <SortIcon active={sortModalJabatan.key === 'selisih'} direction={sortModalJabatan.direction} />
+                            </div>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>

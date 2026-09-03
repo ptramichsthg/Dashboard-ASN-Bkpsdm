@@ -22,7 +22,19 @@ import {
   Database,
   X,
   CheckCircle2,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from 'lucide-react';
+
+const SortIcon = ({ active, direction }) => {
+  if (!active) return <ArrowUpDown size={13} color="#94a3b8" opacity={0.6} />;
+  return direction === 'asc' ? (
+    <ArrowUp size={13} color="#0f172a" strokeWidth={2.5} />
+  ) : (
+    <ArrowDown size={13} color="#0f172a" strokeWidth={2.5} />
+  );
+};
 
 // Konfigurasi tiap jenis ASN
 const ASN_CONFIG = {
@@ -300,14 +312,72 @@ const Profil = () => {
     setIsRefreshing(false);
   };
 
-  // Filtered rekap tabel (berdasarkan klik pohon)
+  // Sorting State
+  const [sortRekap, setSortRekap] = useState({ key: null, direction: 'asc' });
+  const [sortJabatanKosong, setSortJabatanKosong] = useState({ key: null, direction: 'asc' });
+  const [sortModalJabatan, setSortModalJabatan] = useState({ key: null, direction: 'asc' });
+
+  const handleSortRekap = (key) => {
+    if (sortRekap.key !== key) {
+      setSortRekap({ key, direction: 'asc' });
+    } else if (sortRekap.direction === 'asc') {
+      setSortRekap({ key, direction: 'desc' });
+    } else {
+      setSortRekap({ key: null, direction: 'asc' });
+    }
+  };
+
+  const handleSortJabatanKosong = (key) => {
+    if (sortJabatanKosong.key !== key) {
+      setSortJabatanKosong({ key, direction: 'asc' });
+    } else if (sortJabatanKosong.direction === 'asc') {
+      setSortJabatanKosong({ key, direction: 'desc' });
+    } else {
+      setSortJabatanKosong({ key: null, direction: 'asc' });
+    }
+    setPageKosong(1);
+  };
+
+  const handleSortModalJabatan = (key) => {
+    if (sortModalJabatan.key !== key) {
+      setSortModalJabatan({ key, direction: 'asc' });
+    } else if (sortModalJabatan.direction === 'asc') {
+      setSortModalJabatan({ key, direction: 'desc' });
+    } else {
+      setSortModalJabatan({ key: null, direction: 'asc' });
+    }
+    setPageModal(1);
+  };
+
+  // Filtered & Sorted rekap tabel (berdasarkan klik pohon)
   const rekapFiltered = useMemo(() => {
     if (!manajerialData?.rekap) return [];
     if (!activeEselon) return manajerialData.rekap;
     return manajerialData.rekap.filter(r => r.jenis_eselon === activeEselon);
   }, [manajerialData, activeEselon]);
 
-  // Filtered jabatan kosong
+  const sortedRekap = useMemo(() => {
+    let items = [...rekapFiltered];
+    if (sortRekap.key !== null) {
+      items.sort((a, b) => {
+        let aVal = a[sortRekap.key];
+        let bVal = b[sortRekap.key];
+        if (['total_bezetting', 'total_kebutuhan', 'total_selisih', 'total_jabatan'].includes(sortRekap.key)) {
+          aVal = Number(aVal || 0);
+          bVal = Number(bVal || 0);
+        } else {
+          aVal = (aVal || '').toString().toLowerCase();
+          bVal = (bVal || '').toString().toLowerCase();
+        }
+        if (aVal < bVal) return sortRekap.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortRekap.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return items;
+  }, [rekapFiltered, sortRekap]);
+
+  // Filtered & Sorted jabatan kosong
   const jabatanKosongFiltered = useMemo(() => {
     if (!manajerialData?.jabatan_kosong) return [];
     return manajerialData.jabatan_kosong.filter(j => {
@@ -321,14 +391,35 @@ const Profil = () => {
     });
   }, [manajerialData, searchKosong, filterEselon]);
 
+  const sortedJabatanKosong = useMemo(() => {
+    let items = [...jabatanKosongFiltered];
+    if (sortJabatanKosong.key !== null) {
+      items.sort((a, b) => {
+        let aVal = a[sortJabatanKosong.key];
+        let bVal = b[sortJabatanKosong.key];
+        if (['bezetting', 'kebutuhan', 'selisih'].includes(sortJabatanKosong.key)) {
+          aVal = Number(aVal || 0);
+          bVal = Number(bVal || 0);
+        } else {
+          aVal = (aVal || '').toString().toLowerCase();
+          bVal = (bVal || '').toString().toLowerCase();
+        }
+        if (aVal < bVal) return sortJabatanKosong.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortJabatanKosong.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return items;
+  }, [jabatanKosongFiltered, sortJabatanKosong]);
+
   // Pagination perhitungan
-  const totalPagesKosong = Math.max(1, Math.ceil(jabatanKosongFiltered.length / itemsPerPageKosong));
+  const totalPagesKosong = Math.max(1, Math.ceil(sortedJabatanKosong.length / itemsPerPageKosong));
   const pagedJabatanKosong = useMemo(() => {
     const start = (pageKosong - 1) * itemsPerPageKosong;
-    return jabatanKosongFiltered.slice(start, start + itemsPerPageKosong);
-  }, [jabatanKosongFiltered, pageKosong, itemsPerPageKosong]);
+    return sortedJabatanKosong.slice(start, start + itemsPerPageKosong);
+  }, [sortedJabatanKosong, pageKosong, itemsPerPageKosong]);
 
-  // Filtered jabatan untuk Pop-up Modal Selisih (+/-)
+  // Filtered & Sorted jabatan untuk Pop-up Modal Selisih (+/-)
   const modalJabatanFiltered = useMemo(() => {
     if (!selectedModalRow || !manajerialData?.jabatan_kosong) return [];
     return manajerialData.jabatan_kosong.filter((j) => {
@@ -346,11 +437,32 @@ const Profil = () => {
     });
   }, [selectedModalRow, manajerialData, searchModal]);
 
-  const totalPagesModal = Math.max(1, Math.ceil(modalJabatanFiltered.length / itemsPerPageModal));
+  const sortedModalJabatan = useMemo(() => {
+    let items = [...modalJabatanFiltered];
+    if (sortModalJabatan.key !== null) {
+      items.sort((a, b) => {
+        let aVal = a[sortModalJabatan.key];
+        let bVal = b[sortModalJabatan.key];
+        if (['bezetting', 'kebutuhan', 'selisih'].includes(sortModalJabatan.key)) {
+          aVal = Number(aVal || 0);
+          bVal = Number(bVal || 0);
+        } else {
+          aVal = (aVal || '').toString().toLowerCase();
+          bVal = (bVal || '').toString().toLowerCase();
+        }
+        if (aVal < bVal) return sortModalJabatan.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortModalJabatan.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return items;
+  }, [modalJabatanFiltered, sortModalJabatan]);
+
+  const totalPagesModal = Math.max(1, Math.ceil(sortedModalJabatan.length / itemsPerPageModal));
   const pagedModalJabatan = useMemo(() => {
     const start = (pageModal - 1) * itemsPerPageModal;
-    return modalJabatanFiltered.slice(start, start + itemsPerPageModal);
-  }, [modalJabatanFiltered, pageModal, itemsPerPageModal]);
+    return sortedModalJabatan.slice(start, start + itemsPerPageModal);
+  }, [sortedModalJabatan, pageModal, itemsPerPageModal]);
 
   // Filtered & Paged untuk Pop-up Modal Eselon
   const eselonModalFiltered = useMemo(() => {
@@ -538,18 +650,33 @@ const Profil = () => {
                     <tr>
                       <th>Subklasifikasi</th>
                       <th>Eselon</th>
-                      <th className="text-center">Bezetting</th>
-                      <th className="text-center">Kebutuhan</th>
-                      <th className="text-center">+/-</th>
+                      <th onClick={() => handleSortRekap('total_bezetting')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                          <span>Bezetting</span>
+                          <SortIcon active={sortRekap.key === 'total_bezetting'} direction={sortRekap.direction} />
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortRekap('total_kebutuhan')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                          <span>Kebutuhan</span>
+                          <SortIcon active={sortRekap.key === 'total_kebutuhan'} direction={sortRekap.direction} />
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortRekap('total_selisih')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                          <span>+/-</span>
+                          <SortIcon active={sortRekap.key === 'total_selisih'} direction={sortRekap.direction} />
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {rekapFiltered.length === 0 ? (
+                    {sortedRekap.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="no-data-row">Tidak ada data</td>
                       </tr>
                     ) : (
-                      rekapFiltered.map((row) => {
+                      sortedRekap.map((row) => {
                         const { badgeClass } = SUB_COLOR[row.subklasifikasi] || {};
                         return (
                           <tr key={`${row.subklasifikasi}-${row.jenis_eselon}`}>
@@ -636,13 +763,28 @@ const Profil = () => {
             <table className="jabatan-kosong-table">
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th style={{ width: 45 }}>#</th>
                   <th>Nama Jabatan</th>
                   <th>OPD</th>
                   <th>Eselon</th>
-                  <th className="text-center">Bezetting</th>
-                  <th className="text-center">Kebutuhan</th>
-                  <th className="text-center">Selisih</th>
+                  <th onClick={() => handleSortJabatanKosong('bezetting')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                      <span>Bezetting</span>
+                      <SortIcon active={sortJabatanKosong.key === 'bezetting'} direction={sortJabatanKosong.direction} />
+                    </div>
+                  </th>
+                  <th onClick={() => handleSortJabatanKosong('kebutuhan')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                      <span>Kebutuhan</span>
+                      <SortIcon active={sortJabatanKosong.key === 'kebutuhan'} direction={sortJabatanKosong.direction} />
+                    </div>
+                  </th>
+                  <th onClick={() => handleSortJabatanKosong('selisih')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                      <span>Selisih</span>
+                      <SortIcon active={sortJabatanKosong.key === 'selisih'} direction={sortJabatanKosong.direction} />
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -847,9 +989,24 @@ const Profil = () => {
                               <th style={{ width: 45 }}>#</th>
                               <th>Nama Jabatan</th>
                               <th>OPD / Perangkat Daerah</th>
-                              <th className="text-center" style={{ width: 90 }}>Bezetting</th>
-                              <th className="text-center" style={{ width: 90 }}>Kebutuhan</th>
-                              <th className="text-center" style={{ width: 80 }}>Selisih</th>
+                              <th onClick={() => handleSortModalJabatan('bezetting')} className="text-center" style={{ width: 95, cursor: 'pointer', userSelect: 'none' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                                  <span>Bezetting</span>
+                                  <SortIcon active={sortModalJabatan.key === 'bezetting'} direction={sortModalJabatan.direction} />
+                                </div>
+                              </th>
+                              <th onClick={() => handleSortModalJabatan('kebutuhan')} className="text-center" style={{ width: 95, cursor: 'pointer', userSelect: 'none' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                                  <span>Kebutuhan</span>
+                                  <SortIcon active={sortModalJabatan.key === 'kebutuhan'} direction={sortModalJabatan.direction} />
+                                </div>
+                              </th>
+                              <th onClick={() => handleSortModalJabatan('selisih')} className="text-center" style={{ width: 85, cursor: 'pointer', userSelect: 'none' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                                  <span>Selisih</span>
+                                  <SortIcon active={sortModalJabatan.key === 'selisih'} direction={sortModalJabatan.direction} />
+                                </div>
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
