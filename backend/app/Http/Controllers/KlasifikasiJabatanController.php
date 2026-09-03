@@ -44,6 +44,15 @@ class KlasifikasiJabatanController extends Controller
                 $query->where('perangkat_daerah', 'like', '%' . $request->perangkat_daerah . '%');
             }
 
+            // Filter by unit_kerja (or match perangkat_daerah)
+            if ($request->has('unit_kerja')) {
+                $unit = $request->unit_kerja;
+                $query->where(function ($q) use ($unit) {
+                    $q->where('unit_kerja', 'like', '%' . $unit . '%')
+                        ->orWhere('perangkat_daerah', 'like', '%' . $unit . '%');
+                });
+            }
+
             // Search
             if ($request->has('search')) {
                 $search = $request->search;

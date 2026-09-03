@@ -17,7 +17,9 @@ import {
   ChevronRight,
   ChevronLeft,
   Building2,
-  Search
+  Search,
+  ExternalLink,
+  Briefcase
 } from 'lucide-react';
 import {
   BarChart,
@@ -169,6 +171,14 @@ const Dashboard = () => {
   const [filterSelisihHierarki, setFilterSelisihHierarki] = useState('Semua');
   const [pageHierarki, setPageHierarki] = useState(1);
   const itemsPerPageHierarki = 10;
+
+  // Modal Rincian Jabatan per Unit Kerja
+  const [selectedUnitModal, setSelectedUnitModal] = useState(null);
+  const [loadingUnitModal, setLoadingUnitModal] = useState(false);
+  const [modalJabatanList, setModalJabatanList] = useState([]);
+  const [searchModalJabatan, setSearchModalJabatan] = useState('');
+  const [pageModalJabatan, setPageModalJabatan] = useState(1);
+  const itemsPerPageModalJabatan = 10;
 
   // Stacked OPD Chart Pagination
   const [stackedOpdPage, setStackedOpdPage] = useState(0);
@@ -327,6 +337,66 @@ const Dashboard = () => {
     const start = (pageHierarki - 1) * itemsPerPageHierarki;
     return filteredHierarkiData.slice(start, start + itemsPerPageHierarki);
   }, [filteredHierarkiData, pageHierarki, itemsPerPageHierarki]);
+
+  // Handler Modal Rincian Jabatan per Unit Kerja
+  const handleOpenUnitModal = async (unitRow) => {
+    setSelectedUnitModal(unitRow);
+    setLoadingUnitModal(true);
+    setModalJabatanList([]);
+    setSearchModalJabatan('');
+    setPageModalJabatan(1);
+
+    try {
+      const res = await api.get('/klasifikasi-jabatan', {
+        params: {
+          unit_kerja: unitRow.nama_unit_kerja,
+          per_page: 300
+        }
+      });
+
+      let items = res.data?.data?.data || [];
+
+      // Fallback jika belum ketemu dan ada OPD induk
+      if (items.length === 0 && unitRow.opd_induk) {
+        const resInduk = await api.get('/klasifikasi-jabatan', {
+          params: {
+            unit_kerja: unitRow.opd_induk,
+            per_page: 300
+          }
+        });
+        items = resInduk.data?.data?.data || [];
+      }
+
+      setModalJabatanList(items);
+    } catch (err) {
+      console.error('Error fetching jabatan for unit:', err);
+    } finally {
+      setLoadingUnitModal(false);
+    }
+  };
+
+  const handleCloseUnitModal = () => {
+    setSelectedUnitModal(null);
+    setModalJabatanList([]);
+    setSearchModalJabatan('');
+  };
+
+  const filteredModalJabatan = useMemo(() => {
+    if (!modalJabatanList.length) return [];
+    if (!searchModalJabatan.trim()) return modalJabatanList;
+    const q = searchModalJabatan.toLowerCase();
+    return modalJabatanList.filter(j =>
+      (j.jabatan && j.jabatan.toLowerCase().includes(q)) ||
+      (j.jenis_eselon && j.jenis_eselon.toLowerCase().includes(q)) ||
+      (j.subklasifikasi && j.subklasifikasi.toLowerCase().includes(q))
+    );
+  }, [modalJabatanList, searchModalJabatan]);
+
+  const totalPagesModalJabatan = Math.max(1, Math.ceil(filteredModalJabatan.length / itemsPerPageModalJabatan));
+  const pagedModalJabatan = useMemo(() => {
+    const start = (pageModalJabatan - 1) * itemsPerPageModalJabatan;
+    return filteredModalJabatan.slice(start, start + itemsPerPageModalJabatan);
+  }, [filteredModalJabatan, pageModalJabatan, itemsPerPageModalJabatan]);
 
   // Single OPD Chart Pagination
   const totalOpdPages = Math.max(1, Math.ceil(sebaranOPDData.length / ITEMS_PER_CHART_PAGE));
@@ -878,7 +948,16 @@ const Dashboard = () => {
                             {absoluteIndex}
                           </td>
                           <td>
-                            <div className="hierarki-unit-main">{row.nama_unit_kerja}</div>
+                            <div
+                              className="hierarki-unit-main clickable-unit"
+                              onClick={() => handleOpenUnitModal(row)}
+                              title="Klik untuk melihat rincian jabatan di unit kerja ini"
+                            >
+                              <span>{row.nama_unit_kerja}</span>
+                              <span className="unit-detail-btn-pill">
+                                Lihat Jabatan <ChevronRight size={12} />
+                              </span>
+                            </div>
                             {hasInduk && (
                               <div className="hierarki-opd-sub">
                                 <span className="hierarki-opd-sub-badge">Induk</span>
@@ -968,6 +1047,203 @@ const Dashboard = () => {
           </div>
 
         </div>
+
+        {/* ── POP-UP MODAL RINCIAN JABATAN PER UNIT KERJA ── */}
+        {selectedUnitModal && (
+          <div className="unit-modal-backdrop" onClick={handleCloseUnitModal}>
+            <div className="unit-modal-container" onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <div className="unit-modal-header">
+                <div className="unit-modal-title-wrap">
+                  <div className="unit-modal-subtitle">
+                    <Building2 size={15} color="#1d4ed8" />
+                    <span>
+                      {selectedUnitModal.opd_induk ? `Induk: ${selectedUnitModal.opd_induk}` : 'Perangkat Daerah / Satuan Kerja'}
+                    </span>
+                  </div>
+                  <h3 className="unit-modal-title">{selectedUnitModal.nama_unit_kerja}</h3>
+                </div>
+                <button
+                  type="button"
+                  className="unit-modal-close-btn"
+                  onClick={handleCloseUnitModal}
+                  title="Tutup (Esc)"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Summary Bar */}
+              <div className="unit-modal-summary-bar">
+                <div className="unit-summary-item">
+                  <span className="unit-summary-label">Total Bezetting</span>
+                  <span className="unit-summary-val">{Number(selectedUnitModal.bezetting || 0).toLocaleString('id-ID')}</span>
+                </div>
+                <div className="unit-summary-item">
+                  <span className="unit-summary-label">Total Kebutuhan</span>
+                  <span className="unit-summary-val">{Number(selectedUnitModal.kebutuhan || 0).toLocaleString('id-ID')}</span>
+                </div>
+                <div className="unit-summary-item">
+                  <span className="unit-summary-label">Selisih Formasi</span>
+                  <div style={{ marginTop: '3px' }}>
+                    <SelisihBadge value={selectedUnitModal.selisih} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Toolbar */}
+              <div className="unit-modal-toolbar">
+                <div className="unit-modal-search">
+                  <Search size={15} color="#64748b" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama jabatan di unit ini..."
+                    value={searchModalJabatan}
+                    onChange={(e) => {
+                      setSearchModalJabatan(e.target.value);
+                      setPageModalJabatan(1);
+                    }}
+                    autoFocus
+                  />
+                  {searchModalJabatan && (
+                    <X
+                      size={14}
+                      color="#94a3b8"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setSearchModalJabatan('')}
+                    />
+                  )}
+                </div>
+                <div className="unit-modal-count-badge">
+                  {filteredModalJabatan.length} Jabatan Ditemukan
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="unit-modal-body">
+                {loadingUnitModal ? (
+                  <div style={{ padding: '3.5rem 1rem', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: 600 }}>Memuat rincian jabatan dari database...</div>
+                  </div>
+                ) : filteredModalJabatan.length === 0 ? (
+                  <div style={{ padding: '3.5rem 1rem', textAlign: 'center', color: '#64748b' }}>
+                    <Briefcase size={36} color="#cbd5e1" style={{ margin: '0 auto 0.75rem' }} />
+                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>
+                      {searchModalJabatan
+                        ? 'Tidak ada jabatan yang sesuai dengan pencarian.'
+                        : 'Belum ada rincian jabatan spesifik untuk unit kerja ini.'}
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.25rem' }}>
+                      Data formasi dapat dilihat lebih lengkap pada halaman Profil ASN.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="unit-modal-table-wrap">
+                    <table className="unit-modal-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: 45 }}>#</th>
+                          <th>Nama Jabatan</th>
+                          <th>Eselon / Subklasifikasi</th>
+                          <th className="text-center" style={{ width: 90 }}>Bezetting</th>
+                          <th className="text-center" style={{ width: 90 }}>Kebutuhan</th>
+                          <th className="text-center" style={{ width: 85 }}>Selisih</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pagedModalJabatan.map((j, idx) => {
+                          const absIdx = (pageModalJabatan - 1) * itemsPerPageModalJabatan + idx + 1;
+                          return (
+                            <tr key={j.id || idx}>
+                              <td style={{ color: '#64748b', fontSize: '0.8rem' }}>{absIdx}</td>
+                              <td>
+                                <div className="unit-modal-jabatan-name">{j.jabatan}</div>
+                                <div className="unit-modal-jabatan-sub">
+                                  {j.unit_kerja || j.perangkat_daerah}
+                                </div>
+                              </td>
+                              <td>
+                                {j.jenis_eselon ? (
+                                  <span style={{
+                                    display: 'inline-block',
+                                    padding: '0.2rem 0.6rem',
+                                    borderRadius: '6px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    background: '#eff6ff',
+                                    color: '#1d4ed8'
+                                  }}>
+                                    {j.jenis_eselon}
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                                    {j.subklasifikasi || j.kategori_anjab || 'Fungsional / Pelaksana'}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="text-center num-cell">{j.bezetting}</td>
+                              <td className="text-center num-cell">{j.kebutuhan}</td>
+                              <td className="text-center">
+                                <SelisihBadge value={j.selisih} />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="unit-modal-footer">
+                <div>
+                  {filteredModalJabatan.length > 0 && (
+                    <span>
+                      Menampilkan {(pageModalJabatan - 1) * itemsPerPageModalJabatan + 1}–{Math.min(pageModalJabatan * itemsPerPageModalJabatan, filteredModalJabatan.length)} dari {filteredModalJabatan.length} jabatan
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  {totalPagesModalJabatan > 1 && (
+                    <div className="hierarki-pagination-btns">
+                      <button
+                        type="button"
+                        className="hierarki-page-btn"
+                        onClick={() => setPageModalJabatan(p => Math.max(1, p - 1))}
+                        disabled={pageModalJabatan === 1}
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <span style={{ fontSize: '0.82rem', padding: '0 0.5rem' }}>
+                        Hal {pageModalJabatan} / {totalPagesModalJabatan}
+                      </span>
+                      <button
+                        type="button"
+                        className="hierarki-page-btn"
+                        onClick={() => setPageModalJabatan(p => Math.min(totalPagesModalJabatan, p + 1))}
+                        disabled={pageModalJabatan === totalPagesModalJabatan}
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className="unit-modal-btn-profil"
+                    onClick={() => {
+                      handleCloseUnitModal();
+                      navigate('/profil');
+                    }}
+                    title="Buka Halaman Profil ASN"
+                  >
+                    Lihat di Halaman Profil <ExternalLink size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
