@@ -155,63 +155,80 @@ class DashboardController extends Controller
         $totalPerempuan = array_reduce($statusPegawai, function($carry, $item) { return $carry + $item['perempuan']; }, 0);
         $total = $totalLaki + $totalPerempuan;
 
-        // Distribusi Gender (Donat Chart) - Fetch from external API
+        // Distribusi Gender (Donat Chart)
         $distribusiGender = [];
         $apiSummaryOverride = false; // flag untuk override summary dari API
-        try {
-            $bulanMap = [
-                'Januari' => '01', 'Februari' => '02', 'Maret' => '03', 'April' => '04',
-                'Mei' => '05', 'Juni' => '06', 'Juli' => '07', 'Agustus' => '08',
-                'September' => '09', 'Oktober' => '10', 'November' => '11', 'Desember' => '12'
+
+        if ($satker !== 'Semua Satuan Kerja') {
+            $distribusiGender = [
+                ['name' => 'Laki-laki', 'value' => $totalLaki],
+                ['name' => 'Perempuan', 'value' => $totalPerempuan],
             ];
-            
-            $apiBulan = ($bulanReq && $bulanReq !== 'Semua' && isset($bulanMap[$bulanReq])) ? $bulanMap[$bulanReq] : '';
-            $apiTahun = ($tahunReq && $tahunReq !== 'Semua') ? $tahunReq : '';
+        } else {
+            try {
+                $bulanMap = [
+                    'Januari' => '01', 'Februari' => '02', 'Maret' => '03', 'April' => '04',
+                    'Mei' => '05', 'Juni' => '06', 'Juli' => '07', 'Agustus' => '08',
+                    'September' => '09', 'Oktober' => '10', 'November' => '11', 'Desember' => '12'
+                ];
+                
+                $apiBulan = ($bulanReq && $bulanReq !== 'Semua' && isset($bulanMap[$bulanReq])) ? $bulanMap[$bulanReq] : '';
+                $apiTahun = ($tahunReq && $tahunReq !== 'Semua') ? $tahunReq : '';
 
-            $response = \Illuminate\Support\Facades\Http::withoutVerifying()
-                ->acceptJson()
-                ->asJson()
-                ->post('https://simpelbkpsdm.bandungkab.go.id/api/v1/dashboard/main/bezetting-jenis-kelamin', [
-                    'bulan' => $apiBulan,
-                    'tahun' => $apiTahun
-                ]);
+                $response = \Illuminate\Support\Facades\Http::withoutVerifying()
+                    ->timeout(3)
+                    ->acceptJson()
+                    ->asJson()
+                    ->post('https://simpelbkpsdm.bandungkab.go.id/api/v1/dashboard/main/bezetting-jenis-kelamin', [
+                        'bulan' => $apiBulan,
+                        'tahun' => $apiTahun
+                    ]);
 
-            if ($response->successful()) {
-                $apiData = $response->json('data');
-                if (is_array($apiData)) {
-                    $apiLaki = 0;
-                    $apiPerempuan = 0;
-                    foreach ($apiData as $item) {
-                        // Sesuaikan penamaan agar seragam dengan frontend (Laki-Laki -> Laki-laki)
-                        $name = $item['nama'] === 'Laki-Laki' ? 'Laki-laki' : $item['nama'];
-                        $jumlah = (int) $item['jumlah'];
-                        $distribusiGender[] = [
-                            'name' => $name,
-                            'value' => $jumlah
-                        ];
-                        // Akumulasi total dari API untuk override summary
-                        if ($item['nama'] === 'Laki-Laki') {
-                            $apiLaki = $jumlah;
-                        } else {
-                            $apiPerempuan = $jumlah;
+                if ($response->successful()) {
+                    $apiData = $response->json('data');
+                    if (is_array($apiData) && !empty($apiData)) {
+                        $apiLaki = 0;
+                        $apiPerempuan = 0;
+                        foreach ($apiData as $item) {
+                            $name = (isset($item['nama']) && $item['nama'] === 'Laki-Laki') ? 'Laki-laki' : ($item['nama'] ?? 'Perempuan');
+                            $jumlah = (int) ($item['jumlah'] ?? 0);
+                            $distribusiGender[] = [
+                                'name' => $name,
+                                'value' => $jumlah
+                            ];
+                            if ($name === 'Laki-laki') {
+                                $apiLaki = $jumlah;
+                            } else {
+                                $apiPerempuan = $jumlah;
+                            }
+                        }
+                        if ($apiLaki > 0 || $apiPerempuan > 0) {
+                            $totalLaki = $apiLaki;
+                            $totalPerempuan = $apiPerempuan;
+                            $total = $apiLaki + $apiPerempuan;
+                            $apiSummaryOverride = true;
                         }
                     }
-                    // Override summary dengan data live API jika filter satker = Semua
-                    if ($satker === 'Semua Satuan Kerja' && ($apiLaki > 0 || $apiPerempuan > 0)) {
-                        $totalLaki = $apiLaki;
-                        $totalPerempuan = $apiPerempuan;
-                        $total = $apiLaki + $apiPerempuan;
-                        $apiSummaryOverride = true;
-                    }
                 }
-            } else {
-                throw new \Exception("API returned non-success response");
+            } catch (\Exception $e) {
+                // Ignore API failure
             }
-        } catch (\Exception $e) {
-            // Fallback jika API eksternal gagal/timeout
-            $distribusiGender = DB::table('jenis_kelamin')->get()->map(function($row) {
-                return ['name' => $row->jenis_kelamin, 'value' => (int) $row->jumlah];
-            })->toArray();
+
+            // Fallback ke tabel jenis_kelamin jika API eksternal gagal atau kosong
+            if (empty($distribusiGender)) {
+                $jkRows = DB::table('jenis_kelamin')->get();
+                if ($jkRows->isNotEmpty()) {
+                    $distribusiGender = $jkRows->map(function($row) {
+                        $name = $row->jenis_kelamin === 'Laki-Laki' ? 'Laki-laki' : $row->jenis_kelamin;
+                        return ['name' => $name, 'value' => (int) $row->jumlah];
+                    })->toArray();
+                } else {
+                    $distribusiGender = [
+                        ['name' => 'Laki-laki', 'value' => $totalLaki],
+                        ['name' => 'Perempuan', 'value' => $totalPerempuan],
+                    ];
+                }
+            }
         }
 
         // Sebaran ASN per OPD (Bar Chart) - Top 12

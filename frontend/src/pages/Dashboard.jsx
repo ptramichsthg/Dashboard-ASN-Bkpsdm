@@ -15,7 +15,9 @@ import {
   Filter,
   BarChart2,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Building2,
+  Search
 } from 'lucide-react';
 import {
   BarChart,
@@ -29,6 +31,7 @@ import {
   LabelList,
   PieChart,
   Pie,
+  Legend,
 } from 'recharts';
 
 // ─── Initial Empty State ─────────────────────────────────────────────
@@ -128,7 +131,7 @@ const Dashboard = () => {
   // Filters
   const [tahun, setTahun] = useState('Semua');
   const [bulan, setBulan] = useState('Semua');
-  const satker = 'Semua Satuan Kerja';
+  const [satker, setSatker] = useState('Semua Satuan Kerja');
   const [golonganPNSFilter, setGolonganPNSFilter] = useState('Semua');
   const [golonganPPPKFilter, setGolonganPPPKFilter] = useState('Semua');
   const [eselonFilter, setEselonFilter] = useState('Semua');
@@ -140,74 +143,43 @@ const Dashboard = () => {
   // Data State
   const [summaryData, setSummaryData] = useState(INITIAL_SUMMARY);
   const [statusPegawaiData, setStatusPegawaiData] = useState([]);
-  const [jenisJabatanData, setJenisJabatanData] = useState([]);
-  const [jenisJFTData, setJenisJFTData] = useState([]);
   const [golonganPNSData, setGolonganPNSData] = useState([]);
   const [golonganPPPKData, setGolonganPPPKData] = useState([]);
   const [eselonData, setEselonData] = useState([]);
   const [distribusiGenderData, setDistribusiGenderData] = useState([]);
   const [sebaranOPDData, setSebaranOPDData] = useState([]);
 
-  // Pagination for OPD Chart
+  // Satker Data State (from /satuan-kerja)
+  const [satkerRawData, setSatkerRawData] = useState([]);
+  const [searchSatker, setSearchSatker] = useState('');
+  const [tablePage, setTablePage] = useState(1);
+  const tableItemsPerPage = 10;
+
+  // Stacked OPD Chart Pagination
+  const [stackedOpdPage, setStackedOpdPage] = useState(0);
+
+  // Pagination for Single OPD Chart
   const ITEMS_PER_CHART_PAGE = 5;
   const [opdPage, setOpdPage] = useState(0);
 
   // Filter Options State from API
   const [tahunOptions, setTahunOptions] = useState([]);
   const [bulanOptions, setBulanOptions] = useState([]);
+  const [satkerOptions, setSatkerOptions] = useState(['Semua Satuan Kerja']);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsRefreshing(true);
-      try {
-        const response = await api.get('/dashboard', {
-          params: { satker, tahun, bulan }
-        });
-        const data = response.data;
-        if (data) {
-          setSummaryData(data.summary || INITIAL_SUMMARY);
-          setStatusPegawaiData(data.statusPegawai || []);
-          setJenisJabatanData(data.jenisJabatan || []);
-          setJenisJFTData(data.jenisJFT || []);
-          setGolonganPNSData(data.golonganPNS || []);
-          setGolonganPPPKData(data.golonganPPPK || []);
-          setEselonData(data.eselonData || []);
-          setDistribusiGenderData(data.distribusiGender || []);
-          setSebaranOPDData(data.sebaranOPD || []);
-
-          if (data.tahunList) {
-            setTahunOptions(data.tahunList);
-          }
-          if (data.bulanList) {
-            setBulanOptions(data.bulanList);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setIsRefreshing(false);
-      }
-    };
-
-    fetchData();
-  }, [satker, tahun, bulan]);
-
-  const handleRefresh = async () => {
-    if (isRefreshing) return;
+  const loadData = React.useCallback(async () => {
     setIsRefreshing(true);
     setErrorMsg('');
-
     try {
-      const response = await api.get('/dashboard', {
-        params: { satker, tahun, bulan }
-      });
-      const data = response.data;
+      const [dashRes, satkerRes] = await Promise.all([
+        api.get('/dashboard', { params: { satker, tahun, bulan } }),
+        api.get('/satuan-kerja')
+      ]);
 
+      const data = dashRes.data;
       if (data) {
         setSummaryData(data.summary || INITIAL_SUMMARY);
         setStatusPegawaiData(data.statusPegawai || []);
-        setJenisJabatanData(data.jenisJabatan || []);
-        setJenisJFTData(data.jenisJFT || []);
         setGolonganPNSData(data.golonganPNS || []);
         setGolonganPPPKData(data.golonganPPPK || []);
         setEselonData(data.eselonData || []);
@@ -216,15 +188,97 @@ const Dashboard = () => {
 
         if (data.tahunList) setTahunOptions(data.tahunList);
         if (data.bulanList) setBulanOptions(data.bulanList);
+
+        if (data.satuanKerjaList) {
+          const list = data.satuanKerjaList.includes('Semua Satuan Kerja')
+            ? data.satuanKerjaList
+            : ['Semua Satuan Kerja', ...data.satuanKerjaList];
+          setSatkerOptions(list);
+        }
       }
-    } catch (err) {
-      setErrorMsg(err.response?.data?.message || 'Gagal mengambil data dari server. Silakan coba lagi.');
+
+      if (satkerRes.data && Array.isArray(satkerRes.data)) {
+        const validData = satkerRes.data.filter(d => Boolean(d.satuan_kerja));
+        setSatkerRawData(validData);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      setErrorMsg(error.response?.data?.message || 'Gagal mengambil data dari server. Silakan coba lagi.');
     } finally {
       setIsRefreshing(false);
     }
+  }, [satker, tahun, bulan]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleRefresh = () => {
+    if (isRefreshing) return;
+    loadData();
   };
 
+  // Filter data satuan kerja untuk Tabel & Grafik Stacked
+  const filteredSatkerData = useMemo(() => {
+    let result = satkerRawData;
 
+    if (searchSatker.trim()) {
+      const q = searchSatker.toLowerCase();
+      result = result.filter(d =>
+        d.satuan_kerja && d.satuan_kerja.toLowerCase().includes(q)
+      );
+    }
+
+    if (satker !== 'Semua Satuan Kerja') {
+      result = result.filter(d =>
+        d.satuan_kerja && d.satuan_kerja.toUpperCase() === satker.toUpperCase()
+      );
+    }
+
+    return result;
+  }, [satkerRawData, searchSatker, satker]);
+
+  // Reset pagination saat pencarian atau satker berubah
+  useEffect(() => {
+    setTablePage(1);
+    setStackedOpdPage(0);
+  }, [searchSatker, satker]);
+
+  // 6 Kartu Ringkasan (Stats Strip)
+  const sumField = (field) => filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr[field], 10) || 0), 0);
+  const stripTotalASN = sumField('total').toLocaleString();
+  const stripPNS = (sumField('pns_l') + sumField('pns_p')).toLocaleString();
+  const stripCPNS = sumField('cpns_p').toLocaleString();
+  const stripPPPK = (sumField('pppk_l') + sumField('pppk_p')).toLocaleString();
+  const stripLaki = (sumField('pns_l') + sumField('pppk_l')).toLocaleString();
+  const stripPerempuan = (sumField('pns_p') + sumField('cpns_p') + sumField('pppk_p')).toLocaleString();
+
+  // Stacked OPD Chart Data
+  const stackedOpdDistributionData = useMemo(() => {
+    return filteredSatkerData.map(d => ({
+      name: formatOPDName(d.satuan_kerja),
+      rawName: d.satuan_kerja,
+      total: parseInt(d.total, 10) || 0,
+      PNS: (parseInt(d.pns_l, 10) || 0) + (parseInt(d.pns_p, 10) || 0),
+      CPNS: parseInt(d.cpns_p, 10) || 0,
+      PPPK: (parseInt(d.pppk_l, 10) || 0) + (parseInt(d.pppk_p, 10) || 0),
+    })).sort((a, b) => b.total - a.total);
+  }, [filteredSatkerData]);
+
+  const totalStackedOpdPages = Math.max(1, Math.ceil(stackedOpdDistributionData.length / ITEMS_PER_CHART_PAGE));
+  const paginatedStackedOpdData = stackedOpdDistributionData.slice(
+    stackedOpdPage * ITEMS_PER_CHART_PAGE,
+    (stackedOpdPage + 1) * ITEMS_PER_CHART_PAGE
+  );
+
+  // Table Pagination
+  const totalTablePages = Math.max(1, Math.ceil(filteredSatkerData.length / tableItemsPerPage));
+  const currentTableData = filteredSatkerData.slice(
+    (tablePage - 1) * tableItemsPerPage,
+    tablePage * tableItemsPerPage
+  );
+
+  // Single OPD Chart Pagination
   const totalOpdPages = Math.max(1, Math.ceil(sebaranOPDData.length / ITEMS_PER_CHART_PAGE));
   const paginatedOpdData = useMemo(() => {
     return sebaranOPDData.slice(opdPage * ITEMS_PER_CHART_PAGE, (opdPage + 1) * ITEMS_PER_CHART_PAGE).map(item => ({
@@ -260,6 +314,16 @@ const Dashboard = () => {
     });
   }, [eselonData, eselonFilter]);
 
+  const genderChartData = useMemo(() => {
+    if (distribusiGenderData && distribusiGenderData.length > 0 && distribusiGenderData.some(d => d.value > 0)) {
+      return distribusiGenderData;
+    }
+    return [
+      { name: 'Laki-laki', value: summaryData.laki || 0 },
+      { name: 'Perempuan', value: summaryData.perempuan || 0 }
+    ];
+  }, [distribusiGenderData, summaryData]);
+
   return (
     <div className="dashboard-layout">
       {/* Main Content */}
@@ -270,7 +334,7 @@ const Dashboard = () => {
         {/* Content */}
         <div className="content-area">
           {errorMsg && (
-            <div style={{ padding: '0.75rem 1.25rem', backgroundColor: '#fef2f2', color: '#ef4444', borderRadius: '8px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ padding: '0.75rem 1.25rem', backgroundColor: '#fef2f2', color: '#ef4444', borderRadius: '8px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <span>{errorMsg}</span>
               <button onClick={() => setErrorMsg('')} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                 <X size={16} />
@@ -291,7 +355,7 @@ const Dashboard = () => {
           <div className="hero-banner">
             <div className="hero-banner-content">
               <h1>Dashboard Data ASN Kabupaten Bandung</h1>
-              <p>Dashboard analitik real-time untuk memantau komposisi, status, dan statistik kepegawaian<br />ASN di lingkungan Pemerintah Kabupaten Bandung.</p>
+              <p>Dashboard analitik real-time untuk memantau komposisi, status, sebaran OPD, dan statistik kepegawaian<br />ASN di lingkungan Pemerintah Kabupaten Bandung.</p>
               <div className="hero-badges">
                 <div className="hero-badge-container static-badge">
                   <Database size={14} className="badge-icon-svg" />
@@ -300,7 +364,7 @@ const Dashboard = () => {
 
                 <div className="hero-badge-container static-badge">
                   <Filter size={14} className="badge-icon-svg" />
-                  <span className="badge-prefix">Filter by: Semua Data</span>
+                  <span className="badge-prefix">Filter: {satker}</span>
                 </div>
               </div>
             </div>
@@ -317,7 +381,7 @@ const Dashboard = () => {
           <div className="admin-kpi-filter-wrapper">
             <div className="admin-kpi-group">
               <div className="admin-kpi-card">
-                <div className="admin-kpi-title">Jumlah Pegawai</div>
+                <div className="admin-kpi-title">Jumlah ASN</div>
                 <div className="admin-kpi-value">{summaryData.total.toLocaleString()}</div>
               </div>
               <div className="admin-kpi-card">
@@ -329,27 +393,41 @@ const Dashboard = () => {
                 <div className="admin-kpi-value">{summaryData.perempuan.toLocaleString()}</div>
               </div>
             </div>
-            <div className="admin-filter-group">
-              <div className="filter-item">
-                <label>Tahun</label>
-                <div className="select-wrapper">
-                  <select className="filter-select" value={tahun} onChange={(e) => setTahun(e.target.value)}>
-                    {tahunOptions.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+            <div className="admin-filter-group" style={{ minWidth: '260px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div className="filter-item">
+                  <label>Tahun</label>
+                  <div className="select-wrapper">
+                    <select className="filter-select" value={tahun} onChange={(e) => setTahun(e.target.value)}>
+                      {tahunOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="filter-item">
+                  <label>Bulan</label>
+                  <div className="select-wrapper">
+                    <select className="filter-select" value={bulan} onChange={(e) => setBulan(e.target.value)}>
+                      {bulanOptions.map(b => <option key={b} value={b}>{b}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
+
               <div className="filter-item">
-                <label>Bulan</label>
+                <label>Satuan Kerja</label>
                 <div className="select-wrapper">
-                  <select className="filter-select" value={bulan} onChange={(e) => setBulan(e.target.value)}>
-                    {bulanOptions.map(b => <option key={b} value={b}>{b}</option>)}
+                  <select className="filter-select" value={satker} onChange={(e) => setSatker(e.target.value)}>
+                    <option value="Semua Satuan Kerja">Semua Satuan Kerja</option>
+                    {satkerOptions.map(s => s !== 'Semua Satuan Kerja' && (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
                   </select>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Row 1: Distribusi Gender (Donat) + Sebaran OPD (Bar) */}
+          {/* Row 1: Distribusi Gender (Donat) + Sebaran OPD (Bar Total) */}
           <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 2fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
             {/* Gender Donut Chart */}
             <div className="chart-card chart-card-gender">
@@ -363,7 +441,7 @@ const Dashboard = () => {
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
-                      data={distribusiGenderData}
+                      data={genderChartData}
                       cx="50%" cy="50%"
                       innerRadius={60} outerRadius={85}
                       paddingAngle={2}
@@ -371,8 +449,9 @@ const Dashboard = () => {
                       startAngle={90} endAngle={-270}
                       stroke="none"
                     >
-                      <Cell fill="#0d9488" />
-                      <Cell fill="#34d399" />
+                      {genderChartData.map((_, index) => (
+                        <Cell key={`gender-cell-${index}`} fill={index === 0 ? '#0d9488' : '#34d399'} />
+                      ))}
                     </Pie>
                     <Tooltip
                       formatter={(value) => [value.toLocaleString(), 'Jumlah ASN']}
@@ -403,7 +482,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* OPD Bar Chart */}
+            {/* OPD Bar Chart (Total Single Bar) */}
             <div className="chart-card">
               <div className="chart-card-header" style={{ justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -458,33 +537,68 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* Row 2: Stacked Bar Chart Sebaran ASN pada OPD (PNS, CPNS, PPPK) */}
+          <div className="chart-card" style={{ marginBottom: '1.5rem' }}>
+            <div className="chart-card-header" style={{ justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div className="chart-icon-box" style={{ background: '#eff6ff', color: '#3b82f6' }}>
+                  <BarChart2 size={16} />
+                </div>
+                <span className="chart-card-title">Sebaran Komposisi ASN (PNS, CPNS, PPPK) pada Organisasi Perangkat Daerah</span>
+              </div>
+              <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                <button
+                  onClick={() => setStackedOpdPage(p => Math.max(0, p - 1))}
+                  disabled={stackedOpdPage === 0}
+                  style={{
+                    padding: '0.25rem', borderRadius: '6px', border: '1px solid #e2e8f0',
+                    background: stackedOpdPage === 0 ? '#f8fafc' : 'white',
+                    color: stackedOpdPage === 0 ? '#cbd5e1' : '#475569',
+                    cursor: stackedOpdPage === 0 ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                  title="Previous"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  onClick={() => setStackedOpdPage(p => Math.min(totalStackedOpdPages - 1, p + 1))}
+                  disabled={stackedOpdPage === totalStackedOpdPages - 1 || totalStackedOpdPages === 0}
+                  style={{
+                    padding: '0.25rem', borderRadius: '6px', border: '1px solid #e2e8f0',
+                    background: stackedOpdPage === totalStackedOpdPages - 1 || totalStackedOpdPages === 0 ? '#f8fafc' : 'white',
+                    color: stackedOpdPage === totalStackedOpdPages - 1 || totalStackedOpdPages === 0 ? '#cbd5e1' : '#475569',
+                    cursor: stackedOpdPage === totalStackedOpdPages - 1 || totalStackedOpdPages === 0 ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                  title="Next"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={380}>
+              <BarChart data={paginatedStackedOpdData} margin={{ top: 15, right: 15, left: -10, bottom: 100 }}>
+                <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#000000', fontWeight: 600 }} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
+                <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 500 }} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ fontSize: 13, borderRadius: 8, border: '1px solid #e5e7eb', fontWeight: 600 }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                <Legend verticalAlign="top" align="center" wrapperStyle={{ fontSize: '12px', paddingBottom: '20px', fontWeight: 600 }} />
+                <Bar dataKey="PNS" stackId="a" fill="#3b82f6" animationDuration={500} />
+                <Bar dataKey="CPNS" stackId="a" fill="#f59e0b" animationDuration={500} />
+                <Bar dataKey="PPPK" stackId="a" fill="#10b981" animationDuration={500} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
           {/* ── STATUS PEGAWAI ── */}
           <div className="section-title">Status Pegawai</div>
-          <div className="grid-3">
+          <div className="grid-3" style={{ marginBottom: '1.5rem' }}>
             {statusPegawaiData.map(d => <DataCard key={d.title} {...d} />)}
           </div>
 
-          {/* ── JENIS JABATAN ── */}
-          <div className="section-title">Jenis Jabatan</div>
-          <div className="grid-3">
-            {jenisJabatanData.map(d => <DataCard key={d.title} {...d} />)}
-          </div>
-
-          {/* ── JENIS JFT ── */}
-          <div className="section-title">Jenis JFT</div>
-          <div className="grid-3">
-            {jenisJFTData.map(d => <DataCard key={d.title} {...d} />)}
-          </div>
-
-          {/* ── TOTAL BAR ── */}
-          <div className="admin-total-bar">
-            <span className="admin-total-bar-label">TOTAL ASN:</span>
-            <span className="admin-total-bar-value">{summaryData.total.toLocaleString()}</span>
-          </div>
-
-          {/* ── CHARTS ── */}
-          <div className="chart-section">
-            {/* Row 2: Distribusi Golongan & Eselonering */}
+          {/* ── CHARTS: DISTRIBUSI GOLONGAN & ESELONERING ── */}
+          <div className="chart-section" style={{ marginBottom: '2rem' }}>
             <div className="chart-card">
               <div className="chart-card-header">
                 <span className="chart-card-title">Distribusi Golongan & Eselonering</span>
@@ -554,6 +668,163 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* ── SECTION: TABEL & SEBARAN SATUAN KERJA ── */}
+          <div className="section-title">Data Sebaran Satuan Kerja</div>
+
+          {/* ── 6 Kartu Ringkasan (Stats Strip) ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            {[
+              { label: 'Total ASN', val: stripTotalASN, color: '#10b981' },
+              { label: 'PNS', val: stripPNS, color: '#3b82f6' },
+              { label: 'CPNS', val: stripCPNS, color: '#d97706' },
+              { label: 'PPPK', val: stripPPPK, color: '#16a34a' },
+              { label: 'Laki-laki', val: stripLaki, color: '#3b82f6' },
+              { label: 'Perempuan', val: stripPerempuan, color: '#db2777' },
+            ].map(({ label, val, color }) => (
+              <div key={label} className="kpi-card" style={{ padding: '1rem 1.25rem', backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
+                <div className="kpi-label" style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 700, marginBottom: '0.4rem' }}>{label}</div>
+                <div className="kpi-value" style={{ color, fontSize: '1.5rem', fontWeight: 800 }}>{val}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Data Table Satuan Kerja (Agregat) ── */}
+          <div className="chart-card" style={{ display: 'flex', flexDirection: 'column', marginBottom: '2.5rem' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div className="chart-icon-box" style={{ background: '#eff6ff', color: '#3b82f6' }}>
+                  <Building2 size={16} />
+                </div>
+                <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Daftar Satuan Kerja (Agregat)</h2>
+              </div>
+              <div style={{ position: 'relative', width: '280px' }}>
+                <input
+                  type="text"
+                  placeholder="Cari OPD..."
+                  value={searchSatker}
+                  onChange={(e) => setSearchSatker(e.target.value)}
+                  style={{
+                    width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem',
+                    borderRadius: '999px', border: '1px solid #e2e8f0',
+                    background: '#f8fafc', color: '#0f172a',
+                    fontSize: '0.85rem', outline: 'none',
+                    transition: 'all 0.2s', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              {currentTableData.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
+                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>No</th>
+                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Satuan Kerja / OPD</th>
+                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (L)</th>
+                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (P)</th>
+                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CPNS (P)</th>
+                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (L)</th>
+                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (P)</th>
+                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentTableData.map((row, i) => (
+                      <tr key={row.id || i} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>
+                          {(tablePage - 1) * tableItemsPerPage + i + 1}
+                        </td>
+                        <td style={{ padding: '1rem 1.5rem' }}>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0f172a' }}>{row.satuan_kerja}</div>
+                        </td>
+                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pns_l}</td>
+                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pns_p}</td>
+                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.cpns_p}</td>
+                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pppk_l}</td>
+                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pppk_p}</td>
+                        <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', padding: '0.25rem 0.75rem', backgroundColor: '#ecfdf5', color: '#10b981', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700 }}>
+                            {row.total}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
+                  Tidak ada data satuan kerja yang cocok.
+                </div>
+              )}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalTablePages > 1 && (
+              <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>
+                  Menampilkan <span style={{ fontWeight: 600, color: '#0f172a' }}>{(tablePage - 1) * tableItemsPerPage + 1}</span> hingga <span style={{ fontWeight: 600, color: '#0f172a' }}>{Math.min(tablePage * tableItemsPerPage, filteredSatkerData.length)}</span> dari <span style={{ fontWeight: 600, color: '#0f172a' }}>{filteredSatkerData.length}</span> data
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => setTablePage(p => Math.max(1, p - 1))}
+                    disabled={tablePage === 1}
+                    style={{
+                      padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0',
+                      background: tablePage === 1 ? '#f1f5f9' : '#fff',
+                      color: tablePage === 1 ? '#94a3b8' : '#475569',
+                      fontSize: '0.85rem', fontWeight: 500, cursor: tablePage === 1 ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.25rem'
+                    }}
+                  >
+                    <ChevronLeft size={16} /> Prev
+                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    {[...Array(totalTablePages)].map((_, i) => {
+                      const p = i + 1;
+                      if (p === 1 || p === totalTablePages || (p >= tablePage - 1 && p <= tablePage + 1)) {
+                        return (
+                          <button
+                            key={p}
+                            onClick={() => setTablePage(p)}
+                            style={{
+                              width: '32px', height: '32px', borderRadius: '8px', border: 'none',
+                              background: tablePage === p ? '#10b981' : 'transparent',
+                              color: tablePage === p ? '#fff' : '#64748b',
+                              fontSize: '0.85rem', fontWeight: tablePage === p ? 700 : 500,
+                              cursor: 'pointer', transition: 'all 0.2s',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}
+                          >
+                            {p}
+                          </button>
+                        );
+                      } else if (p === tablePage - 2 || p === tablePage + 2) {
+                        return <span key={p} style={{ color: '#000000', fontWeight: 'bold', padding: '0 0.25rem' }}>...</span>;
+                      }
+                      return null;
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setTablePage(p => Math.min(totalTablePages, p + 1))}
+                    disabled={tablePage === totalTablePages}
+                    style={{
+                      padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0',
+                      background: tablePage === totalTablePages ? '#f1f5f9' : '#fff',
+                      color: tablePage === totalTablePages ? '#94a3b8' : '#475569',
+                      fontSize: '0.85rem', fontWeight: 500, cursor: tablePage === totalTablePages ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.25rem'
+                    }}
+                  >
+                    Next <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>

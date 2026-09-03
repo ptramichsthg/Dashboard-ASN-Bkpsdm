@@ -34,6 +34,11 @@ class KlasifikasiJabatanController extends Controller
                 $query->where('subklasifikasi', $request->subklasifikasi);
             }
 
+            // Filter by jenis_eselon
+            if ($request->has('jenis_eselon')) {
+                $query->where('jenis_eselon', $request->jenis_eselon);
+            }
+
             // Filter by perangkat_daerah
             if ($request->has('perangkat_daerah')) {
                 $query->where('perangkat_daerah', 'like', '%' . $request->perangkat_daerah . '%');

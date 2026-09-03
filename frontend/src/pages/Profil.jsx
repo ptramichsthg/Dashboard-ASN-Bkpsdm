@@ -183,11 +183,19 @@ const Profil = () => {
   const [pageKosong, setPageKosong] = useState(1);
   const itemsPerPageKosong = 15;
 
-  // State Modal Detail Selisih Bezetting
+  // State Modal Detail Selisih Bezetting (Tombol +/-)
   const [selectedModalRow, setSelectedModalRow] = useState(null);
   const [searchModal, setSearchModal] = useState('');
   const [pageModal, setPageModal] = useState(1);
   const itemsPerPageModal = 10;
+
+  // State Modal Daftar Seluruh Jabatan per Eselon (Tombol Eselon)
+  const [selectedEselonModalRow, setSelectedEselonModalRow] = useState(null);
+  const [eselonJabatanList, setEselonJabatanList] = useState([]);
+  const [eselonJabatanLoading, setEselonJabatanLoading] = useState(false);
+  const [searchEselonModal, setSearchEselonModal] = useState('');
+  const [pageEselonModal, setPageEselonModal] = useState(1);
+  const itemsPerPageEselonModal = 10;
 
   const handleOpenModal = (row) => {
     setSelectedModalRow(row);
@@ -201,14 +209,48 @@ const Profil = () => {
     setPageModal(1);
   };
 
-  // Keyboard shortcut ESC to close modal and body scroll lock
+  const handleOpenEselonModal = async (row) => {
+    setSelectedEselonModalRow(row);
+    setSearchEselonModal('');
+    setPageEselonModal(1);
+    setEselonJabatanLoading(true);
+    try {
+      const res = await api.get('/klasifikasi-jabatan', {
+        params: {
+          klasifikasi_utama: 'MANAJERIAL',
+          jenis_eselon: row.jenis_eselon,
+          per_page: 1000,
+        },
+      });
+      if (res.data?.success && res.data?.data?.data) {
+        setEselonJabatanList(res.data.data.data);
+      } else {
+        setEselonJabatanList([]);
+      }
+    } catch (err) {
+      console.error('Gagal mengambil daftar jabatan eselon:', err);
+      setEselonJabatanList([]);
+    } finally {
+      setEselonJabatanLoading(false);
+    }
+  };
+
+  const handleCloseEselonModal = () => {
+    setSelectedEselonModalRow(null);
+    setSearchEselonModal('');
+    setPageEselonModal(1);
+    setEselonJabatanList([]);
+  };
+
+  // Keyboard shortcut ESC to close modals and body scroll lock
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && selectedModalRow) {
-        handleCloseModal();
+      if (e.key === 'Escape') {
+        if (selectedModalRow) handleCloseModal();
+        if (selectedEselonModalRow) handleCloseEselonModal();
       }
     };
-    if (selectedModalRow) {
+    if (selectedModalRow || selectedEselonModalRow) {
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
     } else {
@@ -218,7 +260,7 @@ const Profil = () => {
       document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedModalRow]);
+  }, [selectedModalRow, selectedEselonModalRow]);
 
   // Reset page saat filter/search berubah
   useEffect(() => {
@@ -286,7 +328,7 @@ const Profil = () => {
     return jabatanKosongFiltered.slice(start, start + itemsPerPageKosong);
   }, [jabatanKosongFiltered, pageKosong, itemsPerPageKosong]);
 
-  // Filtered jabatan untuk Pop-up Modal
+  // Filtered jabatan untuk Pop-up Modal Selisih (+/-)
   const modalJabatanFiltered = useMemo(() => {
     if (!selectedModalRow || !manajerialData?.jabatan_kosong) return [];
     return manajerialData.jabatan_kosong.filter((j) => {
@@ -309,6 +351,26 @@ const Profil = () => {
     const start = (pageModal - 1) * itemsPerPageModal;
     return modalJabatanFiltered.slice(start, start + itemsPerPageModal);
   }, [modalJabatanFiltered, pageModal, itemsPerPageModal]);
+
+  // Filtered & Paged untuk Pop-up Modal Eselon
+  const eselonModalFiltered = useMemo(() => {
+    if (!eselonJabatanList.length) return [];
+    if (!searchEselonModal) return eselonJabatanList;
+    const q = searchEselonModal.toLowerCase();
+    return eselonJabatanList.filter((j) => {
+      return (
+        j.jabatan?.toLowerCase().includes(q) ||
+        j.unit_kerja?.toLowerCase().includes(q) ||
+        j.perangkat_daerah?.toLowerCase().includes(q)
+      );
+    });
+  }, [eselonJabatanList, searchEselonModal]);
+
+  const totalPagesEselonModal = Math.max(1, Math.ceil(eselonModalFiltered.length / itemsPerPageEselonModal));
+  const pagedEselonModal = useMemo(() => {
+    const start = (pageEselonModal - 1) * itemsPerPageEselonModal;
+    return eselonModalFiltered.slice(start, start + itemsPerPageEselonModal);
+  }, [eselonModalFiltered, pageEselonModal, itemsPerPageEselonModal]);
 
   // Summary
   const summary = manajerialData?.summary;
@@ -397,7 +459,24 @@ const Profil = () => {
           </div>
 
           {/* ═══════════════════════════════════════════════
-              SECTION 2 — JABATAN MANAJERIAL
+              SECTION 2 — STATISTIK UMUM (Skeleton)
+          ═══════════════════════════════════════════════ */}
+          <div className="profil-section-header">
+            <div className="profil-section-icon" style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', boxShadow: '0 4px 12px rgba(100, 116, 139, 0.12)' }}>
+              <BarChart2 size={22} color="#64748b" />
+            </div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Statistik Umum</h2>
+            </div>
+            <div className="profil-section-line" />
+          </div>
+          <div className="statistik-skeleton-card">
+            <div className="statistik-skeleton-icon">📊</div>
+            <div className="statistik-skeleton-text">Statistik Umum sedang dalam pengembangan</div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════
+              SECTION 3 — JABATAN MANAJERIAL
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
             <div className="profil-section-icon" style={{ background: '#fdf4ff', border: '1px solid #f5d0fe', boxShadow: '0 4px 12px rgba(168, 85, 247, 0.15)' }}>
@@ -477,7 +556,16 @@ const Profil = () => {
                             <td>
                               <span className={`sub-badge ${badgeClass}`}>{row.subklasifikasi}</span>
                             </td>
-                            <td className="eselon-text">{row.jenis_eselon}</td>
+                            <td>
+                              <button
+                                type="button"
+                                className="eselon-btn"
+                                onClick={() => handleOpenEselonModal(row)}
+                                title={`Klik untuk melihat seluruh daftar jabatan ${row.jenis_eselon}`}
+                              >
+                                {row.jenis_eselon}
+                              </button>
+                            </td>
                             <td className="text-center num-cell">{row.total_bezetting}</td>
                             <td className="text-center num-cell">{row.total_kebutuhan}</td>
                             <td className="text-center">
@@ -498,7 +586,7 @@ const Profil = () => {
           )}
 
           {/* ═══════════════════════════════════════════════
-              SECTION 3 — DETAIL JABATAN KOSONG
+              SECTION 4 — DETAIL JABATAN KOSONG
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
             <div className="profil-section-icon" style={{ background: '#fee2e2', border: '1px solid #fecaca', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)' }}>
@@ -642,26 +730,9 @@ const Profil = () => {
             )}
           </div>
 
-          {/* ═══════════════════════════════════════════════
-              SECTION 4 — STATISTIK UMUM (Skeleton)
-          ═══════════════════════════════════════════════ */}
-          <div className="profil-section-header">
-            <div className="profil-section-icon" style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', boxShadow: '0 4px 12px rgba(100, 116, 139, 0.12)' }}>
-              <BarChart2 size={22} color="#64748b" />
-            </div>
-            <div className="profil-section-title-wrap">
-              <h2 className="profil-section-title">Statistik Umum</h2>
-            </div>
-            <div className="profil-section-line" />
-          </div>
-          <div className="statistik-skeleton-card">
-            <div className="statistik-skeleton-icon">📊</div>
-            <div className="statistik-skeleton-text">Statistik Umum sedang dalam pengembangan</div>
-          </div>
-
         </div>
 
-        {/* ── MODAL DETAIL JABATAN PER ESELON ── */}
+        {/* ── MODAL 1: DETAIL SELISIH / JABATAN KOSONG PER ESELON (TOMBOL +/-) ── */}
         {selectedModalRow && (
           <div className="bezetting-modal-backdrop" onClick={handleCloseModal}>
             <div
@@ -851,6 +922,176 @@ const Profil = () => {
                     </div>
                   )}
                 </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── MODAL 2: DAFTAR SELURUH JABATAN PER ESELON (DARI TOMBOL ESELON) ── */}
+        {selectedEselonModalRow && (
+          <div className="bezetting-modal-backdrop" onClick={handleCloseEselonModal}>
+            <div
+              className="bezetting-modal-container"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+            >
+              {/* Header */}
+              <div className="bezetting-modal-header">
+                <div className="bezetting-modal-title-wrap">
+                  <div className="bezetting-modal-subtitle">
+                    <span>Daftar Jabatan Manajerial</span>
+                  </div>
+                  <h3 className="bezetting-modal-title">
+                    <span>{selectedEselonModalRow.jenis_eselon}</span>
+                    <span className={`sub-badge ${SUB_COLOR[selectedEselonModalRow.subklasifikasi]?.badgeClass}`}>
+                      {selectedEselonModalRow.subklasifikasi}
+                    </span>
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  className="bezetting-modal-close-btn"
+                  onClick={handleCloseEselonModal}
+                  title="Tutup (Esc)"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Quick Summary Bar (Total Bezetting, Total Kebutuhan, Total Selisih) */}
+              <div className="bezetting-modal-summary-bar">
+                <div className="modal-summary-item">
+                  <span className="modal-summary-label">Total Bezetting</span>
+                  <span className="modal-summary-val">{selectedEselonModalRow.total_bezetting}</span>
+                </div>
+                <div className="modal-summary-item">
+                  <span className="modal-summary-label">Total Kebutuhan</span>
+                  <span className="modal-summary-val">{selectedEselonModalRow.total_kebutuhan}</span>
+                </div>
+                <div className="modal-summary-item">
+                  <span className="modal-summary-label">Total Selisih</span>
+                  <span
+                    className={`modal-summary-val ${
+                      Number(selectedEselonModalRow.total_selisih) === 0
+                        ? 'success'
+                        : Number(selectedEselonModalRow.total_selisih) < 0
+                        ? 'danger'
+                        : ''
+                    }`}
+                  >
+                    {Number(selectedEselonModalRow.total_selisih) > 0
+                      ? `+${selectedEselonModalRow.total_selisih}`
+                      : selectedEselonModalRow.total_selisih}
+                  </span>
+                </div>
+              </div>
+
+              {/* Toolbar */}
+              <div className="bezetting-modal-toolbar">
+                <div className="bezetting-modal-search">
+                  <Search size={15} color="#64748b" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama jabatan, unit kerja, atau OPD..."
+                    value={searchEselonModal}
+                    onChange={(e) => {
+                      setSearchEselonModal(e.target.value);
+                      setPageEselonModal(1);
+                    }}
+                    autoFocus
+                  />
+                </div>
+                <div className="bezetting-modal-count-badge">
+                  {eselonModalFiltered.length} jabatan
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="bezetting-modal-body">
+                {eselonJabatanLoading ? (
+                  <div style={{ padding: '3rem 1rem', textAlign: 'center', color: '#64748b' }}>
+                    <div className="skeleton-block" style={{ height: 180, borderRadius: 12 }} />
+                  </div>
+                ) : eselonModalFiltered.length === 0 ? (
+                  <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#64748b' }}>
+                    {searchEselonModal ? 'Tidak ada jabatan yang sesuai dengan pencarian.' : 'Tidak ada data jabatan.'}
+                  </div>
+                ) : (
+                  <div className="bezetting-modal-table-wrap">
+                    <table className="bezetting-modal-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: 50 }}>#</th>
+                          <th style={{ width: '48%' }}>Nama Jabatan</th>
+                          <th>Perangkat Daerah & Unit Kerja</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pagedEselonModal.map((j, idx) => {
+                          const absIdx = (pageEselonModal - 1) * itemsPerPageEselonModal + idx + 1;
+                          return (
+                            <tr key={j.id}>
+                              <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{absIdx}</td>
+                              <td>
+                                <div className="jabatan-name">{j.jabatan}</div>
+                              </td>
+                              <td>
+                                <div className="jabatan-unit-main">{j.perangkat_daerah}</div>
+                                <div className="jabatan-opd-sub">{j.unit_kerja}</div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer / Pagination */}
+              {!eselonJabatanLoading && eselonModalFiltered.length > itemsPerPageEselonModal && (
+                <div className="bezetting-modal-footer">
+                  <span>
+                    Menampilkan {(pageEselonModal - 1) * itemsPerPageEselonModal + 1}–{Math.min(pageEselonModal * itemsPerPageEselonModal, eselonModalFiltered.length)} dari {eselonModalFiltered.length} jabatan
+                  </span>
+                  <div className="profil-pagination-btns">
+                    <button
+                      type="button"
+                      className="profil-page-btn"
+                      onClick={() => setPageEselonModal((p) => Math.max(1, p - 1))}
+                      disabled={pageEselonModal === 1}
+                      title="Halaman sebelumnya"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    {Array.from({ length: totalPagesEselonModal }, (_, i) => i + 1)
+                      .filter((p) => p === 1 || p === totalPagesEselonModal || Math.abs(p - pageEselonModal) <= 1)
+                      .map((p, idx, arr) => (
+                        <React.Fragment key={p}>
+                          {idx > 0 && arr[idx - 1] !== p - 1 && (
+                            <span className="profil-pagination-dots">…</span>
+                          )}
+                          <button
+                            type="button"
+                            className={`profil-page-btn ${pageEselonModal === p ? 'active' : ''}`}
+                            onClick={() => setPageEselonModal(p)}
+                          >
+                            {p}
+                          </button>
+                        </React.Fragment>
+                      ))}
+                    <button
+                      type="button"
+                      className="profil-page-btn"
+                      onClick={() => setPageEselonModal((p) => Math.min(totalPagesEselonModal, p + 1))}
+                      disabled={pageEselonModal === totalPagesEselonModal}
+                      title="Halaman berikutnya"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
