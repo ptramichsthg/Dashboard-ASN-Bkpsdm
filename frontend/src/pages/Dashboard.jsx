@@ -129,9 +129,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   // Filters
-  const [tahun, setTahun] = useState('Semua');
-  const [bulan, setBulan] = useState('Semua');
-  const [satker, setSatker] = useState('Semua Satuan Kerja');
+  const [tahun, setTahun] = useState('Tahun');
+  const [bulan, setBulan] = useState('Bulan');
+  const [satker, setSatker] = useState('Satuan Kerja');
   const [golonganPNSFilter, setGolonganPNSFilter] = useState('Semua');
   const [golonganPPPKFilter, setGolonganPPPKFilter] = useState('Semua');
   const [eselonFilter, setEselonFilter] = useState('Semua');
@@ -165,14 +165,19 @@ const Dashboard = () => {
   // Filter Options State from API
   const [tahunOptions, setTahunOptions] = useState([]);
   const [bulanOptions, setBulanOptions] = useState([]);
-  const [satkerOptions, setSatkerOptions] = useState(['Semua Satuan Kerja']);
+  const [satkerOptions, setSatkerOptions] = useState(['Satuan Kerja']);
 
   const loadData = React.useCallback(async () => {
     setIsRefreshing(true);
     setErrorMsg('');
     try {
+      // Convert 'Tahun' to 'Semua' and 'Bulan' to 'Semua' for backend compatibility
+      const apiTahun = tahun === 'Tahun' ? 'Semua' : tahun;
+      const apiBulan = bulan === 'Bulan' ? 'Semua' : bulan;
+      const apiSatker = satker === 'Satuan Kerja' ? 'Semua Satuan Kerja' : satker;
+      
       const [dashRes, satkerRes] = await Promise.all([
-        api.get('/dashboard', { params: { satker, tahun, bulan } }),
+        api.get('/dashboard', { params: { satker: apiSatker, tahun: apiTahun, bulan: apiBulan } }),
         api.get('/satuan-kerja')
       ]);
 
@@ -186,13 +191,20 @@ const Dashboard = () => {
         setDistribusiGenderData(data.distribusiGender || []);
         setSebaranOPDData(data.sebaranOPD || []);
 
-        if (data.tahunList) setTahunOptions(data.tahunList);
-        if (data.bulanList) setBulanOptions(data.bulanList);
+        if (data.tahunList) {
+          const tahunList = data.tahunList.map(t => t === 'Semua' ? 'Tahun' : t);
+          setTahunOptions(tahunList.includes('Tahun') ? tahunList : ['Tahun', ...tahunList]);
+        }
+        
+        if (data.bulanList) {
+          const bulanList = data.bulanList.map(b => b === 'Semua' ? 'Bulan' : b);
+          setBulanOptions(bulanList.includes('Bulan') ? bulanList : ['Bulan', ...bulanList]);
+        }
 
         if (data.satuanKerjaList) {
-          const list = data.satuanKerjaList.includes('Semua Satuan Kerja')
+          const list = data.satuanKerjaList.includes('Satuan Kerja')
             ? data.satuanKerjaList
-            : ['Semua Satuan Kerja', ...data.satuanKerjaList];
+            : ['Satuan Kerja', ...data.satuanKerjaList];
           setSatkerOptions(list);
         }
       }
@@ -229,7 +241,7 @@ const Dashboard = () => {
       );
     }
 
-    if (satker !== 'Semua Satuan Kerja') {
+    if (satker !== 'Satuan Kerja') {
       result = result.filter(d =>
         d.satuan_kerja && d.satuan_kerja.toUpperCase() === satker.toUpperCase()
       );
@@ -379,52 +391,118 @@ const Dashboard = () => {
 
           {/* ── KPI & FILTERS ── */}
           <div className="admin-kpi-filter-wrapper">
-            <div className="admin-kpi-group">
-              <div className="admin-kpi-card">
-                <div className="admin-kpi-title">Jumlah ASN</div>
-                <div className="admin-kpi-value">{summaryData.total.toLocaleString()}</div>
-              </div>
-              <div className="admin-kpi-card">
-                <div className="admin-kpi-title">Pegawai Laki-laki</div>
-                <div className="admin-kpi-value">{summaryData.laki.toLocaleString()}</div>
-              </div>
-              <div className="admin-kpi-card">
-                <div className="admin-kpi-title">Pegawai Perempuan</div>
-                <div className="admin-kpi-value">{summaryData.perempuan.toLocaleString()}</div>
-              </div>
-            </div>
-            <div className="admin-filter-group" style={{ minWidth: '260px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div className="filter-item">
-                  <label>Tahun</label>
-                  <div className="select-wrapper">
-                    <select className="filter-select" value={tahun} onChange={(e) => setTahun(e.target.value)}>
-                      {tahunOptions.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div className="filter-item">
-                  <label>Bulan</label>
-                  <div className="select-wrapper">
-                    <select className="filter-select" value={bulan} onChange={(e) => setBulan(e.target.value)}>
-                      {bulanOptions.map(b => <option key={b} value={b}>{b}</option>)}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="filter-item">
-                <label>Satuan Kerja</label>
-                <div className="select-wrapper">
-                  <select className="filter-select" value={satker} onChange={(e) => setSatker(e.target.value)}>
-                    <option value="Semua Satuan Kerja">Semua Satuan Kerja</option>
-                    {satkerOptions.map(s => s !== 'Semua Satuan Kerja' && (
+            {/* Container Filter - Satuan Kerja, Bulan, Tahun */}
+            <div className="dashboard-filter-container">
+              {/* BARIS 1: Satuan Kerja (Full Width) */}
+              <div className="dashboard-filter-item">
+                <div className="dashboard-select-wrapper">
+                  <select className="dashboard-filter-select" value={satker} onChange={(e) => setSatker(e.target.value)}>
+                    <option value="Satuan Kerja">Satuan Kerja</option>
+                    {satkerOptions.map(s => s !== 'Satuan Kerja' && (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
                 </div>
               </div>
+
+              {/* BARIS 2: Bulan dan Tahun sejajar */}
+              <div className="dashboard-filter-row">
+                <div className="dashboard-filter-item">
+                  <div className="dashboard-select-wrapper">
+                    <select className="dashboard-filter-select" value={bulan} onChange={(e) => setBulan(e.target.value)}>
+                      {bulanOptions.map(b => <option key={b} value={b}>{b}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="dashboard-filter-item">
+                  <div className="dashboard-select-wrapper">
+                    <select className="dashboard-filter-select" value={tahun} onChange={(e) => setTahun(e.target.value)}>
+                      {tahunOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* ── SECTION TITLE: DATA SEBARAN SATUAN KERJA ── */}
+          <div className="profil-section-header" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }}>
+            <div className="profil-section-icon" style={{ background: '#eff6ff', border: '1px solid #bfdbfe', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)' }}>
+              <Building2 size={22} color="#1d4ed8" />
+            </div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Data Sebaran Satuan Kerja</h2>
+            </div>
+            <div className="profil-section-line" />
+          </div>
+          
+          {/* ── 6 Kartu Ringkasan Data Sebaran Satuan Kerja ── */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(6, 1fr)', 
+            gap: '1rem', 
+            marginBottom: '2rem'
+          }}>
+            {[
+              { label: 'Total ASN', val: stripTotalASN, color: '#10b981' },
+              { label: 'PNS', val: stripPNS, color: '#3b82f6' },
+              { label: 'CPNS', val: stripCPNS, color: '#d97706' },
+              { label: 'PPPK', val: stripPPPK, color: '#16a34a' },
+              { label: 'Laki-laki', val: stripLaki, color: '#3b82f6' },
+              { label: 'Perempuan', val: stripPerempuan, color: '#db2777' },
+            ].map(({ label, val, color }) => (
+              <div 
+                key={label} 
+                className="stats-summary-card" 
+                style={{ 
+                  padding: '1.5rem 1.25rem', 
+                  backgroundColor: '#fff', 
+                  border: '2px solid #0f172a',
+                  borderRadius: '12px', 
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  minHeight: '120px',
+                  transition: 'all 0.3s ease',
+                  cursor: 'default'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+                }}
+              >
+                <div 
+                  style={{ 
+                    fontSize: '0.875rem', 
+                    color: '#64748b', 
+                    fontWeight: 700, 
+                    marginBottom: '0.5rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    lineHeight: '1.4'
+                  }}
+                >
+                  {label}
+                </div>
+                <div 
+                  style={{ 
+                    color, 
+                    fontSize: '1.75rem', 
+                    fontWeight: 800,
+                    lineHeight: '1.2'
+                  }}
+                >
+                  {val}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Row 1: Distribusi Gender (Donat) + Sebaran OPD (Bar Total) */}
@@ -592,7 +670,7 @@ const Dashboard = () => {
           </div>
 
           {/* ── STATUS PEGAWAI ── */}
-          <div className="section-title">Status Pegawai</div>
+          <div className="section-title" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }}>Status Pegawai</div>
           <div className="grid-3" style={{ marginBottom: '1.5rem' }}>
             {statusPegawaiData.map(d => <DataCard key={d.title} {...d} />)}
           </div>
@@ -668,26 +746,6 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* ── SECTION: TABEL & SEBARAN SATUAN KERJA ── */}
-          <div className="section-title">Data Sebaran Satuan Kerja</div>
-
-          {/* ── 6 Kartu Ringkasan (Stats Strip) ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-            {[
-              { label: 'Total ASN', val: stripTotalASN, color: '#10b981' },
-              { label: 'PNS', val: stripPNS, color: '#3b82f6' },
-              { label: 'CPNS', val: stripCPNS, color: '#d97706' },
-              { label: 'PPPK', val: stripPPPK, color: '#16a34a' },
-              { label: 'Laki-laki', val: stripLaki, color: '#3b82f6' },
-              { label: 'Perempuan', val: stripPerempuan, color: '#db2777' },
-            ].map(({ label, val, color }) => (
-              <div key={label} className="kpi-card" style={{ padding: '1rem 1.25rem', backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
-                <div className="kpi-label" style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 700, marginBottom: '0.4rem' }}>{label}</div>
-                <div className="kpi-value" style={{ color, fontSize: '1.5rem', fontWeight: 800 }}>{val}</div>
-              </div>
-            ))}
           </div>
 
           {/* ── Data Table Satuan Kerja (Agregat) ── */}
