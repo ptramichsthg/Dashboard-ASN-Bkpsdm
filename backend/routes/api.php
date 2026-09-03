@@ -15,6 +15,7 @@ Route::get('/profil', [\App\Http\Controllers\DashboardController::class, 'profil
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
 
 Route::get('/satuan-kerja', [\App\Http\Controllers\SatuanKerjaController::class, 'index']);
+Route::get('/struktur-hierarki-opd', [\App\Http\Controllers\SatuanKerjaController::class, 'strukturHierarki']);
 Route::get('/pengembangan-kompetensi', [\App\Http\Controllers\PengembanganKompetensiController::class, 'index']);
 Route::get('/pengembangan-kompetensi/{nip}/history', [\App\Http\Controllers\PengembanganKompetensiController::class, 'history']);
 Route::get('/layanan', [\App\Http\Controllers\LayananController::class, 'index']);

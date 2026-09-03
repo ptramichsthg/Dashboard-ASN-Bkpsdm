@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\SatuanKerja;
+use App\Models\StrukturHierarkiOpd;
 
 class SatuanKerjaController extends Controller
 {
@@ -12,4 +13,10 @@ class SatuanKerjaController extends Controller
     {
         return response()->json(SatuanKerja::all());
     }
+
+    public function strukturHierarki()
+    {
+        return response()->json(StrukturHierarkiOpd::all());
+    }
 }
+

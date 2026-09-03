@@ -124,6 +124,17 @@ const CustomYAxisTick = (props) => {
   );
 };
 
+function SelisihBadge({ value }) {
+  const num = Number(value) || 0;
+  const cls = num === 0 ? 'zero' : num > 0 ? 'plus' : 'minus';
+  const prefix = num > 0 ? '+' : '';
+  return (
+    <span className={`selisih-badge ${cls}`}>
+      {prefix}{num}
+    </span>
+  );
+}
+
 // ─── Main Dashboard Component ─────────────────────────────────────────────────
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -151,9 +162,13 @@ const Dashboard = () => {
 
   // Satker Data State (from /satuan-kerja)
   const [satkerRawData, setSatkerRawData] = useState([]);
-  const [searchSatker, setSearchSatker] = useState('');
-  const [tablePage, setTablePage] = useState(1);
-  const tableItemsPerPage = 10;
+
+  // Struktur Hierarki OPD State (from /struktur-hierarki-opd)
+  const [hierarkiRawData, setHierarkiRawData] = useState([]);
+  const [searchHierarki, setSearchHierarki] = useState('');
+  const [filterSelisihHierarki, setFilterSelisihHierarki] = useState('Semua');
+  const [pageHierarki, setPageHierarki] = useState(1);
+  const itemsPerPageHierarki = 10;
 
   // Stacked OPD Chart Pagination
   const [stackedOpdPage, setStackedOpdPage] = useState(0);
@@ -176,9 +191,10 @@ const Dashboard = () => {
       const apiBulan = bulan === 'Bulan' ? 'Semua' : bulan;
       const apiSatker = satker === 'Satuan Kerja' ? 'Semua Satuan Kerja' : satker;
       
-      const [dashRes, satkerRes] = await Promise.all([
+      const [dashRes, satkerRes, hierarkiRes] = await Promise.all([
         api.get('/dashboard', { params: { satker: apiSatker, tahun: apiTahun, bulan: apiBulan } }),
-        api.get('/satuan-kerja')
+        api.get('/satuan-kerja'),
+        api.get('/struktur-hierarki-opd')
       ]);
 
       const data = dashRes.data;
@@ -213,6 +229,10 @@ const Dashboard = () => {
         const validData = satkerRes.data.filter(d => Boolean(d.satuan_kerja));
         setSatkerRawData(validData);
       }
+
+      if (hierarkiRes.data && Array.isArray(hierarkiRes.data)) {
+        setHierarkiRawData(hierarkiRes.data);
+      }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       setErrorMsg(error.response?.data?.message || 'Gagal mengambil data dari server. Silakan coba lagi.');
@@ -230,16 +250,9 @@ const Dashboard = () => {
     loadData();
   };
 
-  // Filter data satuan kerja untuk Tabel & Grafik Stacked
+  // Filter data satuan kerja untuk 6 Kartu Ringkasan & Grafik Stacked
   const filteredSatkerData = useMemo(() => {
     let result = satkerRawData;
-
-    if (searchSatker.trim()) {
-      const q = searchSatker.toLowerCase();
-      result = result.filter(d =>
-        d.satuan_kerja && d.satuan_kerja.toLowerCase().includes(q)
-      );
-    }
 
     if (satker !== 'Satuan Kerja') {
       result = result.filter(d =>
@@ -248,13 +261,12 @@ const Dashboard = () => {
     }
 
     return result;
-  }, [satkerRawData, searchSatker, satker]);
+  }, [satkerRawData, satker]);
 
-  // Reset pagination saat pencarian atau satker berubah
+  // Reset pagination saat satker berubah
   useEffect(() => {
-    setTablePage(1);
     setStackedOpdPage(0);
-  }, [searchSatker, satker]);
+  }, [satker]);
 
   // 6 Kartu Ringkasan (Stats Strip)
   const sumField = (field) => filteredSatkerData.reduce((acc, curr) => acc + (parseInt(curr[field], 10) || 0), 0);
@@ -283,12 +295,38 @@ const Dashboard = () => {
     (stackedOpdPage + 1) * ITEMS_PER_CHART_PAGE
   );
 
-  // Table Pagination
-  const totalTablePages = Math.max(1, Math.ceil(filteredSatkerData.length / tableItemsPerPage));
-  const currentTableData = filteredSatkerData.slice(
-    (tablePage - 1) * tableItemsPerPage,
-    tablePage * tableItemsPerPage
-  );
+  // Filter & Pagination Struktur Hierarki OPD
+  const filteredHierarkiData = useMemo(() => {
+    let result = hierarkiRawData;
+
+    if (searchHierarki.trim()) {
+      const q = searchHierarki.toLowerCase();
+      result = result.filter(d =>
+        (d.nama_unit_kerja && d.nama_unit_kerja.toLowerCase().includes(q)) ||
+        (d.opd_induk && d.opd_induk.toLowerCase().includes(q))
+      );
+    }
+
+    if (filterSelisihHierarki === 'Kurang') {
+      result = result.filter(d => (parseInt(d.selisih, 10) || 0) < 0);
+    } else if (filterSelisihHierarki === 'Sesuai') {
+      result = result.filter(d => (parseInt(d.selisih, 10) || 0) === 0);
+    } else if (filterSelisihHierarki === 'Lebih') {
+      result = result.filter(d => (parseInt(d.selisih, 10) || 0) > 0);
+    }
+
+    return result;
+  }, [hierarkiRawData, searchHierarki, filterSelisihHierarki]);
+
+  useEffect(() => {
+    setPageHierarki(1);
+  }, [searchHierarki, filterSelisihHierarki]);
+
+  const totalHierarkiPages = Math.max(1, Math.ceil(filteredHierarkiData.length / itemsPerPageHierarki));
+  const currentHierarkiData = useMemo(() => {
+    const start = (pageHierarki - 1) * itemsPerPageHierarki;
+    return filteredHierarkiData.slice(start, start + itemsPerPageHierarki);
+  }, [filteredHierarkiData, pageHierarki, itemsPerPageHierarki]);
 
   // Single OPD Chart Pagination
   const totalOpdPages = Math.max(1, Math.ceil(sebaranOPDData.length / ITEMS_PER_CHART_PAGE));
@@ -669,8 +707,16 @@ const Dashboard = () => {
             </ResponsiveContainer>
           </div>
 
-          {/* ── STATUS PEGAWAI ── */}
-          <div className="section-title" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }}>Status Pegawai</div>
+          {/* ── SECTION TITLE: STATUS PEGAWAI ── */}
+          <div className="profil-section-header" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }}>
+            <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+              <Users size={22} color="#059669" />
+            </div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Status Pegawai</h2>
+            </div>
+            <div className="profil-section-line" />
+          </div>
           <div className="grid-3" style={{ marginBottom: '1.5rem' }}>
             {statusPegawaiData.map(d => <DataCard key={d.title} {...d} />)}
           </div>
@@ -748,137 +794,173 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* ── Data Table Satuan Kerja (Agregat) ── */}
-          <div className="chart-card" style={{ display: 'flex', flexDirection: 'column', marginBottom: '2.5rem' }}>
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div className="chart-icon-box" style={{ background: '#eff6ff', color: '#3b82f6' }}>
-                  <Building2 size={16} />
+          {/* ── Data Table Struktur Hierarki Satuan Kerja / OPD ── */}
+          <div className="hierarki-opd-card">
+            <div className="hierarki-opd-toolbar">
+              <div className="hierarki-toolbar-left">
+                <div className="chart-icon-box" style={{ background: '#eff6ff', color: '#1d4ed8' }}>
+                  <Building2 size={18} />
                 </div>
-                <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Daftar Satuan Kerja (Agregat)</h2>
+                <h2 className="hierarki-toolbar-title">Struktur Hierarki Satuan Kerja / OPD</h2>
               </div>
-              <div style={{ position: 'relative', width: '280px' }}>
-                <input
-                  type="text"
-                  placeholder="Cari OPD..."
-                  value={searchSatker}
-                  onChange={(e) => setSearchSatker(e.target.value)}
-                  style={{
-                    width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem',
-                    borderRadius: '999px', border: '1px solid #e2e8f0',
-                    background: '#f8fafc', color: '#0f172a',
-                    fontSize: '0.85rem', outline: 'none',
-                    transition: 'all 0.2s', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
-                    boxSizing: 'border-box'
-                  }}
-                />
-                <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+              
+              <div className="hierarki-toolbar-right">
+                {/* Search */}
+                <div className="hierarki-search">
+                  <Search size={15} color="#94a3b8" />
+                  <input
+                    type="text"
+                    placeholder="Cari unit kerja atau OPD induk..."
+                    value={searchHierarki}
+                    onChange={(e) => setSearchHierarki(e.target.value)}
+                  />
+                  {searchHierarki && (
+                    <X
+                      size={14}
+                      color="#94a3b8"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setSearchHierarki('')}
+                    />
+                  )}
+                </div>
+
+                {/* Filter Selisih */}
+                <div className="hierarki-filter">
+                  <select
+                    value={filterSelisihHierarki}
+                    onChange={(e) => setFilterSelisihHierarki(e.target.value)}
+                  >
+                    <option value="Semua">Semua Status Selisih</option>
+                    <option value="Kurang">Kurang Formasi (-)</option>
+                    <option value="Sesuai">Sesuai Formasi (0)</option>
+                    <option value="Lebih">Kelebihan Formasi (+)</option>
+                  </select>
+                </div>
+
+                {/* Count badge */}
+                <div className="hierarki-count">
+                  {filteredHierarkiData.length.toLocaleString('id-ID')} unit kerja
+                </div>
               </div>
             </div>
 
             <div style={{ overflowX: 'auto' }}>
-              {currentTableData.length > 0 ? (
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>No</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Satuan Kerja / OPD</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (L)</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PNS (P)</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CPNS (P)</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (L)</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PPPK (P)</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Total</th>
+              <table className="hierarki-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '60px', textAlign: 'center' }}>#</th>
+                    <th>Nama Unit Kerja</th>
+                    <th className="text-center" style={{ width: '130px' }}>Bezetting</th>
+                    <th className="text-center" style={{ width: '130px' }}>Kebutuhan</th>
+                    <th className="text-center" style={{ width: '120px' }}>Selisih</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isRefreshing && hierarkiRawData.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="no-data-row">Memuat data struktur hierarki OPD...</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {currentTableData.map((row, i) => (
-                      <tr key={row.id || i} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>
-                          {(tablePage - 1) * tableItemsPerPage + i + 1}
-                        </td>
-                        <td style={{ padding: '1rem 1.5rem' }}>
-                          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0f172a' }}>{row.satuan_kerja}</div>
-                        </td>
-                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pns_l}</td>
-                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pns_p}</td>
-                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.cpns_p}</td>
-                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pppk_l}</td>
-                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>{row.pppk_p}</td>
-                        <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', padding: '0.25rem 0.75rem', backgroundColor: '#ecfdf5', color: '#10b981', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 700 }}>
-                            {row.total}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
-                  Tidak ada data satuan kerja yang cocok.
-                </div>
-              )}
+                  ) : currentHierarkiData.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="no-data-row">
+                        {searchHierarki || filterSelisihHierarki !== 'Semua'
+                          ? 'Tidak ada data unit kerja yang sesuai dengan filter pencarian.'
+                          : 'Belum ada data struktur hierarki OPD.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    currentHierarkiData.map((row, idx) => {
+                      const absoluteIndex = (pageHierarki - 1) * itemsPerPageHierarki + idx + 1;
+                      const hasInduk = row.opd_induk && row.opd_induk.trim() !== '';
+                      return (
+                        <tr key={row.id || idx}>
+                          <td className="text-center" style={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 600 }}>
+                            {absoluteIndex}
+                          </td>
+                          <td>
+                            <div className="hierarki-unit-main">{row.nama_unit_kerja}</div>
+                            {hasInduk && (
+                              <div className="hierarki-opd-sub">
+                                <span className="hierarki-opd-sub-badge">Induk</span>
+                                <span>{row.opd_induk}</span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="text-center num-cell">
+                            {Number(row.bezetting || 0).toLocaleString('id-ID')}
+                          </td>
+                          <td className="text-center num-cell">
+                            {Number(row.kebutuhan || 0).toLocaleString('id-ID')}
+                          </td>
+                          <td className="text-center">
+                            <SelisihBadge value={row.selisih} />
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
 
             {/* Pagination Controls */}
-            {totalTablePages > 1 && (
-              <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', flexWrap: 'wrap', gap: '0.75rem' }}>
-                <div style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>
-                  Menampilkan <span style={{ fontWeight: 600, color: '#0f172a' }}>{(tablePage - 1) * tableItemsPerPage + 1}</span> hingga <span style={{ fontWeight: 600, color: '#0f172a' }}>{Math.min(tablePage * tableItemsPerPage, filteredSatkerData.length)}</span> dari <span style={{ fontWeight: 600, color: '#0f172a' }}>{filteredSatkerData.length}</span> data
+            {totalHierarkiPages > 1 && (
+              <div className="hierarki-pagination">
+                <div>
+                  Menampilkan <span style={{ color: '#0f172a' }}>{((pageHierarki - 1) * itemsPerPageHierarki) + 1}</span>–<span style={{ color: '#0f172a' }}>{Math.min(pageHierarki * itemsPerPageHierarki, filteredHierarkiData.length)}</span> dari <span style={{ color: '#0f172a' }}>{filteredHierarkiData.length.toLocaleString('id-ID')}</span> unit kerja
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="hierarki-pagination-btns">
                   <button
-                    onClick={() => setTablePage(p => Math.max(1, p - 1))}
-                    disabled={tablePage === 1}
-                    style={{
-                      padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0',
-                      background: tablePage === 1 ? '#f1f5f9' : '#fff',
-                      color: tablePage === 1 ? '#94a3b8' : '#475569',
-                      fontSize: '0.85rem', fontWeight: 500, cursor: tablePage === 1 ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.25rem'
-                    }}
+                    className="hierarki-page-btn"
+                    onClick={() => setPageHierarki(1)}
+                    disabled={pageHierarki === 1}
+                    title="Halaman Pertama"
                   >
-                    <ChevronLeft size={16} /> Prev
+                    «
                   </button>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    {[...Array(totalTablePages)].map((_, i) => {
-                      const p = i + 1;
-                      if (p === 1 || p === totalTablePages || (p >= tablePage - 1 && p <= tablePage + 1)) {
-                        return (
-                          <button
-                            key={p}
-                            onClick={() => setTablePage(p)}
-                            style={{
-                              width: '32px', height: '32px', borderRadius: '8px', border: 'none',
-                              background: tablePage === p ? '#10b981' : 'transparent',
-                              color: tablePage === p ? '#fff' : '#64748b',
-                              fontSize: '0.85rem', fontWeight: tablePage === p ? 700 : 500,
-                              cursor: 'pointer', transition: 'all 0.2s',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center'
-                            }}
-                          >
-                            {p}
-                          </button>
-                        );
-                      } else if (p === tablePage - 2 || p === tablePage + 2) {
-                        return <span key={p} style={{ color: '#000000', fontWeight: 'bold', padding: '0 0.25rem' }}>...</span>;
-                      }
-                      return null;
-                    })}
-                  </div>
                   <button
-                    onClick={() => setTablePage(p => Math.min(totalTablePages, p + 1))}
-                    disabled={tablePage === totalTablePages}
-                    style={{
-                      padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0',
-                      background: tablePage === totalTablePages ? '#f1f5f9' : '#fff',
-                      color: tablePage === totalTablePages ? '#94a3b8' : '#475569',
-                      fontSize: '0.85rem', fontWeight: 500, cursor: tablePage === totalTablePages ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.25rem'
-                    }}
+                    className="hierarki-page-btn"
+                    onClick={() => setPageHierarki(p => Math.max(1, p - 1))}
+                    disabled={pageHierarki === 1}
+                    title="Halaman Sebelumnya"
                   >
-                    Next <ChevronRight size={16} />
+                    <ChevronLeft size={16} />
+                  </button>
+
+                  {/* Page numbers window */}
+                  {[...Array(totalHierarkiPages)].map((_, i) => {
+                    const p = i + 1;
+                    if (p === 1 || p === totalHierarkiPages || (p >= pageHierarki - 1 && p <= pageHierarki + 1)) {
+                      return (
+                        <button
+                          key={p}
+                          className={`hierarki-page-btn ${pageHierarki === p ? 'active' : ''}`}
+                          onClick={() => setPageHierarki(p)}
+                        >
+                          {p}
+                        </button>
+                      );
+                    } else if (p === pageHierarki - 2 || p === pageHierarki + 2) {
+                      return <span key={p} className="hierarki-pagination-dots">...</span>;
+                    }
+                    return null;
+                  })}
+
+                  <button
+                    className="hierarki-page-btn"
+                    onClick={() => setPageHierarki(p => Math.min(totalHierarkiPages, p + 1))}
+                    disabled={pageHierarki === totalHierarkiPages}
+                    title="Halaman Berikutnya"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                  <button
+                    className="hierarki-page-btn"
+                    onClick={() => setPageHierarki(totalHierarkiPages)}
+                    disabled={pageHierarki === totalHierarkiPages}
+                    title="Halaman Terakhir"
+                  >
+                    »
                   </button>
                 </div>
               </div>

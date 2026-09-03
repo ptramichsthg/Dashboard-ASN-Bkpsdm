@@ -430,3 +430,274 @@
   border-radius: 99px;
   margin-left: 0.5rem;
 }
+
+/* ── Struktur Hierarki OPD Table (Gaya Profil Jabatan Kosong) ── */
+.hierarki-opd-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  margin-bottom: 2.5rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.hierarki-opd-toolbar {
+  padding: 1.15rem 1.5rem;
+  border-bottom: 1px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: #ffffff;
+}
+
+.hierarki-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hierarki-toolbar-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.hierarki-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.hierarki-search {
+  min-width: 260px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  transition: all 0.2s;
+}
+
+.hierarki-search:focus-within {
+  border-color: #1d4ed8;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+.hierarki-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: #0f172a;
+  width: 100%;
+}
+
+.hierarki-search input::placeholder {
+  color: #94a3b8;
+}
+
+.hierarki-filter select {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.875rem;
+  background: #fff;
+  color: #0f172a;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.hierarki-filter select:focus {
+  border-color: #1d4ed8;
+}
+
+.hierarki-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-radius: 20px;
+  padding: 0.35rem 0.85rem;
+  white-space: nowrap;
+  border: 1px solid #bfdbfe;
+}
+
+table.hierarki-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+table.hierarki-table thead tr {
+  background: #f1f5f9;
+}
+
+table.hierarki-table thead th {
+  padding: 0.95rem 1.25rem;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 2px solid #94a3b8;
+}
+
+table.hierarki-table thead th.text-center {
+  text-align: center;
+}
+
+table.hierarki-table tbody tr {
+  border-bottom: 1px solid #cbd5e1;
+  transition: background 0.15s;
+}
+
+table.hierarki-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+table.hierarki-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+table.hierarki-table tbody td {
+  padding: 0.9rem 1.25rem;
+  color: #0f172a;
+  vertical-align: middle;
+}
+
+table.hierarki-table tbody td.text-center {
+  text-align: center;
+}
+
+.hierarki-unit-main {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.hierarki-opd-sub {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hierarki-opd-sub-badge {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+}
+
+/* Badge selisih +/- */
+.selisih-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  border: none;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.selisih-badge.zero {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.selisih-badge.minus {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.selisih-badge.plus {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Pagination Hierarki */
+.hierarki-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #cbd5e1;
+  font-size: 0.85rem;
+  color: #334155;
+  font-weight: 600;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: #f8fafc;
+}
+
+.hierarki-pagination-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hierarki-page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.hierarki-page-btn:hover:not(:disabled) {
+  border-color: #1d4ed8;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.hierarki-page-btn.active {
+  background: #1d4ed8;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+
+.hierarki-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hierarki-pagination-dots {
+  padding: 0 4px;
+  color: #64748b;
+  font-weight: 600;
+}
+
