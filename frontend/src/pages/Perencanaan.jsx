@@ -15,6 +15,7 @@ import {
 
 import { shortenOPD } from '../utils/formatters';
 import ChartTooltip from '../components/shared/ChartTooltip';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 import { usePerencanaan } from '../hooks/usePerencanaan';
 import KpiCard from '../components/shared/KpiCard';
@@ -96,16 +97,8 @@ export default function Perencanaan() {
     setChartPage(1);
   }, [tahun, satker, searchDebounced]);
 
-  useEffect(() => {
-    if (selectedDetail) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [selectedDetail]);
+  // Lock scroll saat modal terbuka
+  useBodyScrollLock(!!selectedDetail);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

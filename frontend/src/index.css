@@ -28,6 +28,10 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
+html {
+  font-size: 106.25%; /* Scales all rem units globally from 16px to 17px */
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -232,7 +236,7 @@ body {
 }
 
 .brand-text h2 {
-  font-size: 1.1rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #1e293b;
   margin: 0;
@@ -240,7 +244,7 @@ body {
 }
 
 .brand-text span {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #10b981;
   text-transform: uppercase;
@@ -278,7 +282,7 @@ body {
   width: 100%;
   appearance: none;
   outline: none;
-  font-size: 1.05rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #064e3b;
   cursor: pointer;
@@ -499,16 +503,16 @@ body {
 }
 
 .hero-banner-content h1 {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.35rem;
+  font-weight: 800;
   color: white;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
   letter-spacing: -0.02em;
 }
 
 .hero-banner-content p {
   color: rgba(255, 255, 255, 0.95);
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   line-height: 1.6;
   margin: 0 0 1.5rem 0;
 }
@@ -651,14 +655,14 @@ body {
 }
 
 .kpi-card__value {
-  font-size: 2rem;
+  font-size: 2.4rem;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
 .kpi-card__label {
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #475569;
   text-transform: uppercase;
@@ -669,7 +673,7 @@ body {
 }
 
 .kpi-card__sublabel {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   color: #94a3b8;
   font-weight: 500;
   white-space: nowrap;
@@ -685,7 +689,7 @@ body {
 }
 
 .kpi-label {
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #475569;
   text-transform: uppercase;
@@ -693,7 +697,7 @@ body {
 }
 
 .kpi-value {
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: #1e293b;
   letter-spacing: -0.03em;
@@ -701,7 +705,7 @@ body {
 }
 
 .kpi-sub {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #475569;
   font-weight: 500;
 }
@@ -1442,3 +1446,8 @@ body {
   display: inline-block;
 }
 
+/* Fix Modal Scroll Lock globally */
+html.modal-open,
+body.modal-open {
+  overflow: hidden !important;
+}

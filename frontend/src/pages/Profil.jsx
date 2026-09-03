@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import useKlasifikasiJabatan from '../hooks/useKlasifikasiJabatan';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import bgCard from '../assets/bg-card.png';
 import '../styles/Profil.css';
 
@@ -254,7 +255,10 @@ const Profil = () => {
     setEselonJabatanList([]);
   };
 
-  // Keyboard shortcut ESC to close modals and body scroll lock
+  // Body scroll lock hook
+  useBodyScrollLock(!!selectedModalRow || !!selectedEselonModalRow);
+
+  // Keyboard shortcut ESC to close modals
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -263,13 +267,9 @@ const Profil = () => {
       }
     };
     if (selectedModalRow || selectedEselonModalRow) {
-      document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.body.style.overflow = 'unset';
     }
     return () => {
-      document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [selectedModalRow, selectedEselonModalRow]);

@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 
 import { useTracking } from '../hooks/useTracking';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import ChartTooltip from '../components/shared/ChartTooltip';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
@@ -121,10 +122,7 @@ export default function Tracking() {
   }, [jenisLayanan, tahun, bulan, satker, search]);
 
   // Lock scroll saat modal terbuka
-  useEffect(() => {
-    document.body.style.overflow = selectedItem ? 'hidden' : 'auto';
-    return () => { document.body.style.overflow = 'auto'; };
-  }, [selectedItem]);
+  useBodyScrollLock(!!selectedItem);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

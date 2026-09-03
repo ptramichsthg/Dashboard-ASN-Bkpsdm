@@ -188,8 +188,8 @@ export default function Lainnya() {
                 <div style={{ flex: 1 }}>
                   <div
                     style={{
-                      fontSize: '1.05rem',
-                      fontWeight: 700,
+                      fontSize: '1.25rem',
+                      fontWeight: 800,
                       color: '#0f172a',
                       marginBottom: '0.35rem',
                     }}
@@ -198,7 +198,7 @@ export default function Lainnya() {
                   </div>
                   <div
                     style={{
-                      fontSize: '0.83rem',
+                      fontSize: '0.95rem',
                       color: '#64748b',
                       lineHeight: 1.45,
                     }}
@@ -213,10 +213,10 @@ export default function Lainnya() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.25rem',
-                    fontSize: '0.82rem',
+                    fontSize: '0.95rem',
                     fontWeight: 700,
                     color: item.color,
-                    marginTop: '0.25rem',
+                    marginTop: '0.5rem',
                   }}
                 >
                   Buka Menu <ChevronRight size={14} />

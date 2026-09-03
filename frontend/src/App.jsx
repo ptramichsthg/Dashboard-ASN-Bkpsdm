@@ -13,7 +13,6 @@ import Tracking from './pages/Tracking';
 import Perpustakaan from './pages/Perpustakaan';
 import './index.css';
 
-// Komponen untuk memastikan user yang belum login tidak bisa masuk dashboard
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
   if (!token) {
@@ -22,7 +21,6 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Komponen untuk memastikan user yang sudah login tidak melihat halaman login lagi
 const GuestRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
@@ -35,7 +33,6 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Auth: Hanya untuk tamu yang belum login */}
         <Route
           path="/"
           element={
@@ -45,7 +42,6 @@ function App() {
           }
         />
 
-        {/* Halaman utama setelah login → Profil ASN */}
         <Route
           path="/profil"
           element={
@@ -55,7 +51,6 @@ function App() {
           }
         />
 
-        {/* Menu Lainnya → grid semua fitur */}
         <Route
           path="/lainnya"
           element={
@@ -65,7 +60,6 @@ function App() {
           }
         />
 
-        {/* Halaman-halaman fitur (diakses dari /lainnya) */}
         <Route
           path="/dashboard"
           element={
@@ -131,7 +125,6 @@ function App() {
           }
         />
 
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

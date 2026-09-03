@@ -42,7 +42,7 @@
 }
 
 .profil-section-title {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.02em;
@@ -277,15 +277,20 @@
 /* Tabel Bezetting */
 .bezetting-table-card {
   background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
   overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.bezetting-table-card:hover {
+  box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
 }
 
 .bezetting-table-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #cbd5e1;
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -295,32 +300,42 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  border-bottom: 1px solid #cbd5e1;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
 }
 
 .bezetting-kpi-item {
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   text-align: center;
-  border-right: 1px solid #cbd5e1;
+  border-right: 1px solid #e2e8f0;
+  background: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .bezetting-kpi-item:last-child {
   border-right: none;
 }
 
+.bezetting-kpi-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.06);
+  z-index: 1;
+}
+
 .bezetting-kpi-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: #334155;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.25rem;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.35rem;
 }
 
 .bezetting-kpi-value {
-  font-size: 1.6rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #0f172a;
+  letter-spacing: -0.5px;
 }
 
 .bezetting-kpi-value.danger {
@@ -329,23 +344,24 @@
 
 table.bezetting-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.875rem;
 }
 
 table.bezetting-table thead tr {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 
 table.bezetting-table thead th {
-  padding: 0.95rem 1.25rem;
+  padding: 1rem 1.75rem;
   text-align: left;
-  font-size: 0.92rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  border-bottom: 2px solid #94a3b8;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 table.bezetting-table thead th.text-center {
@@ -353,11 +369,18 @@ table.bezetting-table thead th.text-center {
 }
 
 table.bezetting-table tbody tr {
-  border-bottom: 1px solid #cbd5e1;
-  transition: background 0.15s;
+  transition: all 0.2s ease;
+  background: #ffffff;
 }
 
-table.bezetting-table tbody tr:last-child {
+table.bezetting-table tbody tr td {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 1.25rem 1.75rem;
+  color: #334155;
+  vertical-align: middle;
+}
+
+table.bezetting-table tbody tr:last-child td {
   border-bottom: none;
 }
 
@@ -365,10 +388,8 @@ table.bezetting-table tbody tr:hover {
   background: #f8fafc;
 }
 
-table.bezetting-table tbody td {
-  padding: 0.9rem 1.25rem;
-  color: var(--text-main);
-  vertical-align: middle;
+table.bezetting-table tbody tr:hover td {
+  color: #0f172a;
 }
 
 table.bezetting-table tbody td.text-center {
@@ -615,42 +636,60 @@ table.bezetting-table tbody td.text-center {
 
 table.jabatan-kosong-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.875rem;
 }
 
 table.jabatan-kosong-table thead tr {
-  background: #f1f5f9;
+  background: rgba(254, 242, 242, 0.5);
+  backdrop-filter: blur(8px);
 }
 
 table.jabatan-kosong-table thead th {
-  padding: 0.95rem 1.25rem;
+  padding: 1.1rem 1.25rem;
   text-align: left;
-  font-size: 0.92rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #991b1b;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  border-bottom: 2px solid #94a3b8;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #fecaca;
+}
+
+table.jabatan-kosong-table thead th.text-center {
+  text-align: center;
 }
 
 table.jabatan-kosong-table tbody tr {
-  border-bottom: 1px solid #cbd5e1;
-  transition: background 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #ffffff;
 }
 
-table.jabatan-kosong-table tbody tr:last-child {
+table.jabatan-kosong-table tbody tr td {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+table.jabatan-kosong-table tbody tr:last-child td {
   border-bottom: none;
 }
 
 table.jabatan-kosong-table tbody tr:hover {
-  background: #fff8f8;
+  background: #fffafa;
+  transform: scale(1.002);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.04);
+  position: relative;
+  z-index: 10;
 }
 
 table.jabatan-kosong-table tbody td {
-  padding: 0.9rem 1.25rem;
+  padding: 1.1rem 1.25rem;
   color: var(--text-main);
   vertical-align: middle;
+}
+
+table.jabatan-kosong-table tbody td.text-center {
+  text-align: center;
 }
 
 .jabatan-name {

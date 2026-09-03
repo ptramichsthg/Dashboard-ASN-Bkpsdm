@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import bgCard from '../assets/bg-card.png';
 import '../styles/Pemberhentian.css';
 import TopBar from '../components/shared/TopBar';
+import { usePemberhentian } from '../hooks/usePemberhentian';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import {
   Database, Filter,
   FileText, Clock, CheckCircle2, XCircle, Search, ChevronLeft,
@@ -13,7 +15,6 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart as RechartsPie, Pie
 } from 'recharts';
-import { usePemberhentian } from '../hooks/usePemberhentian';
 import { defaultTooltipStyle } from '../utils/formatters';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -137,6 +138,8 @@ export default function Pemberhentian() {
   const [sendingEmail, setSendingEmail] = useState(false);
 
   // Custom Hook
+  useBodyScrollLock(!!selectedItem);
+
   const {
     data,
     stats,

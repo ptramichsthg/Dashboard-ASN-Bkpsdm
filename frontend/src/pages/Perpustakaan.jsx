@@ -9,8 +9,8 @@ import {
 } from 'lucide-react';
 import '../index.css';
 import '../styles/Perpustakaan.css';
-
 import { usePerpustakaan } from '../hooks/usePerpustakaan';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import KpiCard from '../components/shared/KpiCard';
 import FilterSelect from '../components/shared/FilterSelect';
 
@@ -39,6 +39,8 @@ export default function Perpustakaan() {
     setDownloadSuccessMsg(`Berhasil mengunduh dokumen "${item.judul.substring(0, 30)}..."`);
     setTimeout(() => setDownloadSuccessMsg(''), 4000);
   };
+
+  useBodyScrollLock(!!activeModalItem);
 
   const tahunOptions = useMemo(() => {
     return ['Semua', ...tahunList.map(String)];

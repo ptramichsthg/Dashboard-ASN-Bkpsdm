@@ -6,6 +6,7 @@ import '../styles/Dashboard.css';
 import TopBar from '../components/shared/TopBar';
 
 import { formatOPDName } from '../utils/formatters';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 import {
   Users,
@@ -187,6 +188,7 @@ const Dashboard = () => {
   // Modal Rincian Jabatan per Unit Kerja
   const [selectedUnitModal, setSelectedUnitModal] = useState(null);
   const [loadingUnitModal, setLoadingUnitModal] = useState(false);
+  useBodyScrollLock(!!selectedUnitModal);
   const [modalJabatanList, setModalJabatanList] = useState([]);
   const [searchModalJabatan, setSearchModalJabatan] = useState('');
   const [filterEselonModal, setFilterEselonModal] = useState('Semua');

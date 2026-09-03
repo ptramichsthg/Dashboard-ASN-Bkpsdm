@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 
 import { usePengembanganKompetensi } from '../hooks/usePengembanganKompetensi';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import { shortenOPD } from '../utils/formatters';
 import ChartTooltip from '../components/shared/ChartTooltip';
 import KpiCard from '../components/shared/KpiCard';
@@ -101,16 +102,8 @@ export default function PengembanganKompetensi() {
     setChartPage(1);
   }, [bulan, tahun, satker, search]);
 
-  useEffect(() => {
-    if (selectedAsn) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [selectedAsn]);
+  // Lock scroll saat modal terbuka
+  useBodyScrollLock(!!selectedAsn);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
