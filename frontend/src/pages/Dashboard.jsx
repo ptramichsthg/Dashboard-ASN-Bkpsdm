@@ -1426,7 +1426,19 @@ const Dashboard = () => {
                                   </span>
                                 )}
                               </td>
-                              <td className="text-center num-cell">{j.bezetting}</td>
+                              <td className="text-center num-cell">
+                                {Number(j.bezetting) > 0 ? (
+                                  <span
+                                    style={{ cursor: 'pointer', color: '#059669', fontWeight: 700, textDecoration: 'underline' }}
+                                    onClick={() => navigate(`/sebaran-pegawai?search=${encodeURIComponent(j.jabatan)}`)}
+                                    title="Lihat pegawai yang menduduki jabatan ini di Direktori Pegawai"
+                                  >
+                                    {j.bezetting} ↗
+                                  </span>
+                                ) : (
+                                  j.bezetting
+                                )}
+                              </td>
                               <td className="text-center num-cell">{j.kebutuhan}</td>
                               <td className="text-center">
                                 <SelisihBadge value={j.selisih} />

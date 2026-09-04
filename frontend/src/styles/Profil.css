@@ -1729,3 +1729,77 @@ table.bezetting-modal-table tbody td {
   color: #dc2626;
   font-weight: 700;
 }
+
+/* ── Tab Switcher for Jabatan (Manajerial vs Non-Manajerial) ── */
+.profil-tab-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f1f5f9;
+  padding: 0.35rem;
+  border-radius: 14px;
+  width: fit-content;
+  margin-bottom: 1.5rem;
+  border: 1.5px solid #e2e8f0;
+}
+
+.profil-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profil-tab-btn:hover {
+  color: #0f172a;
+}
+
+.profil-tab-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.profil-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.profil-tab-btn.active .profil-tab-badge {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+/* Badges for Non-Manajerial */
+.sub-badge.jf-ahli {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.sub-badge.jf-terampil {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.sub-badge.pelaksana {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+

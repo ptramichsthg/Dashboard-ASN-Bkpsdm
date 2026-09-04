@@ -37,5 +37,12 @@ Route::put('/pemberhentian/{id}/update-status', [\App\Http\Controllers\Pemberhen
 Route::get('/klasifikasi-jabatan', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'index']);
 Route::get('/klasifikasi-jabatan/statistics', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'statistics']);
 Route::get('/klasifikasi-jabatan/manajerial', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'manajerial']);
+Route::get('/klasifikasi-jabatan/non-manajerial', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'nonManajerial']);
 Route::get('/klasifikasi-jabatan/{id}', [\App\Http\Controllers\KlasifikasiJabatanController::class, 'show']);
+
+// Data Pegawai Aktif Routes
+Route::get('/pegawai', [\App\Http\Controllers\DataPegawaiAktifController::class, 'index']);
+Route::get('/pegawai/statistics', [\App\Http\Controllers\DataPegawaiAktifController::class, 'statistics']);
+Route::get('/pegawai/filters', [\App\Http\Controllers\DataPegawaiAktifController::class, 'filterOptions']);
+Route::get('/pegawai/by-jabatan', [\App\Http\Controllers\DataPegawaiAktifController::class, 'byJabatan']);
 

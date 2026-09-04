@@ -26,8 +26,8 @@ const MENU_ITEMS = [
     border: '#10b981',
   },
   {
-    label: 'Sebaran Pegawai',
-    description: 'Data persebaran ASN per satuan kerja',
+    label: 'Direktori Pegawai',
+    description: 'Daftar nominatif & pencarian ASN aktif',
     icon: <Users size={36} />,
     path: '/sebaran-pegawai',
     color: '#1d4ed8',

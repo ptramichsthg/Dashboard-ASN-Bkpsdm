@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
 /**
- * Hook untuk mengambil data Jabatan Manajerial dari API:
- * - rekap: agregasi bezetting/kebutuhan/selisih per subklasifikasi + eselon
- * - summary: total keseluruhan manajerial
+ * Hook untuk mengambil data Jabatan Manajerial atau Non-Manajerial dari API:
+ * - rekap: agregasi bezetting/kebutuhan/selisih
+ * - summary: total keseluruhan
  * - jabatan_kosong: daftar jabatan yang belum terisi
  */
-export function useKlasifikasiJabatan() {
+export function useKlasifikasiJabatan(type = 'manajerial') {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,7 +16,7 @@ export function useKlasifikasiJabatan() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/klasifikasi-jabatan/manajerial');
+      const response = await api.get(`/klasifikasi-jabatan/${type}`);
       if (response.data.success) {
         setData(response.data.data);
       } else {
@@ -31,9 +31,13 @@ export function useKlasifikasiJabatan() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [type]);
 
   return { data, loading, error, refetch: fetchData };
+}
+
+export function useKlasifikasiJabatanNonManajerial() {
+  return useKlasifikasiJabatan('non-manajerial');
 }
 
 export default useKlasifikasiJabatan;

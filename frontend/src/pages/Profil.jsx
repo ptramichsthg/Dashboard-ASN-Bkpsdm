@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import useKlasifikasiJabatan from '../hooks/useKlasifikasiJabatan';
+import useKlasifikasiJabatan, { useKlasifikasiJabatanNonManajerial } from '../hooks/useKlasifikasiJabatan';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import bgCard from '../assets/bg-card.png';
 import '../styles/Profil.css';
@@ -254,11 +254,15 @@ const ASN_CONFIG = {
   },
 };
 
-// Warna per subklasifikasi
+// Warna per subklasifikasi & kategori
 const SUB_COLOR = {
   'JPT Pratama': { dot: '#1d4ed8', badgeClass: 'jpt' },
   'Administrator': { dot: '#7e22ce', badgeClass: 'admin' },
   'Pengawas': { dot: '#c2410c', badgeClass: 'pengawas' },
+  'Fungsional Keahlian': { dot: '#2563eb', badgeClass: 'jf-ahli' },
+  'Fungsional Keterampilan': { dot: '#059669', badgeClass: 'jf-terampil' },
+  'Jabatan Pelaksana': { dot: '#d97706', badgeClass: 'pelaksana' },
+  'Jabatan Fungsional': { dot: '#2563eb', badgeClass: 'jf-ahli' },
 };
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -317,18 +321,27 @@ const Profil = () => {
   const [profilData, setProfilData] = useState(null);
   const [profilLoading, setProfilLoading] = useState(true);
 
-  // Jabatan manajerial
+  // Tab Switcher ('manajerial' | 'non-manajerial')
+  const [activeTab, setActiveTab] = useState('manajerial');
+
+  // Jabatan manajerial & non-manajerial
   const { data: manajerialData, loading: manajerialLoading, refetch } = useKlasifikasiJabatan();
+  const { data: nonManajerialData, loading: nonManajerialLoading, refetch: refetchNM } = useKlasifikasiJabatanNonManajerial();
 
   // Filter aktif (dropdown tabel)
   const [activeFilter, setActiveFilter] = useState('Semua');
+  const [activeFilterNM, setActiveFilterNM] = useState('Semua');
 
   // Filter jabatan kosong
   const [searchKosong, setSearchKosong] = useState('');
   const [filterEselon, setFilterEselon] = useState('Semua');
 
+  const [searchKosongNM, setSearchKosongNM] = useState('');
+  const [filterJenjangNM, setFilterJenjangNM] = useState('Semua');
+
   // Pagination jabatan kosong (15 per halaman)
   const [pageKosong, setPageKosong] = useState(1);
+  const [pageKosongNM, setPageKosongNM] = useState(1);
   const itemsPerPageKosong = 15;
 
   // State Modal Detail Selisih Bezetting (Tombol +/-)
@@ -337,7 +350,7 @@ const Profil = () => {
   const [pageModal, setPageModal] = useState(1);
   const itemsPerPageModal = 10;
 
-  // State Modal Daftar Seluruh Jabatan per Eselon (Tombol Eselon)
+  // State Modal Daftar Seluruh Jabatan (Tombol Eselon / Jenjang)
   const [selectedEselonModalRow, setSelectedEselonModalRow] = useState(null);
   const [eselonJabatanList, setEselonJabatanList] = useState([]);
   const [eselonJabatanLoading, setEselonJabatanLoading] = useState(false);
@@ -363,20 +376,28 @@ const Profil = () => {
     setPageEselonModal(1);
     setEselonJabatanLoading(true);
     try {
-      const res = await api.get('/klasifikasi-jabatan', {
-        params: {
-          klasifikasi_utama: 'MANAJERIAL',
-          jenis_eselon: row.jenis_eselon,
-          per_page: 1000,
-        },
-      });
+      const params = { per_page: 1000 };
+      if (activeTab === 'manajerial') {
+        params.klasifikasi_utama = 'MANAJERIAL';
+        params.jenis_eselon = row.jenis_eselon;
+      } else {
+        params.klasifikasi_utama = 'NON MANAJERIAL';
+        if (row.subklasifikasi === 'Jabatan Pelaksana') {
+          params.subklasifikasi = 'Jabatan Pelaksana';
+        } else {
+          params.subklasifikasi = 'Jabatan Fungsional';
+          if (row.jenjang_jf) params.jenjang_jf = row.jenjang_jf;
+        }
+      }
+
+      const res = await api.get('/klasifikasi-jabatan', { params });
       if (res.data?.success && res.data?.data?.data) {
         setEselonJabatanList(res.data.data.data);
       } else {
         setEselonJabatanList([]);
       }
     } catch (err) {
-      console.error('Gagal mengambil daftar jabatan eselon:', err);
+      console.error('Gagal mengambil daftar jabatan:', err);
       setEselonJabatanList([]);
     } finally {
       setEselonJabatanLoading(false);
@@ -443,14 +464,18 @@ const Profil = () => {
   const handleRefresh = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
-    await Promise.all([fetchProfil(), refetch()]);
+    await Promise.all([fetchProfil(), refetch(), refetchNM()]);
     setIsRefreshing(false);
   };
 
-  // Sorting State
+  // Sorting State Manajerial
   const [sortRekap, setSortRekap] = useState({ key: null, direction: 'asc' });
   const [sortJabatanKosong, setSortJabatanKosong] = useState({ key: null, direction: 'asc' });
   const [sortModalJabatan, setSortModalJabatan] = useState({ key: null, direction: 'asc' });
+
+  // Sorting State Non-Manajerial
+  const [sortRekapNM, setSortRekapNM] = useState({ key: null, direction: 'asc' });
+  const [sortKosongNM, setSortKosongNM] = useState({ key: null, direction: 'asc' });
 
   const handleSortRekap = (key) => {
     if (sortRekap.key !== key) {
@@ -459,6 +484,16 @@ const Profil = () => {
       setSortRekap({ key, direction: 'desc' });
     } else {
       setSortRekap({ key: null, direction: 'asc' });
+    }
+  };
+
+  const handleSortRekapNM = (key) => {
+    if (sortRekapNM.key !== key) {
+      setSortRekapNM({ key, direction: 'asc' });
+    } else if (sortRekapNM.direction === 'asc') {
+      setSortRekapNM({ key, direction: 'desc' });
+    } else {
+      setSortRekapNM({ key: null, direction: 'asc' });
     }
   };
 
@@ -473,6 +508,17 @@ const Profil = () => {
     setPageKosong(1);
   };
 
+  const handleSortJabatanKosongNM = (key) => {
+    if (sortKosongNM.key !== key) {
+      setSortKosongNM({ key, direction: 'asc' });
+    } else if (sortKosongNM.direction === 'asc') {
+      setSortKosongNM({ key, direction: 'desc' });
+    } else {
+      setSortKosongNM({ key: null, direction: 'asc' });
+    }
+    setPageKosongNM(1);
+  };
+
   const handleSortModalJabatan = (key) => {
     if (sortModalJabatan.key !== key) {
       setSortModalJabatan({ key, direction: 'asc' });
@@ -484,7 +530,7 @@ const Profil = () => {
     setPageModal(1);
   };
 
-  // Filtered & Sorted rekap tabel (berdasarkan dropdown filter)
+  // Filtered & Sorted rekap tabel Manajerial
   const rekapFiltered = useMemo(() => {
     if (!manajerialData?.rekap) return [];
     if (!activeFilter || activeFilter === 'Semua') return manajerialData.rekap;
@@ -514,7 +560,37 @@ const Profil = () => {
     return items;
   }, [rekapFiltered, sortRekap]);
 
-  // Filtered & Sorted jabatan kosong
+  // Filtered & Sorted rekap tabel Non-Manajerial
+  const rekapFilteredNM = useMemo(() => {
+    if (!nonManajerialData?.rekap) return [];
+    if (!activeFilterNM || activeFilterNM === 'Semua') return nonManajerialData.rekap;
+    return nonManajerialData.rekap.filter(r => 
+      r.kategori === activeFilterNM || r.jenjang_jf === activeFilterNM || r.subklasifikasi === activeFilterNM
+    );
+  }, [nonManajerialData, activeFilterNM]);
+
+  const sortedRekapNM = useMemo(() => {
+    let items = [...rekapFilteredNM];
+    if (sortRekapNM.key !== null) {
+      items.sort((a, b) => {
+        let aVal = a[sortRekapNM.key];
+        let bVal = b[sortRekapNM.key];
+        if (['total_bezetting', 'total_kebutuhan', 'total_selisih', 'total_jabatan'].includes(sortRekapNM.key)) {
+          aVal = Number(aVal || 0);
+          bVal = Number(bVal || 0);
+        } else {
+          aVal = (aVal || '').toString().toLowerCase();
+          bVal = (bVal || '').toString().toLowerCase();
+        }
+        if (aVal < bVal) return sortRekapNM.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortRekapNM.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return items;
+  }, [rekapFilteredNM, sortRekapNM]);
+
+  // Filtered & Sorted jabatan kosong Manajerial
   const jabatanKosongFiltered = useMemo(() => {
     if (!manajerialData?.jabatan_kosong) return [];
     return manajerialData.jabatan_kosong.filter(j => {
@@ -556,13 +632,75 @@ const Profil = () => {
     return sortedJabatanKosong.slice(start, start + itemsPerPageKosong);
   }, [sortedJabatanKosong, pageKosong, itemsPerPageKosong]);
 
-  // Filtered & Sorted jabatan untuk Pop-up Modal Selisih (+/-)
+  // Filtered & Sorted jabatan kosong Non-Manajerial
+  const jabatanKosongFilteredNM = useMemo(() => {
+    if (!nonManajerialData?.jabatan_kosong) return [];
+    return nonManajerialData.jabatan_kosong.filter(j => {
+      const matchSearch =
+        searchKosongNM === '' ||
+        j.jabatan.toLowerCase().includes(searchKosongNM.toLowerCase()) ||
+        j.perangkat_daerah.toLowerCase().includes(searchKosongNM.toLowerCase()) ||
+        (j.unit_kerja && j.unit_kerja.toLowerCase().includes(searchKosongNM.toLowerCase()));
+      
+      const matchJenjang =
+        filterJenjangNM === 'Semua' ||
+        j.jenjang_jf === filterJenjangNM ||
+        (filterJenjangNM === 'Pelaksana' && j.subklasifikasi === 'Jabatan Pelaksana');
+
+      return matchSearch && matchJenjang;
+    });
+  }, [nonManajerialData, searchKosongNM, filterJenjangNM]);
+
+  const sortedJabatanKosongNM = useMemo(() => {
+    let items = [...jabatanKosongFilteredNM];
+    if (sortKosongNM.key !== null) {
+      items.sort((a, b) => {
+        let aVal = a[sortKosongNM.key];
+        let bVal = b[sortKosongNM.key];
+        if (['bezetting', 'kebutuhan', 'selisih'].includes(sortKosongNM.key)) {
+          aVal = Number(aVal || 0);
+          bVal = Number(bVal || 0);
+        } else {
+          aVal = (aVal || '').toString().toLowerCase();
+          bVal = (bVal || '').toString().toLowerCase();
+        }
+        if (aVal < bVal) return sortKosongNM.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortKosongNM.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return items;
+  }, [jabatanKosongFilteredNM, sortKosongNM]);
+
+  const totalPagesKosongNM = Math.max(1, Math.ceil(sortedJabatanKosongNM.length / itemsPerPageKosong));
+  const pagedJabatanKosongNM = useMemo(() => {
+    const start = (pageKosongNM - 1) * itemsPerPageKosong;
+    return sortedJabatanKosongNM.slice(start, start + itemsPerPageKosong);
+  }, [sortedJabatanKosongNM, pageKosongNM, itemsPerPageKosong]);
+
+  // Filtered & Sorted jabatan untuk Pop-up Modal Selisih (+/-) Universal
   const modalJabatanFiltered = useMemo(() => {
-    if (!selectedModalRow || !manajerialData?.jabatan_kosong) return [];
-    return manajerialData.jabatan_kosong.filter((j) => {
-      const matchEselon = j.jenis_eselon === selectedModalRow.jenis_eselon;
-      const matchSub = !selectedModalRow.subklasifikasi || j.subklasifikasi === selectedModalRow.subklasifikasi;
-      if (!matchEselon || !matchSub) return false;
+    if (!selectedModalRow) return [];
+    const sourceData = activeTab === 'manajerial' 
+      ? manajerialData?.jabatan_kosong 
+      : nonManajerialData?.jabatan_kosong;
+      
+    if (!sourceData) return [];
+
+    return sourceData.filter((j) => {
+      let matchGroup = false;
+      if (activeTab === 'manajerial') {
+        const matchEselon = j.jenis_eselon === selectedModalRow.jenis_eselon;
+        const matchSub = !selectedModalRow.subklasifikasi || j.subklasifikasi === selectedModalRow.subklasifikasi;
+        matchGroup = matchEselon && matchSub;
+      } else {
+        if (selectedModalRow.subklasifikasi === 'Jabatan Pelaksana') {
+          matchGroup = j.subklasifikasi === 'Jabatan Pelaksana';
+        } else {
+          matchGroup = j.subklasifikasi === 'Jabatan Fungsional' && j.jenjang_jf === selectedModalRow.jenjang_jf;
+        }
+      }
+      if (!matchGroup) return false;
 
       if (!searchModal) return true;
       const q = searchModal.toLowerCase();
@@ -572,7 +710,7 @@ const Profil = () => {
         j.unit_kerja?.toLowerCase().includes(q)
       );
     });
-  }, [selectedModalRow, manajerialData, searchModal]);
+  }, [selectedModalRow, activeTab, manajerialData, nonManajerialData, searchModal]);
 
   const sortedModalJabatan = useMemo(() => {
     let items = [...modalJabatanFiltered];
@@ -601,7 +739,7 @@ const Profil = () => {
     return sortedModalJabatan.slice(start, start + itemsPerPageModal);
   }, [sortedModalJabatan, pageModal, itemsPerPageModal]);
 
-  // Filtered & Paged untuk Pop-up Modal Eselon
+  // Filtered & Paged untuk Pop-up Modal Daftar Seluruh Jabatan (Eselon / Jenjang)
   const eselonModalFiltered = useMemo(() => {
     if (!eselonJabatanList.length) return [];
     if (!searchEselonModal) return eselonJabatanList;
@@ -621,13 +759,11 @@ const Profil = () => {
     return eselonModalFiltered.slice(start, start + itemsPerPageEselonModal);
   }, [eselonModalFiltered, pageEselonModal, itemsPerPageEselonModal]);
 
-  // Summary
+  // Summary Manajerial
   const summary = manajerialData?.summary;
-
-  // State mode tampilan grafik gap ('total' | 'eselon')
   const [gapChartView, setGapChartView] = useState('total');
 
-  // Summary Gap & Chart Data
+  // Summary Gap & Chart Data Manajerial
   const gapMetrics = useMemo(() => {
     const isFiltered = Boolean(activeFilter && activeFilter !== 'Semua');
     const rawBezetting = !isFiltered
@@ -657,7 +793,6 @@ const Profil = () => {
     };
   }, [summary, activeFilter, rekapFiltered]);
 
-  // Data bar chart untuk perbandingan 2 batang (Total Kebutuhan & Total Bezetting)
   const gapTotalChartData = useMemo(() => {
     return [
       {
@@ -690,7 +825,6 @@ const Profil = () => {
     ];
   }, [gapMetrics]);
 
-  // Data grouped bar chart per eselon
   const gapEselonChartData = useMemo(() => {
     if (!manajerialData?.rekap) return [];
     const grouped = {};
@@ -718,6 +852,84 @@ const Profil = () => {
         };
       });
   }, [manajerialData]);
+
+  // ─── NON-MANAJERIAL GAP & CHART DATA ───
+  const summaryNM = nonManajerialData?.summary;
+  const [gapChartViewNM, setGapChartViewNM] = useState('total');
+
+  const gapMetricsNM = useMemo(() => {
+    const isFiltered = Boolean(activeFilterNM && activeFilterNM !== 'Semua');
+    const rawBezetting = !isFiltered
+      ? Number(summaryNM?.total_bezetting || 17564)
+      : rekapFilteredNM.reduce((acc, r) => acc + Number(r.total_bezetting || 0), 0);
+
+    const rawKebutuhan = !isFiltered
+      ? Number(summaryNM?.total_kebutuhan || 23586)
+      : rekapFilteredNM.reduce((acc, r) => acc + Number(r.total_kebutuhan || 0), 0);
+
+    const rawKosong = !isFiltered
+      ? Number(summaryNM?.total_jabatan_kosong || 2967)
+      : Math.max(0, rawKebutuhan - rawBezetting);
+
+    const gap = Math.max(0, rawKebutuhan - rawBezetting);
+    const persentaseTerisi = rawKebutuhan > 0 ? ((rawBezetting / rawKebutuhan) * 100).toFixed(1) : '0';
+    const persentaseGap = rawKebutuhan > 0 ? ((rawKosong / rawKebutuhan) * 100).toFixed(1) : '0';
+
+    return {
+      bezetting: rawBezetting,
+      kebutuhan: rawKebutuhan,
+      kosong: rawKosong,
+      gap,
+      persentaseTerisi,
+      persentaseGap,
+      isFiltered,
+    };
+  }, [summaryNM, activeFilterNM, rekapFilteredNM]);
+
+  const gapTotalChartDataNM = useMemo(() => {
+    return [
+      {
+        category: 'Total Kebutuhan',
+        shortName: 'Kebutuhan',
+        value: gapMetricsNM.kebutuhan,
+        color: '#3b82f6',
+        note: 'Target total formasi kebutuhan jabatan non-manajerial',
+        badge: 'Target 100%',
+        subLabel: 'Target Formasi',
+      },
+      {
+        category: 'Total Bezetting',
+        shortName: 'Bezetting (Terisi)',
+        value: gapMetricsNM.bezetting,
+        color: '#10b981',
+        note: `${gapMetricsNM.persentaseTerisi}% dari total kebutuhan telah terpenuhi (Selisih Gap: ${gapMetricsNM.gap} lowong)`,
+        badge: `${gapMetricsNM.persentaseTerisi}% Terisi`,
+        subLabel: `${gapMetricsNM.persentaseTerisi}% Terisi`,
+      },
+      {
+        category: 'Jabatan Kosong (Gap)',
+        shortName: 'Gap (Kosong)',
+        value: gapMetricsNM.gap,
+        color: '#ef4444',
+        note: `Selisih belum terpenuhi: ${gapMetricsNM.gap} formasi lowong (${gapMetricsNM.persentaseGap}%)`,
+        badge: `${gapMetricsNM.persentaseGap}% Kosong`,
+        subLabel: 'Lowong / Selisih',
+      },
+    ];
+  }, [gapMetricsNM]);
+
+  const gapJenjangChartDataNM = useMemo(() => {
+    if (!nonManajerialData?.rekap) return [];
+    return nonManajerialData.rekap.map((item) => {
+      const gap = Math.max(0, Number(item.total_kebutuhan || 0) - Number(item.total_bezetting || 0));
+      return {
+        eselon: item.jenjang_label,
+        'Total Kebutuhan': Number(item.total_kebutuhan || 0),
+        'Total Bezetting': Number(item.total_bezetting || 0),
+        'Jabatan Kosong (Gap)': gap,
+      };
+    });
+  }, [nonManajerialData]);
 
   return (
     <div className="dashboard-layout">
@@ -820,22 +1032,52 @@ const Profil = () => {
           </div>
 
           {/* ═══════════════════════════════════════════════
-              SECTION 3 — JABATAN MANAJERIAL
+              SECTION 3 — JABATAN MANAJERIAL & NON-MANAJERIAL
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
             <div className="profil-section-icon" style={{ background: '#fdf4ff', border: '1px solid #f5d0fe', boxShadow: '0 4px 12px rgba(168, 85, 247, 0.15)' }}>
               <Award size={22} color="#7e22ce" />
             </div>
             <div className="profil-section-title-wrap">
-              <h2 className="profil-section-title">Jabatan Manajerial</h2>
+              <h2 className="profil-section-title">
+                {activeTab === 'manajerial' ? 'Jabatan Manajerial' : 'Jabatan Non-Manajerial (Fungsional & Pelaksana)'}
+              </h2>
             </div>
             <div className="profil-section-line" />
           </div>
 
-          {manajerialLoading ? (
-            <div className="skeleton-block" style={{ height: 300, marginBottom: '1.5rem', borderRadius: 'var(--radius)' }} />
-          ) : (
-            <div className="manajerial-wrapper">
+          {/* TAB SWITCHER */}
+          <div className="profil-tab-container">
+            <button
+              type="button"
+              className={`profil-tab-btn ${activeTab === 'manajerial' ? 'active' : ''}`}
+              onClick={() => setActiveTab('manajerial')}
+            >
+              <Briefcase size={16} />
+              <span>Jabatan Manajerial</span>
+              <span className="profil-tab-badge">
+                {manajerialLoading ? '...' : `${Number(summary?.total_bezetting || 818).toLocaleString('id-ID')} Terisi`}
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`profil-tab-btn ${activeTab === 'non-manajerial' ? 'active' : ''}`}
+              onClick={() => setActiveTab('non-manajerial')}
+            >
+              <Users size={16} />
+              <span>Jabatan Non-Manajerial (Fungsional & Pelaksana)</span>
+              <span className="profil-tab-badge">
+                {nonManajerialLoading ? '...' : `${Number(summaryNM?.total_bezetting || 17564).toLocaleString('id-ID')} Terisi`}
+              </span>
+            </button>
+          </div>
+
+          {activeTab === 'manajerial' ? (
+            <>
+              {manajerialLoading ? (
+                <div className="skeleton-block" style={{ height: 300, marginBottom: '1.5rem', borderRadius: 'var(--radius)' }} />
+              ) : (
+                <div className="manajerial-wrapper">
 
               {/* Tabel Bezetting */}
               <div className="bezetting-table-card">
@@ -1300,6 +1542,498 @@ const Profil = () => {
               </div>
             )}
           </div>
+          </>
+          ) : (
+            <>
+              {nonManajerialLoading ? (
+                <div className="skeleton-block" style={{ height: 300, marginBottom: '1.5rem', borderRadius: 'var(--radius)' }} />
+              ) : (
+                <div className="manajerial-wrapper">
+
+                  {/* Tabel Bezetting Non-Manajerial */}
+                  <div className="bezetting-table-card">
+                    <div className="bezetting-table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ background: '#eff6ff', borderRadius: 8, padding: '0.35rem', display: 'flex' }}>
+                          <Users size={16} color="#2563eb" />
+                        </div>
+                        <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Rekapitulasi Bezetting Non-Manajerial</span>
+                      </div>
+
+                      <div className="manajerial-filter-wrapper">
+                        <Filter size={16} color="#64748b" className="filter-icon" />
+                        <select
+                          className="manajerial-select"
+                          value={activeFilterNM}
+                          onChange={(e) => setActiveFilterNM(e.target.value)}
+                        >
+                          <option value="Semua">Semua Kategori & Jenjang</option>
+                          <optgroup label="Kategori">
+                            <option value="Fungsional Keahlian">Fungsional Keahlian</option>
+                            <option value="Fungsional Keterampilan">Fungsional Keterampilan</option>
+                            <option value="Jabatan Pelaksana">Jabatan Pelaksana</option>
+                          </optgroup>
+                          <optgroup label="Jenjang Jabatan">
+                            <option value="Ahli Utama">Ahli Utama</option>
+                            <option value="Ahli Madya">Ahli Madya</option>
+                            <option value="Ahli Muda">Ahli Muda</option>
+                            <option value="Ahli Pertama">Ahli Pertama</option>
+                            <option value="Penyelia">Penyelia</option>
+                            <option value="Mahir">Mahir</option>
+                            <option value="Terampil">Terampil</option>
+                            <option value="Pemula">Pemula</option>
+                            <option value="Pelaksana">Pelaksana</option>
+                          </optgroup>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* KPI Summary NM */}
+                    {activeFilterNM === 'Semua' && summaryNM && (
+                      <div className="bezetting-kpi-row">
+                        <div className="bezetting-kpi-item">
+                          <div className="bezetting-kpi-label">Total Bezetting</div>
+                          <div className="bezetting-kpi-value">{Number(summaryNM.total_bezetting).toLocaleString('id-ID')}</div>
+                        </div>
+                        <div className="bezetting-kpi-item">
+                          <div className="bezetting-kpi-label">Total Kebutuhan</div>
+                          <div className="bezetting-kpi-value">{Number(summaryNM.total_kebutuhan).toLocaleString('id-ID')}</div>
+                        </div>
+                        <div className="bezetting-kpi-item">
+                          <div className="bezetting-kpi-label">Jabatan Kosong</div>
+                          <div className="bezetting-kpi-value danger">{Number(summaryNM.total_jabatan_kosong).toLocaleString('id-ID')}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    <table className="bezetting-table">
+                      <thead>
+                        <tr>
+                          <th>Kategori</th>
+                          <th>Jenjang Jabatan</th>
+                          <th onClick={() => handleSortRekapNM('total_bezetting')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                              <span>Bezetting</span>
+                              <SortIcon active={sortRekapNM.key === 'total_bezetting'} direction={sortRekapNM.direction} />
+                            </div>
+                          </th>
+                          <th onClick={() => handleSortRekapNM('total_kebutuhan')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                              <span>Kebutuhan</span>
+                              <SortIcon active={sortRekapNM.key === 'total_kebutuhan'} direction={sortRekapNM.direction} />
+                            </div>
+                          </th>
+                          <th onClick={() => handleSortRekapNM('total_selisih')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                              <span>+/-</span>
+                              <SortIcon active={sortRekapNM.key === 'total_selisih'} direction={sortRekapNM.direction} />
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedRekapNM.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="no-data-row">Tidak ada data</td>
+                          </tr>
+                        ) : (
+                          sortedRekapNM.map((row) => {
+                            const badgeClass = row.kelompok_jf === 'Fungsional Ahli'
+                              ? 'jf-ahli'
+                              : row.kelompok_jf === 'Fungsional Terampil'
+                              ? 'jf-terampil'
+                              : 'pelaksana';
+
+                            return (
+                              <tr key={`${row.subklasifikasi}-${row.jenjang_label}`}>
+                                <td>
+                                  <span className={`sub-badge ${badgeClass}`}>{row.kategori_label}</span>
+                                </td>
+                                <td>
+                                  <button
+                                    type="button"
+                                    className="eselon-btn"
+                                    onClick={() => handleOpenEselonModal(row)}
+                                    title={`Klik untuk melihat seluruh daftar jabatan ${row.jenjang_label}`}
+                                  >
+                                    {row.jenjang_label}
+                                  </button>
+                                </td>
+                                <td className="text-center num-cell">{Number(row.total_bezetting).toLocaleString('id-ID')}</td>
+                                <td className="text-center num-cell">{Number(row.total_kebutuhan).toLocaleString('id-ID')}</td>
+                                <td className="text-center">
+                                  <SelisihBadge
+                                    value={Number(row.total_selisih)}
+                                    onClick={() => handleOpenModal(row)}
+                                    title={`Klik untuk melihat rincian jabatan ${row.jenjang_label}`}
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* ── GRAFIK PERBANDINGAN & ANALISIS GAP NON-MANAJERIAL ── */}
+                  <div className="gap-chart-card">
+                    {/* Header */}
+                    <div className="gap-chart-header">
+                      <div className="gap-chart-title-area">
+                        <div className="gap-chart-icon-box" style={{ background: '#eff6ff', border: '1px solid #bfdbfe' }}>
+                          <BarChart2 size={20} color="#2563eb" />
+                        </div>
+                        <div>
+                          <h3 className="gap-chart-title">Grafik Perbandingan & Analisis Gap Formasi</h3>
+                          <div className="gap-chart-subtitle">
+                            {gapMetricsNM.isFiltered
+                              ? `Menampilkan formasi terfilter: ${activeFilterNM}`
+                              : `Perbandingan Total Kebutuhan (${gapMetricsNM.kebutuhan.toLocaleString('id-ID')}), Bezetting Terisi (${gapMetricsNM.bezetting.toLocaleString('id-ID')}), dan Selisih Gap Formasi (${gapMetricsNM.gap.toLocaleString('id-ID')})`}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Toggle Mode */}
+                      <div className="gap-view-toggle">
+                        <button
+                          type="button"
+                          className={`gap-view-btn ${gapChartViewNM === 'total' ? 'active' : ''}`}
+                          onClick={() => setGapChartViewNM('total')}
+                        >
+                          Ringkasan Total & Gap
+                        </button>
+                        <button
+                          type="button"
+                          className={`gap-view-btn ${gapChartViewNM === 'jenjang' ? 'active' : ''}`}
+                          onClick={() => setGapChartViewNM('jenjang')}
+                        >
+                          Rincian per Jenjang (Line)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Visual Ratio Progress Track */}
+                    <div className="gap-progress-section">
+                      <div className="gap-progress-header">
+                        <span>
+                          <strong>Rasio Pemenuhan Formasi</strong>: {gapMetricsNM.bezetting.toLocaleString('id-ID')} dari {gapMetricsNM.kebutuhan.toLocaleString('id-ID')} formasi terpenuhi
+                        </span>
+                        <span style={{ color: '#dc2626', fontWeight: 700 }}>
+                          Gap Defisit: {gapMetricsNM.gap.toLocaleString('id-ID')} Formasi ({gapMetricsNM.persentaseGap}%)
+                        </span>
+                      </div>
+
+                      <div className="gap-progress-track">
+                        <div
+                          className="gap-progress-seg-terisi"
+                          style={{ width: `${gapMetricsNM.persentaseTerisi}%` }}
+                          title={`Bezetting Terisi: ${gapMetricsNM.bezetting.toLocaleString('id-ID')} (${gapMetricsNM.persentaseTerisi}%)`}
+                        >
+                          {Number(gapMetricsNM.persentaseTerisi) >= 15 && (
+                            <span>✓ {gapMetricsNM.bezetting.toLocaleString('id-ID')} Terisi ({gapMetricsNM.persentaseTerisi}%)</span>
+                          )}
+                        </div>
+                        <div
+                          className="gap-progress-seg-kosong"
+                          style={{ width: `${gapMetricsNM.persentaseGap}%` }}
+                          title={`Jabatan Kosong / Gap: ${gapMetricsNM.gap.toLocaleString('id-ID')} (${gapMetricsNM.persentaseGap}%)`}
+                        >
+                          {Number(gapMetricsNM.persentaseGap) >= 4 && (
+                            <span>{gapMetricsNM.gap.toLocaleString('id-ID')} Kosong</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="gap-progress-legend">
+                        <div className="gap-legend-item">
+                          <span className="gap-legend-box" style={{ background: '#10b981' }} />
+                          <span>Formasi Terisi ({gapMetricsNM.bezetting.toLocaleString('id-ID')})</span>
+                        </div>
+                        <div className="gap-legend-item">
+                          <span
+                            className="gap-legend-box"
+                            style={{
+                              background: 'repeating-linear-gradient(-45deg, #ef4444, #ef4444 4px, #dc2626 4px, #dc2626 8px)'
+                            }}
+                          />
+                          <span>Selisih Formasi Lowong ({gapMetricsNM.gap.toLocaleString('id-ID')})</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Chart View Content */}
+                    <div className="gap-chart-body">
+                      {gapChartViewNM === 'total' ? (
+                        <div style={{ width: '100%', height: 260 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={gapTotalChartDataNM}
+                              margin={{ top: 25, right: 30, left: 10, bottom: 20 }}
+                              barSize={44}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                              <XAxis
+                                dataKey="category"
+                                axisLine={{ stroke: '#cbd5e1' }}
+                                tickLine={false}
+                                tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }}
+                              />
+                              <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#64748b', fontSize: 11 }}
+                                domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
+                                tickFormatter={(val) => val.toLocaleString('id-ID')}
+                              />
+                              <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                              <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                                <LabelList dataKey="value" content={renderCustomBarLabel} />
+                                {gapTotalChartDataNM.map((entry, idx) => (
+                                  <Cell key={`cell-nm-${idx}`} fill={entry.color} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <div style={{ width: '100%', height: 260 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={gapJenjangChartDataNM}
+                              margin={{ top: 25, right: 30, left: 10, bottom: 20 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                              <XAxis
+                                dataKey="eselon"
+                                axisLine={{ stroke: '#cbd5e1' }}
+                                tickLine={false}
+                                tick={{ fill: '#334155', fontSize: 11, fontWeight: 700 }}
+                              />
+                              <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#64748b', fontSize: 11 }}
+                                domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
+                                tickFormatter={(val) => val.toLocaleString('id-ID')}
+                              />
+                              <Tooltip content={<CustomEselonTooltip />} />
+                              <Legend
+                                verticalAlign="bottom"
+                                height={36}
+                                iconType="circle"
+                                wrapperStyle={{ paddingTop: 12, fontSize: '0.8rem', fontWeight: 600 }}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="Total Kebutuhan"
+                                stroke="#3b82f6"
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: '#3b82f6' }}
+                                activeDot={{ r: 6 }}
+                              >
+                                <LabelList dataKey="Total Kebutuhan" content={renderCustomLineValueLabel} />
+                              </Line>
+                              <Line
+                                type="monotone"
+                                dataKey="Total Bezetting"
+                                stroke="#10b981"
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: '#10b981' }}
+                                activeDot={{ r: 6 }}
+                              >
+                                <LabelList dataKey="Total Bezetting" content={renderCustomLineValueLabel} />
+                              </Line>
+                              <Line
+                                type="monotone"
+                                dataKey="Jabatan Kosong (Gap)"
+                                stroke="#ef4444"
+                                strokeWidth={2}
+                                strokeDasharray="4 4"
+                                dot={{ r: 4, fill: '#ef4444' }}
+                                activeDot={{ r: 6 }}
+                              >
+                                <LabelList dataKey="Jabatan Kosong (Gap)" content={renderGapLabel} />
+                              </Line>
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ═══════════════════════════════════════════════
+                  SECTION 4 — DETAIL JABATAN NON-MANAJERIAL KOSONG
+              ═══════════════════════════════════════════════ */}
+              <div className="profil-section-header">
+                <div className="profil-section-icon" style={{ background: '#fee2e2', border: '1px solid #fecaca', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)' }}>
+                  <AlertCircle size={22} color="#dc2626" />
+                </div>
+                <div className="profil-section-title-wrap">
+                  <h2 className="profil-section-title">Detail Jabatan Non-Manajerial Kosong / Lowong</h2>
+                </div>
+                <div className="profil-section-line" />
+              </div>
+
+              <div className="jabatan-kosong-card">
+                <div className="jabatan-kosong-toolbar">
+                  {/* Search */}
+                  <div className="jabatan-kosong-search">
+                    <Search size={15} color="var(--text-muted)" />
+                    <input
+                      type="text"
+                      placeholder="Cari jabatan non-manajerial atau OPD..."
+                      value={searchKosongNM}
+                      onChange={(e) => setSearchKosongNM(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Filter jenjang */}
+                  <div className="jabatan-kosong-filter">
+                    <select
+                      value={filterJenjangNM}
+                      onChange={(e) => setFilterJenjangNM(e.target.value)}
+                    >
+                      <option value="Semua">Semua Jenjang</option>
+                      <option value="Ahli Utama">Ahli Utama</option>
+                      <option value="Ahli Madya">Ahli Madya</option>
+                      <option value="Ahli Muda">Ahli Muda</option>
+                      <option value="Ahli Pertama">Ahli Pertama</option>
+                      <option value="Penyelia">Penyelia</option>
+                      <option value="Mahir">Mahir</option>
+                      <option value="Terampil">Terampil</option>
+                      <option value="Pemula">Pemula</option>
+                      <option value="Pelaksana">Pelaksana</option>
+                    </select>
+                  </div>
+
+                  {/* Count badge */}
+                  <div className="jabatan-kosong-count">
+                    {jabatanKosongFilteredNM.length.toLocaleString('id-ID')} jabatan kosong
+                  </div>
+                </div>
+
+                <table className="jabatan-kosong-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 45 }}>#</th>
+                      <th>Nama Jabatan</th>
+                      <th>OPD</th>
+                      <th>Jenjang / Kategori</th>
+                      <th onClick={() => handleSortJabatanKosongNM('bezetting')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                          <span>Bezetting</span>
+                          <SortIcon active={sortKosongNM.key === 'bezetting'} direction={sortKosongNM.direction} />
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortJabatanKosongNM('kebutuhan')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                          <span>Kebutuhan</span>
+                          <SortIcon active={sortKosongNM.key === 'kebutuhan'} direction={sortKosongNM.direction} />
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortJabatanKosongNM('selisih')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                          <span>Selisih</span>
+                          <SortIcon active={sortKosongNM.key === 'selisih'} direction={sortKosongNM.direction} />
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {nonManajerialLoading ? (
+                      <tr>
+                        <td colSpan={7} className="no-data-row">Memuat data...</td>
+                      </tr>
+                    ) : jabatanKosongFilteredNM.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="no-data-row">
+                          {searchKosongNM || filterJenjangNM !== 'Semua'
+                            ? 'Tidak ada hasil pencarian'
+                            : 'Semua jabatan non-manajerial sudah terisi'}
+                        </td>
+                      </tr>
+                    ) : (
+                      pagedJabatanKosongNM.map((j, idx) => {
+                        const badgeClass = j.subklasifikasi === 'Jabatan Pelaksana'
+                          ? 'pelaksana'
+                          : j.kelompok_jf === 'Fungsional Terampil'
+                          ? 'jf-terampil'
+                          : 'jf-ahli';
+                        const absoluteIndex = (pageKosongNM - 1) * itemsPerPageKosong + idx + 1;
+                        return (
+                          <tr key={j.id}>
+                            <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{absoluteIndex}</td>
+                            <td>
+                              <div className="jabatan-name">{j.jabatan}</div>
+                              <div className="jabatan-unit">{j.unit_kerja}</div>
+                            </td>
+                            <td className="opd-text">{j.perangkat_daerah}</td>
+                            <td>
+                              <span className={`sub-badge ${badgeClass}`}>
+                                {j.subklasifikasi === 'Jabatan Pelaksana' ? 'Pelaksana' : (j.jenjang_jf || 'Fungsional')}
+                              </span>
+                            </td>
+                            <td className="text-center num-cell">{Number(j.bezetting).toLocaleString('id-ID')}</td>
+                            <td className="text-center num-cell">{Number(j.kebutuhan).toLocaleString('id-ID')}</td>
+                            <td className="text-center">
+                              <SelisihBadge value={j.selisih} />
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+
+                {/* Pagination Controls NM */}
+                {!nonManajerialLoading && jabatanKosongFilteredNM.length > 0 && (
+                  <div className="profil-pagination">
+                    <span>
+                      Menampilkan {((pageKosongNM - 1) * itemsPerPageKosong) + 1}–{Math.min(pageKosongNM * itemsPerPageKosong, jabatanKosongFilteredNM.length)} dari {jabatanKosongFilteredNM.length.toLocaleString('id-ID')} jabatan
+                    </span>
+                    <div className="profil-pagination-btns">
+                      <button
+                        className="profil-page-btn"
+                        onClick={() => setPageKosongNM((p) => Math.max(1, p - 1))}
+                        disabled={pageKosongNM === 1}
+                        title="Halaman sebelumnya"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+
+                      {Array.from({ length: totalPagesKosongNM }, (_, i) => i + 1)
+                        .filter((p) => p === 1 || p === totalPagesKosongNM || Math.abs(p - pageKosongNM) <= 1)
+                        .map((p, idx, arr) => (
+                          <React.Fragment key={p}>
+                            {idx > 0 && arr[idx - 1] !== p - 1 && (
+                              <span className="profil-pagination-dots">…</span>
+                            )}
+                            <button
+                              className={`profil-page-btn ${pageKosongNM === p ? 'active' : ''}`}
+                              onClick={() => setPageKosongNM(p)}
+                            >
+                              {p}
+                            </button>
+                          </React.Fragment>
+                        ))}
+
+                      <button
+                        className="profil-page-btn"
+                        onClick={() => setPageKosongNM((p) => Math.min(totalPagesKosongNM, p + 1))}
+                        disabled={pageKosongNM === totalPagesKosongNM}
+                        title="Halaman berikutnya"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
         </div>
 
@@ -1316,12 +2050,12 @@ const Profil = () => {
               <div className="bezetting-modal-header">
                 <div className="bezetting-modal-title-wrap">
                   <div className="bezetting-modal-subtitle">
-                    <span>Rincian Formasi Jabatan Manajerial</span>
+                    <span>Rincian Formasi Jabatan {activeTab === 'manajerial' ? 'Manajerial' : 'Non-Manajerial'}</span>
                   </div>
                   <h3 className="bezetting-modal-title">
-                    <span>{selectedModalRow.jenis_eselon}</span>
-                    <span className={`sub-badge ${SUB_COLOR[selectedModalRow.subklasifikasi]?.badgeClass}`}>
-                      {selectedModalRow.subklasifikasi}
+                    <span>{selectedModalRow.jenis_eselon || selectedModalRow.jenjang_label}</span>
+                    <span className={`sub-badge ${SUB_COLOR[selectedModalRow.subklasifikasi || selectedModalRow.kategori_label]?.badgeClass || 'jf-ahli'}`}>
+                      {selectedModalRow.subklasifikasi || selectedModalRow.kategori_label}
                     </span>
                     <SelisihBadge value={Number(selectedModalRow.total_selisih)} />
                   </h3>
@@ -1340,11 +2074,11 @@ const Profil = () => {
               <div className="bezetting-modal-summary-bar">
                 <div className="modal-summary-item">
                   <span className="modal-summary-label">Total Bezetting</span>
-                  <span className="modal-summary-val">{selectedModalRow.total_bezetting}</span>
+                  <span className="modal-summary-val">{Number(selectedModalRow.total_bezetting).toLocaleString('id-ID')}</span>
                 </div>
                 <div className="modal-summary-item">
                   <span className="modal-summary-label">Total Kebutuhan</span>
-                  <span className="modal-summary-val">{selectedModalRow.total_kebutuhan}</span>
+                  <span className="modal-summary-val">{Number(selectedModalRow.total_kebutuhan).toLocaleString('id-ID')}</span>
                 </div>
                 <div className="modal-summary-item">
                   <span className="modal-summary-label">Total Selisih</span>
@@ -1358,8 +2092,8 @@ const Profil = () => {
                     }`}
                   >
                     {Number(selectedModalRow.total_selisih) > 0
-                      ? `+${selectedModalRow.total_selisih}`
-                      : selectedModalRow.total_selisih}
+                      ? `+${Number(selectedModalRow.total_selisih).toLocaleString('id-ID')}`
+                      : Number(selectedModalRow.total_selisih).toLocaleString('id-ID')}
                   </span>
                 </div>
               </div>
@@ -1373,14 +2107,14 @@ const Profil = () => {
                     </div>
                     <div className="zero-state-title">Semua Formasi Terpenuhi</div>
                     <div className="zero-state-desc">
-                      Seluruh formasi jabatan pada <strong>{selectedModalRow.subklasifikasi}</strong> (
-                      <strong>{selectedModalRow.jenis_eselon}</strong>) telah terisi lengkap. Jumlah bezetting saat ini
-                      telah mencukupi total kebutuhan dan tidak terdapat kekosongan jabatan manajerial.
+                      Seluruh formasi jabatan pada <strong>{selectedModalRow.subklasifikasi || selectedModalRow.kategori_label}</strong> (
+                      <strong>{selectedModalRow.jenis_eselon || selectedModalRow.jenjang_label}</strong>) telah terisi lengkap. Jumlah bezetting saat ini
+                      telah mencukupi total kebutuhan dan tidak terdapat kekosongan jabatan {activeTab === 'manajerial' ? 'manajerial' : 'non-manajerial'}.
                     </div>
                     <div className="zero-state-stat-pill">
-                      <span>Bezetting: <strong>{selectedModalRow.total_bezetting}</strong></span>
+                      <span>Bezetting: <strong>{Number(selectedModalRow.total_bezetting).toLocaleString('id-ID')}</strong></span>
                       <span>•</span>
-                      <span>Kebutuhan: <strong>{selectedModalRow.total_kebutuhan}</strong></span>
+                      <span>Kebutuhan: <strong>{Number(selectedModalRow.total_kebutuhan).toLocaleString('id-ID')}</strong></span>
                       <span>•</span>
                       <span>Selisih: <strong>0</strong></span>
                     </div>
@@ -1526,12 +2260,12 @@ const Profil = () => {
               <div className="bezetting-modal-header">
                 <div className="bezetting-modal-title-wrap">
                   <div className="bezetting-modal-subtitle">
-                    <span>Daftar Jabatan Manajerial</span>
+                    <span>Daftar Jabatan {activeTab === 'manajerial' ? 'Manajerial' : 'Non-Manajerial'}</span>
                   </div>
                   <h3 className="bezetting-modal-title">
-                    <span>{selectedEselonModalRow.jenis_eselon}</span>
-                    <span className={`sub-badge ${SUB_COLOR[selectedEselonModalRow.subklasifikasi]?.badgeClass}`}>
-                      {selectedEselonModalRow.subklasifikasi}
+                    <span>{selectedEselonModalRow.jenis_eselon || selectedEselonModalRow.jenjang_label}</span>
+                    <span className={`sub-badge ${SUB_COLOR[selectedEselonModalRow.subklasifikasi || selectedEselonModalRow.kategori_label]?.badgeClass || 'jf-ahli'}`}>
+                      {selectedEselonModalRow.subklasifikasi || selectedEselonModalRow.kategori_label}
                     </span>
                   </h3>
                 </div>
@@ -1549,11 +2283,11 @@ const Profil = () => {
               <div className="bezetting-modal-summary-bar">
                 <div className="modal-summary-item">
                   <span className="modal-summary-label">Total Bezetting</span>
-                  <span className="modal-summary-val">{selectedEselonModalRow.total_bezetting}</span>
+                  <span className="modal-summary-val">{Number(selectedEselonModalRow.total_bezetting).toLocaleString('id-ID')}</span>
                 </div>
                 <div className="modal-summary-item">
                   <span className="modal-summary-label">Total Kebutuhan</span>
-                  <span className="modal-summary-val">{selectedEselonModalRow.total_kebutuhan}</span>
+                  <span className="modal-summary-val">{Number(selectedEselonModalRow.total_kebutuhan).toLocaleString('id-ID')}</span>
                 </div>
                 <div className="modal-summary-item">
                   <span className="modal-summary-label">Total Selisih</span>
@@ -1567,8 +2301,8 @@ const Profil = () => {
                     }`}
                   >
                     {Number(selectedEselonModalRow.total_selisih) > 0
-                      ? `+${selectedEselonModalRow.total_selisih}`
-                      : selectedEselonModalRow.total_selisih}
+                      ? `+${Number(selectedEselonModalRow.total_selisih).toLocaleString('id-ID')}`
+                      : Number(selectedEselonModalRow.total_selisih).toLocaleString('id-ID')}
                   </span>
                 </div>
               </div>
@@ -1609,8 +2343,9 @@ const Profil = () => {
                       <thead>
                         <tr>
                           <th style={{ width: 50 }}>#</th>
-                          <th style={{ width: '48%' }}>Nama Jabatan</th>
+                          <th style={{ width: '42%' }}>Nama Jabatan</th>
                           <th>Perangkat Daerah & Unit Kerja</th>
+                          <th style={{ width: 110, textAlign: 'center' }}>Aksi</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1625,6 +2360,37 @@ const Profil = () => {
                               <td>
                                 <div className="jabatan-unit-main">{j.perangkat_daerah}</div>
                                 <div className="jabatan-opd-sub">{j.unit_kerja}</div>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => navigate(`/sebaran-pegawai?search=${encodeURIComponent(j.jabatan)}`)}
+                                  title="Cari pegawai pemegang jabatan di Direktori Pegawai"
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.3rem',
+                                    padding: '0.35rem 0.65rem',
+                                    borderRadius: '6px',
+                                    border: '1px solid #e2e8f0',
+                                    background: '#ffffff',
+                                    color: '#059669',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                  onMouseOver={(e) => {
+                                    e.currentTarget.style.background = '#ecfdf5';
+                                    e.currentTarget.style.borderColor = '#a7f3d0';
+                                  }}
+                                  onMouseOut={(e) => {
+                                    e.currentTarget.style.background = '#ffffff';
+                                    e.currentTarget.style.borderColor = '#e2e8f0';
+                                  }}
+                                >
+                                  Pegawai ↗
+                                </button>
                               </td>
                             </tr>
                           );

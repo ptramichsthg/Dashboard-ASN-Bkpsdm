@@ -39,6 +39,16 @@ class KlasifikasiJabatanController extends Controller
                 $query->where('jenis_eselon', $request->jenis_eselon);
             }
 
+            // Filter by kelompok_jf
+            if ($request->has('kelompok_jf')) {
+                $query->where('kelompok_jf', $request->kelompok_jf);
+            }
+
+            // Filter by jenjang_jf
+            if ($request->has('jenjang_jf')) {
+                $query->where('jenjang_jf', $request->jenjang_jf);
+            }
+
             // Filter by perangkat_daerah
             if ($request->has('perangkat_daerah')) {
                 $query->where('perangkat_daerah', 'like', '%' . $request->perangkat_daerah . '%');
@@ -224,6 +234,136 @@ class KlasifikasiJabatanController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get aggregated data for NON MANAJERIAL (Fungsional & Pelaksana) jabatan.
+     *
+     * @return JsonResponse
+     */
+    public function nonManajerial(): JsonResponse
+    {
+        try {
+            // Urutan jenjang fungsional & pelaksana
+            $jenjangOrder = [
+                'Ahli Utama' => 1,
+                'Ahli Madya' => 2,
+                'Ahli Muda' => 3,
+                'Ahli Pertama' => 4,
+                'Penyelia' => 5,
+                'Mahir' => 6,
+                'Terampil' => 7,
+                'Pemula' => 8,
+                'Pelaksana' => 9,
+            ];
+
+            // 1. Rekap Fungsional Keahlian & Keterampilan
+            $rekapJF = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
+                ->where('subklasifikasi', 'Jabatan Fungsional')
+                ->selectRaw('
+                    subklasifikasi,
+                    kelompok_jf,
+                    jenjang_jf,
+                    SUM(bezetting) as total_bezetting,
+                    SUM(kebutuhan) as total_kebutuhan,
+                    SUM(selisih) as total_selisih,
+                    COUNT(*) as total_jabatan
+                ')
+                ->groupBy('subklasifikasi', 'kelompok_jf', 'jenjang_jf')
+                ->get()
+                ->map(function ($row) {
+                    $kategori = ($row->kelompok_jf === 'Fungsional Ahli') 
+                        ? 'Fungsional Keahlian' 
+                        : 'Fungsional Keterampilan';
+                    return [
+                        'kategori' => $kategori,
+                        'subklasifikasi' => $row->subklasifikasi,
+                        'kelompok_jf' => $row->kelompok_jf,
+                        'jenjang_jf' => $row->jenjang_jf,
+                        'jenjang_label' => $row->jenjang_jf,
+                        'total_bezetting' => (int) $row->total_bezetting,
+                        'total_kebutuhan' => (int) $row->total_kebutuhan,
+                        'total_selisih' => (int) $row->total_selisih,
+                        'total_jabatan' => (int) $row->total_jabatan,
+                    ];
+                });
+
+            // 2. Rekap Jabatan Pelaksana
+            $rekapPelaksana = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
+                ->where('subklasifikasi', 'Jabatan Pelaksana')
+                ->selectRaw('
+                    subklasifikasi,
+                    SUM(bezetting) as total_bezetting,
+                    SUM(kebutuhan) as total_kebutuhan,
+                    SUM(selisih) as total_selisih,
+                    COUNT(*) as total_jabatan
+                ')
+                ->groupBy('subklasifikasi')
+                ->get()
+                ->map(function ($row) {
+                    return [
+                        'kategori' => 'Jabatan Pelaksana',
+                        'subklasifikasi' => $row->subklasifikasi,
+                        'kelompok_jf' => null,
+                        'jenjang_jf' => 'Pelaksana',
+                        'jenjang_label' => 'Pelaksana',
+                        'total_bezetting' => (int) $row->total_bezetting,
+                        'total_kebutuhan' => (int) $row->total_kebutuhan,
+                        'total_selisih' => (int) $row->total_selisih,
+                        'total_jabatan' => (int) $row->total_jabatan,
+                    ];
+                });
+
+            // Gabungkan dan urutkan
+            $rekap = $rekapJF->concat($rekapPelaksana)->sortBy(function ($item) use ($jenjangOrder) {
+                return $jenjangOrder[$item['jenjang_jf']] ?? 99;
+            })->values();
+
+            // Ringkasan total non manajerial
+            $summary = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
+                ->selectRaw('
+                    SUM(bezetting) as total_bezetting,
+                    SUM(kebutuhan) as total_kebutuhan,
+                    SUM(selisih) as total_selisih,
+                    COUNT(CASE WHEN bezetting < kebutuhan THEN 1 END) as total_jabatan_kosong
+                ')
+                ->first();
+
+            // List jabatan non manajerial yang kosong/lowong (bezetting < kebutuhan)
+            $jabatanKosong = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
+                ->whereRaw('bezetting < kebutuhan')
+                ->select(
+                    'id',
+                    'perangkat_daerah',
+                    'jabatan',
+                    'unit_kerja',
+                    'subklasifikasi',
+                    'kelompok_jf',
+                    'jenjang_jf',
+                    'bezetting',
+                    'kebutuhan',
+                    'selisih'
+                )
+                ->orderBy('subklasifikasi')
+                ->orderBy('jenjang_jf')
+                ->orderBy('perangkat_daerah')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data jabatan non-manajerial berhasil diambil',
+                'data' => [
+                    'rekap' => $rekap,
+                    'summary' => $summary,
+                    'jabatan_kosong' => $jabatanKosong,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data non-manajerial: ' . $e->getMessage()
             ], 500);
         }
     }
