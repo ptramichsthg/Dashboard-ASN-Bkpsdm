@@ -1,31 +1,24 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useMemo } from 'react';
 import bgCard from '../assets/bg-card.png';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Layanan.css';
+import TopBar from '../components/shared/TopBar';
 import {
-  ArrowLeft,
-  Home,
   Trophy,
-  ChevronDown,
   FileText,
   Clock,
   CheckCircle2,
   Search,
-  Building2,
-  User,
   CreditCard,
   ChevronLeft,
   ChevronRight,
   Filter,
-  Calendar,
-  Layers,
-  TrendingUp,
-  Medal,
-  Award,
-  Star,
-  Activity, Bell, Settings, LogOut, Database, RefreshCw, X,
+  Database
 } from 'lucide-react';
+
+import { useLayanan } from '../hooks/useLayanan';
+import KpiCard from '../components/shared/KpiCard';
+import FilterSelect from '../components/shared/FilterSelect';
 
 // ─── Mock Data ─────────────────────────────────────────────────────────────────
 const JENIS_LAYANAN_LIST = [
@@ -61,14 +54,6 @@ const PERANGKAT_DAERAH_LIST = [
   'Bapenda',
 ];
 
-const TOP3_LAYANAN = [
-  { rank: 1, name: 'Kenaikan Pangkat Reguler', total: 1247, icon: Trophy, color: '#f59e0b' },
-  { rank: 2, name: 'Pensiun BUP', total: 834, icon: Medal, color: '#94a3b8' },
-  { rank: 3, name: 'Cuti Tahunan', total: 612, icon: Award, color: '#b45309' },
-];
-
-// Data will be fetched from API
-
 // ─── Status Badge Component ────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const config = {
@@ -90,103 +75,12 @@ function StatusBadge({ status }) {
   );
 }
 
-// ─── Custom Select ─────────────────────────────────────────────────────────────
-function CustomSelect({ value, onChange, options, icon: Icon, placeholder }) {
-  return (
-    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-      {Icon && (
-        <Icon size={15} style={{
-          position: 'absolute', left: 12, color: 'var(--text-muted)', zIndex: 1, pointerEvents: 'none'
-        }} />
-      )}
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        style={{
-          appearance: 'none',
-          padding: `9px ${Icon ? '34px' : '12px'} 9px ${Icon ? '34px' : '12px'}`,
-          paddingRight: '32px',
-          border: '1.5px solid var(--border)',
-          borderRadius: '10px',
-          background: 'white',
-          color: 'var(--text-main)',
-          fontSize: '1.05rem',
-          fontWeight: 700,
-          cursor: 'pointer',
-          outline: 'none',
-          minWidth: 170,
-          fontFamily: 'var(--font-sans)',
-        }}
-      >
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-      <ChevronDown size={14} style={{
-        position: 'absolute', right: 10, color: 'var(--text-muted)', pointerEvents: 'none'
-      }} />
-    </div>
-  );
-}
-
-// ─── Stat Card ─────────────────────────────────────────────────────────────────
-function StatCard({ icon: Icon, count, label, color, bgColor }) {
-  return (
-    <div style={{
-      background: 'white', padding: '1.5rem', borderRadius: 16,
-      border: '1px solid #0f172a', display: 'flex', gap: 16, alignItems: 'center',
-      boxShadow: 'var(--shadow-sm)', flex: 1, minWidth: 0,
-    }}>
-      <div style={{
-        width: 48, height: 48, borderRadius: 12,
-        background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-      }}>
-        <Icon size={22} color={color} />
-      </div>
-      <div>
-        <div style={{ fontSize: '2.6rem', fontWeight: 800, color, lineHeight: 1.1 }}>
-          {count.toLocaleString()}
-        </div>
-        <div style={{ fontSize: '1.3rem', color: 'var(--text-muted)', fontWeight: 700, marginTop: 2 }}>
-          {label}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-const LiveDateTime = () => {
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentDateTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formattedDateTime = currentDateTime.toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }) + ' ' + currentDateTime.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
-
-  return <div className="date-text">{formattedDateTime}</div>;
-};
-
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function Layanan() {
   const navigate = useNavigate();
 
   // Global states
-  const [user, setUser] = useState(null);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [layanans, setLayanans] = useState([]);
-  const [stats, setStats] = useState({ usulan: 0, proses: 0, selesai: 0 });
-  const [top3, setTop3] = useState([]);
 
   // Filters
   const [jenisLayanan, setJenisLayanan] = useState('Semua Layanan');
@@ -196,54 +90,20 @@ export default function Layanan() {
   const [searchNama, setSearchNama] = useState('');
   const [searchNIP, setSearchNIP] = useState('');
 
-  const fetchData = () => {
+  // Panggil Custom Hook
+  const {
+    layanans,
+    stats,
+    top3,
+    loading,
+    refresh
+  } = useLayanan(jenisLayanan, tahun, bulan, perangkatDaerah, searchNama || searchNIP);
+
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    axios.get('http://localhost:8000/api/layanan', {
-      params: {
-        jenis_layanan: jenisLayanan,
-        tahun: tahun,
-        bulan: bulan,
-        satker: perangkatDaerah,
-        search: searchNama || searchNIP
-      }
-    })
-    .then(res => {
-      const data = res.data.data;
-      setLayanans(data.layanans);
-      setStats(data.stats);
-      
-      // Merge icons to top3
-      const icons = [Trophy, Medal, Award];
-      const colors = ['#f59e0b', '#94a3b8', '#b45309'];
-      const enrichedTop3 = data.top3.map((t, i) => ({
-        ...t,
-        rank: i + 1,
-        icon: icons[i % 3],
-        color: colors[i % 3]
-      }));
-      setTop3(enrichedTop3);
-    })
-    .catch(err => console.error(err))
-    .finally(() => setIsRefreshing(false));
+    await refresh();
+    setTimeout(() => setIsRefreshing(false), 600);
   };
-
-  useEffect(() => {
-    fetchData();
-  }, [jenisLayanan, tahun, bulan, perangkatDaerah, searchNama, searchNIP]);
-
-  const handleRefresh = () => {
-    fetchData();
-  };
-  
-  const handleLogout = () => {
-    navigate('/');
-  };
-
-  const getInitials = (name) => {
-    if (!name) return 'A';
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  };
-
 
   // Table sort
   const [sortField, setSortField] = useState(null);
@@ -308,80 +168,15 @@ export default function Layanan() {
       {/* Main Content */}
       <main className="main-content" style={{ marginLeft: 0 }}>
         {/* Topbar */}
-          <header className="topbar">
-            <div className="topbar-inner">
-              <div className="topbar-left">
-                <div className="topbar-brand">
-                  <Activity size={28} className="brand-icon" />
-                  <div className="brand-text">
-                    <h2>BKPSDM PANEL</h2>
-                    <span>SISTEM INFORMASI ASN</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="topbar-right">
-                <div className="live-data-indicator">
-                  <LiveDateTime />
-                  <div className="status"><span className="dot"></span> LIVE DATA</div>
-                </div>
-
-                <button
-                  className="btn-refresh"
-                  title="Muat Ulang Data"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  style={{ cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.7 : 1 }}
-                >
-                  <RefreshCw size={18} className={isRefreshing ? 'spinner' : ''} />
-                </button>
-
-                <button className="btn-notification">
-                  <Bell size={20} />
-                </button>
-
-                <div className="profile-container" style={{ position: 'relative' }}>
-                  <div
-                    className="user-profile"
-                    onClick={() => setProfileOpen(!profileOpen)}
-                    style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)', transition: 'background-color 0.2s' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--input-bg)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <div className="user-info">
-                      <div className="user-name">{user?.name || 'Administrator'}</div>
-                    </div>
-                    <div className="avatar">{getInitials(user?.name)}</div>
-                  </div>
-
-                  {/* Profile Dropdown */}
-                  {profileOpen && (
-                    <div className="profile-dropdown">
-                      <div className="dropdown-header">
-                        <strong>{user?.name || 'Administrator'}</strong>
-                        <span>{user?.nip || '198001012010011001'}</span>
-                      </div>
-                      <hr className="dropdown-divider" />
-                      <button className="dropdown-item">
-                        <Settings size={16} />
-                        Pengaturan Akun
-                      </button>
-                      <button onClick={handleLogout} className="dropdown-item logout-text">
-                        <LogOut size={16} />
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </header>
+        <TopBar onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
         {/* Content */}
         <div className="content-area">
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, paddingLeft: '0.2rem' }}>
-            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/dashboard')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Dashboard</span>
+          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
+            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/profil')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Profil ASN</span>
+            <span>/</span>
+            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/lainnya')} onMouseOver={(e) => e.target.style.color = '#2563eb'} onMouseOut={(e) => e.target.style.color = '#3b82f6'}>Lainnya</span>
             <span>/</span>
             <span style={{ color: '#0f172a' }}>Layanan</span>
           </div>
@@ -479,25 +274,46 @@ export default function Layanan() {
           <Filter size={15} color="var(--text-muted)" style={{ flexShrink: 0 }} />
           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', marginRight: 4 }}>Filter:</span>
 
-          <CustomSelect
+          <FilterSelect
             value={jenisLayanan} onChange={v => { setJenisLayanan(v); setPage(1); }}
-            options={JENIS_LAYANAN_LIST} icon={Layers} placeholder="Jenis Layanan"
+            options={JENIS_LAYANAN_LIST}
           />
-          <CustomSelect
+          <FilterSelect
             value={tahun} onChange={setTahun}
-            options={TAHUN_LIST} icon={Calendar} placeholder="Tahun"
+            options={TAHUN_LIST}
           />
-          <CustomSelect
+          <FilterSelect
             value={bulan} onChange={setBulan}
-            options={BULAN_LIST} icon={Calendar} placeholder="Bulan"
+            options={BULAN_LIST}
           />
         </div>
 
         {/* ─── Row 3: Stat Cards ──────────────────────────────────────── */}
-        <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
-          <StatCard label="Usulan" count={stats.usulan} icon={FileText} color="#d97706" bgColor="#fef3c7" />
-          <StatCard label="Proses" count={stats.proses} icon={Clock} color="#2563eb" bgColor="#dbeafe" />
-          <StatCard label="Selesai" count={stats.selesai} icon={CheckCircle2} color="#059669" bgColor="#d1fae5" />
+        <div className="layanan-kpi-grid">
+          <KpiCard 
+            label="Usulan" 
+            value={loading ? '…' : stats.usulan} 
+            icon={FileText} 
+            color="#d97706" 
+            iconBg="#fef3c7" 
+            cssClass="layanan-kpi-card"
+          />
+          <KpiCard 
+            label="Proses" 
+            value={loading ? '…' : stats.proses} 
+            icon={Clock} 
+            color="#2563eb" 
+            iconBg="#dbeafe" 
+            cssClass="layanan-kpi-card"
+          />
+          <KpiCard 
+            label="Selesai" 
+            value={loading ? '…' : stats.selesai} 
+            icon={CheckCircle2} 
+            color="#059669" 
+            iconBg="#d1fae5" 
+            cssClass="layanan-kpi-card"
+          />
         </div>
 
         {/* ─── Row 4: Search & Table ──────────────────────────────────── */}
@@ -510,9 +326,9 @@ export default function Layanan() {
             padding: '16px 20px', borderBottom: '1px solid var(--border)',
             display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
           }}>
-            <CustomSelect
+            <FilterSelect
               value={perangkatDaerah} onChange={v => { setPerangkatDaerah(v); setPage(1); }}
-              options={PERANGKAT_DAERAH_LIST} icon={Building2} placeholder="Perangkat Daerah"
+              options={PERANGKAT_DAERAH_LIST}
             />
 
             {/* Search Nama */}
@@ -595,11 +411,11 @@ export default function Layanan() {
                     <td style={{ ...tdStyle, color: 'var(--text-muted)', fontWeight: 600 }}>
                       {(page - 1) * perPage + idx + 1}
                     </td>
-                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '1.2rem', color: '#475569', fontWeight: 600 }}>
+                    <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '1.2rem', color: '#000000', fontWeight: 600 }}>
                       {row.nip}
                     </td>
                     <td style={{ ...tdStyle, fontWeight: 700 }}>{row.nama}</td>
-                    <td style={{ ...tdStyle, color: '#475569', fontSize: '1.15rem' }}>{row.nomorSurat}</td>
+                    <td style={{ ...tdStyle, color: '#000000', fontWeight: 600, fontSize: '1.15rem' }}>{row.nomorSurat}</td>
                     <td style={{ ...tdStyle }}>
                       <span style={{
                         background: '#f0fdf4', color: '#065f46', padding: '4px 12px',
@@ -608,7 +424,7 @@ export default function Layanan() {
                         {row.layanan}
                       </span>
                     </td>
-                    <td style={{ ...tdStyle, color: '#475569' }}>{row.tanggalPengajuan}</td>
+                    <td style={{ ...tdStyle, color: '#000000', fontWeight: 600 }}>{row.tanggalPengajuan}</td>
                     <td style={{ ...tdStyle, color: row.tanggalKirim === '-' ? '#cbd5e1' : '#475569' }}>
                       {row.tanggalKirim}
                     </td>

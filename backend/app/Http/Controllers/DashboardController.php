@@ -7,8 +7,63 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    /**
+     * Endpoint untuk halaman Profil ASN.
+     * Mengembalikan data Jenis ASN: CPNS, PNS, PPPK, PPPK PW (pppk_p)
+     * dari tabel satuan_kerja (bisa difilter per satker).
+     */
+    public function profil(Request $request)
+    {
+        $satker = $request->query('satker', 'Semua Satuan Kerja');
+
+        // Untuk filter semua satker, gunakan tabel status_pegawai (lebih akurat)
+        // Untuk filter per satker, fallback ke satuan_kerja
+        if ($satker === 'Semua Satuan Kerja') {
+            $spQuery = DB::table('status_pegawai')
+                ->selectRaw('status_pegawai, jumlah')
+                ->pluck('jumlah', 'status_pegawai');
+
+            $cpns = (int) ($spQuery['CPNS'] ?? 0);
+            $pns  = (int) ($spQuery['PNS']  ?? 0);
+
+            // PPPK split: ambil pppk_l (full-time) dan pppk_p (PW) dari satuan_kerja
+            $pppkRow = DB::table('satuan_kerja')
+                ->selectRaw('SUM(pppk_l) as pppk_l, SUM(pppk_p) as pppk_p, SUM(total) as total_asn')
+                ->first();
+
+            $pppk   = (int) $pppkRow->pppk_l;
+            $pppkPw = (int) $pppkRow->pppk_p;
+            $total  = $cpns + $pns + $pppk + $pppkPw;
+        } else {
+            $row = DB::table('satuan_kerja')
+                ->where('satuan_kerja', $satker)
+                ->selectRaw('SUM(cpns_l) as cpns_l, SUM(cpns_p) as cpns_p, SUM(pns_l) as pns_l, SUM(pns_p) as pns_p, SUM(pppk_l) as pppk_l, SUM(pppk_p) as pppk_p, SUM(total) as total_asn')
+                ->first();
+
+            $cpns   = (int) $row->cpns_l + (int) $row->cpns_p;
+            $pns    = (int) $row->pns_l  + (int) $row->pns_p;
+            $pppk   = (int) $row->pppk_l;
+            $pppkPw = (int) $row->pppk_p;
+            $total  = (int) $row->total_asn;
+        }
+
+        $satuanKerjaList = DB::table('satuan_kerja')->pluck('satuan_kerja')->toArray();
+
+        return response()->json([
+            'jenis_asn' => [
+                ['label' => 'CPNS',    'value' => $cpns,   'icon' => 'cpns'],
+                ['label' => 'PNS',     'value' => $pns,    'icon' => 'pns'],
+                ['label' => 'PPPK',    'value' => $pppk,   'icon' => 'pppk'],
+                ['label' => 'PPPK PW', 'value' => $pppkPw, 'icon' => 'pppkpw'],
+            ],
+            'total_asn' => $total,
+            'satuan_kerja_list' => $satuanKerjaList,
+        ]);
+    }
+
     public function index(Request $request)
     {
+
         $satker = $request->query('satker', 'Semua Satuan Kerja');
         $tahunReq = $request->query('tahun');
         $bulanReq = $request->query('bulan');
@@ -35,7 +90,7 @@ class DashboardController extends Controller
             $dataTahun = (string)$year;
             $dataBulan = $bulanIndo[$month];
             
-            $tahunList = ['Semua', '2024', '2025', '2026', '2027']; // Provide some options so user can interact
+            $tahunList = ['Semua', '2024', '2025', '2026', '2027']; 
             $bulanList = ['Semua', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         }
 
@@ -101,9 +156,80 @@ class DashboardController extends Controller
         $total = $totalLaki + $totalPerempuan;
 
         // Distribusi Gender (Donat Chart)
-        $distribusiGender = DB::table('jenis_kelamin')->get()->map(function($row) {
-            return ['name' => $row->jenis_kelamin, 'value' => (int) $row->jumlah];
-        })->toArray();
+        $distribusiGender = [];
+        $apiSummaryOverride = false; // flag untuk override summary dari API
+
+        if ($satker !== 'Semua Satuan Kerja') {
+            $distribusiGender = [
+                ['name' => 'Laki-laki', 'value' => $totalLaki],
+                ['name' => 'Perempuan', 'value' => $totalPerempuan],
+            ];
+        } else {
+            try {
+                $bulanMap = [
+                    'Januari' => '01', 'Februari' => '02', 'Maret' => '03', 'April' => '04',
+                    'Mei' => '05', 'Juni' => '06', 'Juli' => '07', 'Agustus' => '08',
+                    'September' => '09', 'Oktober' => '10', 'November' => '11', 'Desember' => '12'
+                ];
+                
+                $apiBulan = ($bulanReq && $bulanReq !== 'Semua' && isset($bulanMap[$bulanReq])) ? $bulanMap[$bulanReq] : '';
+                $apiTahun = ($tahunReq && $tahunReq !== 'Semua') ? $tahunReq : '';
+
+                $response = \Illuminate\Support\Facades\Http::withoutVerifying()
+                    ->timeout(3)
+                    ->acceptJson()
+                    ->asJson()
+                    ->post('https://simpelbkpsdm.bandungkab.go.id/api/v1/dashboard/main/bezetting-jenis-kelamin', [
+                        'bulan' => $apiBulan,
+                        'tahun' => $apiTahun
+                    ]);
+
+                if ($response->successful()) {
+                    $apiData = $response->json('data');
+                    if (is_array($apiData) && !empty($apiData)) {
+                        $apiLaki = 0;
+                        $apiPerempuan = 0;
+                        foreach ($apiData as $item) {
+                            $name = (isset($item['nama']) && $item['nama'] === 'Laki-Laki') ? 'Laki-laki' : ($item['nama'] ?? 'Perempuan');
+                            $jumlah = (int) ($item['jumlah'] ?? 0);
+                            $distribusiGender[] = [
+                                'name' => $name,
+                                'value' => $jumlah
+                            ];
+                            if ($name === 'Laki-laki') {
+                                $apiLaki = $jumlah;
+                            } else {
+                                $apiPerempuan = $jumlah;
+                            }
+                        }
+                        if ($apiLaki > 0 || $apiPerempuan > 0) {
+                            $totalLaki = $apiLaki;
+                            $totalPerempuan = $apiPerempuan;
+                            $total = $apiLaki + $apiPerempuan;
+                            $apiSummaryOverride = true;
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // Ignore API failure
+            }
+
+            // Fallback ke tabel jenis_kelamin jika API eksternal gagal atau kosong
+            if (empty($distribusiGender)) {
+                $jkRows = DB::table('jenis_kelamin')->get();
+                if ($jkRows->isNotEmpty()) {
+                    $distribusiGender = $jkRows->map(function($row) {
+                        $name = $row->jenis_kelamin === 'Laki-Laki' ? 'Laki-laki' : $row->jenis_kelamin;
+                        return ['name' => $name, 'value' => (int) $row->jumlah];
+                    })->toArray();
+                } else {
+                    $distribusiGender = [
+                        ['name' => 'Laki-laki', 'value' => $totalLaki],
+                        ['name' => 'Perempuan', 'value' => $totalPerempuan],
+                    ];
+                }
+            }
+        }
 
         // Sebaran ASN per OPD (Bar Chart) - Top 12
         $sebaranOPDQuery = DB::table('satuan_kerja')
@@ -142,4 +268,35 @@ class DashboardController extends Controller
             'bulanList' => $bulanList,
         ]);
     }
+
+    /**
+     * Mengambil distribusi jenis kelamin untuk endpoint bezetting.
+     *
+     * Query params (opsional):
+     *   - bulan : nama bulan dalam Bahasa Indonesia
+     *   - tahun : tahun (integer)
+     */
+    public function bezettingJenisKelamin(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
+
+        $distribusiGender = DB::table('jenis_kelamin')->get();
+
+        $data = $distribusiGender->map(fn($row) => [
+            'bulan'  => $bulan,
+            'tahun'  => $tahun,
+            'nama'   => $row->jenis_kelamin,
+            'jumlah' => (string) $row->jumlah,
+        ])->values()->all();
+
+        return response()->json([
+            'success'   => true,
+            'message'   => 'Data berhasil diambil',
+            'data'      => $data,
+            'parameter' => ['tahun' => $tahun, 'bulan' => $bulan],
+            'timestamp' => now()->toIso8601String() . 'Z',
+        ]);
+    }
 }
+

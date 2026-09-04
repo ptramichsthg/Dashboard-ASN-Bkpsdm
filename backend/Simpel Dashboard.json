@@ -1,0 +1,62 @@
+{
+  "info": {
+    "name": "Simpel Dashboard",
+    "description": null,
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Main",
+      "item": [
+        {
+          "name": "Bezetting Jenis Kelamin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "description": "",
+                "disabled": false,
+                "type": "default"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{url_dashboard}}/main/bezetting-jenis-kelamin",
+              "protocol": "",
+              "host": [
+                "{{url_dashboard}}"
+              ],
+              "path": [
+                "main",
+                "bezetting-jenis-kelamin"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bulan\": \"\", // 08\n  \"tahun\": \"\" // 2026\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "url_dashboard",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}
