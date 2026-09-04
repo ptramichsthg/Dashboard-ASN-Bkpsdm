@@ -10,6 +10,7 @@ import TopBar from '../components/shared/TopBar';
 
 import {
   Search,
+  Filter,
   Users,
   UserCheck,
   Briefcase,
@@ -72,22 +73,6 @@ const SUB_COLOR = {
   'Pengawas': { dot: '#c2410c', badgeClass: 'pengawas' },
 };
 
-// Struktur hirarki pohon
-const TREE_STRUCTURE = [
-  {
-    label: 'JPT Pratama',
-    children: ['Eselon II.a', 'Eselon II.b'],
-  },
-  {
-    label: 'Administrator',
-    children: ['Eselon III.a', 'Eselon III.b'],
-  },
-  {
-    label: 'Pengawas',
-    children: ['Eselon IV.a', 'Eselon IV.b'],
-  },
-];
-
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 // Card Jenis ASN
@@ -135,44 +120,6 @@ function SelisihBadge({ value, onClick, title }) {
   );
 }
 
-// Tree hirarki jabatan manajerial
-function ManajerialTree({ activeEselon, onSelect }) {
-  return (
-    <div className="manajerial-tree-card">
-      <div className="manajerial-tree-title">Hirarki Jabatan</div>
-      <div className="tree-root">
-        {TREE_STRUCTURE.map((branch) => {
-          const { dot, badgeClass: _badgeClass } = SUB_COLOR[branch.label] || {};
-          const isAnyChildActive = branch.children.includes(activeEselon);
-          return (
-            <div key={branch.label} className="tree-branch">
-              <div
-                className={`tree-branch-label ${isAnyChildActive ? 'active' : ''}`}
-                onClick={() => onSelect(null)}
-              >
-                <div className="tree-branch-dot" style={{ background: dot }} />
-                {branch.label}
-              </div>
-              <div className="tree-children">
-                {branch.children.map((eselon) => (
-                  <div
-                    key={eselon}
-                    className={`tree-leaf ${activeEselon === eselon ? 'active' : ''}`}
-                    onClick={() => onSelect(activeEselon === eselon ? null : eselon)}
-                  >
-                    <ChevronRight size={12} />
-                    {eselon}
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ── Main Component ────────────────────────────────────────────────────────────
 const Profil = () => {
   const navigate = useNavigate();
@@ -185,8 +132,8 @@ const Profil = () => {
   // Jabatan manajerial
   const { data: manajerialData, loading: manajerialLoading, refetch } = useKlasifikasiJabatan();
 
-  // Filter aktif (pohon + tabel)
-  const [activeEselon, setActiveEselon] = useState(null);
+  // Filter aktif (dropdown tabel)
+  const [activeFilter, setActiveFilter] = useState('Semua');
 
   // Filter jabatan kosong
   const [searchKosong, setSearchKosong] = useState('');
@@ -349,12 +296,14 @@ const Profil = () => {
     setPageModal(1);
   };
 
-  // Filtered & Sorted rekap tabel (berdasarkan klik pohon)
+  // Filtered & Sorted rekap tabel (berdasarkan dropdown filter)
   const rekapFiltered = useMemo(() => {
     if (!manajerialData?.rekap) return [];
-    if (!activeEselon) return manajerialData.rekap;
-    return manajerialData.rekap.filter(r => r.jenis_eselon === activeEselon);
-  }, [manajerialData, activeEselon]);
+    if (!activeFilter || activeFilter === 'Semua') return manajerialData.rekap;
+    return manajerialData.rekap.filter(r => 
+      r.jenis_eselon === activeFilter || r.subklasifikasi === activeFilter
+    );
+  }, [manajerialData, activeFilter]);
 
   const sortedRekap = useMemo(() => {
     let items = [...rekapFiltered];
@@ -605,30 +554,45 @@ const Profil = () => {
           ) : (
             <div className="manajerial-wrapper">
 
-              {/* Pohon Hirarki */}
-              <ManajerialTree activeEselon={activeEselon} onSelect={setActiveEselon} />
-
               {/* Tabel Bezetting */}
               <div className="bezetting-table-card">
-                <div className="bezetting-table-header">
+                <div className="bezetting-table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <div style={{ background: '#fdf4ff', borderRadius: 8, padding: '0.35rem', display: 'flex' }}>
                       <BarChart2 size={16} color="#7e22ce" />
                     </div>
                     <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Rekapitulasi Bezetting</span>
-                    {activeEselon && (
-                      <span
-                        style={{ fontSize: '0.78rem', fontWeight: 600, background: '#ecfdf5', color: '#059669', padding: '0.2rem 0.6rem', borderRadius: 20, cursor: 'pointer' }}
-                        onClick={() => setActiveEselon(null)}
-                      >
-                        {activeEselon} ✕
-                      </span>
-                    )}
+                  </div>
+
+                  <div className="manajerial-filter-wrapper">
+                    <Filter size={16} color="#64748b" className="filter-icon" />
+                    <select
+                      className="manajerial-select"
+                      value={activeFilter}
+                      onChange={(e) => setActiveFilter(e.target.value)}
+                    >
+                      <option value="Semua">Semua Eselon / Subklasifikasi</option>
+                      <optgroup label="Tingkat Eselon">
+                        <option value="Eselon II.a">Eselon II.a</option>
+                        <option value="Eselon II.b">Eselon II.b</option>
+                        <option value="Eselon III.a">Eselon III.a</option>
+                        <option value="Eselon III.b">Eselon III.b</option>
+                        <option value="Eselon IV.a">Eselon IV.a</option>
+                        <option value="Eselon IV.b">Eselon IV.b</option>
+                      </optgroup>
+                      <optgroup label="Subklasifikasi">
+                        <option value="Administrator">Administrator</option>
+                        <option value="JPT Pratama">JPT Pratama</option>
+                        <option value="Jabatan Fungsional">Jabatan Fungsional</option>
+                        <option value="Jabatan Pelaksana">Jabatan Pelaksana</option>
+                        <option value="Pengawas">Pengawas</option>
+                      </optgroup>
+                    </select>
                   </div>
                 </div>
 
                 {/* KPI Summary */}
-                {!activeEselon && summary && (
+                {activeFilter === 'Semua' && summary && (
                   <div className="bezetting-kpi-row">
                     <div className="bezetting-kpi-item">
                       <div className="bezetting-kpi-label">Total Bezetting</div>

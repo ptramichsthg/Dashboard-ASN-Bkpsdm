@@ -163,11 +163,45 @@
 
 /* ── Jabatan Manajerial ──────────────────────────── */
 .manajerial-wrapper {
-  display: grid;
-  grid-template-columns: 280px 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
-  align-items: start;
+}
+
+.manajerial-filter-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.manajerial-filter-wrapper .filter-icon {
+  position: absolute;
+  left: 0.75rem;
+  pointer-events: none;
+}
+
+.manajerial-select {
+  padding: 0.5rem 2.5rem 0.5rem 2.2rem;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 500;
+  background-color: #fff;
+  color: #1e293b;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  transition: all 0.2s ease;
+  min-width: 260px;
+}
+
+.manajerial-select:focus {
+  border-color: var(--primary-color, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* Tree / Hirarki */
@@ -825,12 +859,6 @@ table.jabatan-kosong-table tbody td.text-center {
 @media (max-width: 1024px) {
   .jenis-asn-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .manajerial-wrapper {
-    grid-template-columns: 1fr;
-  }
-  .manajerial-tree-card {
-    display: none; /* sembunyikan tree di layar kecil */
   }
 }
 
