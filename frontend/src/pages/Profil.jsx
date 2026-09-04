@@ -18,6 +18,7 @@ import {
   Award,
   AlertCircle,
   BarChart2,
+  TrendingUp,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -27,7 +28,194 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  Info,
 } from 'lucide-react';
+
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  Cell,
+  LabelList,
+  ReferenceLine,
+} from 'recharts';
+
+// Custom Line Dot untuk titik kategori Ringkasan Total & Gap
+const renderCustomLineDot = (props) => {
+  const { cx, cy, payload } = props;
+  const color = payload.color || '#6366f1';
+  return (
+    <g key={`dot-${payload.category}`}>
+      <circle cx={cx} cy={cy} r={8} fill="#ffffff" stroke={color} strokeWidth={3} />
+      <circle cx={cx} cy={cy} r={4} fill={color} />
+    </g>
+  );
+};
+
+// Custom Line Value Label di atas titik garis Ringkasan Total
+const renderCustomLineValueLabel = (props) => {
+  const { x, y, value } = props;
+  if (value === undefined || value === null) return null;
+  return (
+    <text
+      x={x}
+      y={y - 14}
+      fill="#0f172a"
+      stroke="#ffffff"
+      strokeWidth={3}
+      paintOrder="stroke fill"
+      textAnchor="middle"
+      fontSize={13}
+      fontWeight={800}
+    >
+      {Number(value).toLocaleString('id-ID')}
+    </text>
+  );
+};
+
+// Custom Bar Label di atas 2 batang bar chart (Total Kebutuhan & Total Bezetting)
+const renderCustomBarLabel = (props) => {
+  const { x, y, width, value, index } = props;
+  if (value === undefined || value === null) return null;
+  const isKebutuhan = index === 0;
+  return (
+    <g>
+      <text
+        x={x + width / 2}
+        y={y - 12}
+        fill={isKebutuhan ? '#1d4ed8' : '#047857'}
+        stroke="#ffffff"
+        strokeWidth={3}
+        paintOrder="stroke fill"
+        textAnchor="middle"
+        fontSize={14}
+        fontWeight={800}
+      >
+        {Number(value).toLocaleString('id-ID')}
+      </text>
+      <text
+        x={x + width / 2}
+        y={y - 28}
+        fill="#64748b"
+        textAnchor="middle"
+        fontSize={11}
+        fontWeight={700}
+      >
+        {isKebutuhan ? 'Target Formasi' : 'Sudah Terisi'}
+      </text>
+    </g>
+  );
+};
+
+// Custom Label untuk Total Kebutuhan (di ATAS titik, warna Biru dengan outline putih)
+const renderKebutuhanLabel = (props) => {
+  const { x, y, value } = props;
+  if (value === undefined || value === null) return null;
+  return (
+    <text
+      x={x}
+      y={y - 13}
+      fill="#1d4ed8"
+      stroke="#ffffff"
+      strokeWidth={3}
+      paintOrder="stroke fill"
+      textAnchor="middle"
+      fontSize={12}
+      fontWeight={800}
+    >
+      {Number(value).toLocaleString('id-ID')}
+    </text>
+  );
+};
+
+// Custom Label untuk Total Bezetting (di BAWAH titik, warna Hijau dengan outline putih)
+const renderBezettingLabel = (props) => {
+  const { x, y, value } = props;
+  if (value === undefined || value === null) return null;
+  return (
+    <text
+      x={x}
+      y={y + 19}
+      fill="#047857"
+      stroke="#ffffff"
+      strokeWidth={3}
+      paintOrder="stroke fill"
+      textAnchor="middle"
+      fontSize={12}
+      fontWeight={800}
+    >
+      {Number(value).toLocaleString('id-ID')}
+    </text>
+  );
+};
+
+// Custom Label untuk Jabatan Kosong / Gap (di ATAS titik, warna Merah dengan outline putih)
+const renderGapLabel = (props) => {
+  const { x, y, value } = props;
+  if (value === undefined || value === null) return null;
+  return (
+    <text
+      x={x}
+      y={y - 11}
+      fill="#b91c1c"
+      stroke="#ffffff"
+      strokeWidth={3}
+      paintOrder="stroke fill"
+      textAnchor="middle"
+      fontSize={12}
+      fontWeight={800}
+    >
+      {Number(value).toLocaleString('id-ID')}
+    </text>
+  );
+};
+
+// Custom Tooltip untuk Ringkasan Total & Gap
+const CustomGapTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="gap-chart-tooltip">
+        <div className="tooltip-title">{data.category}</div>
+        <div className="tooltip-row">
+          <span className="tooltip-dot" style={{ background: data.color }} />
+          <span>Jumlah:</span>
+          <span className="tooltip-val">{Number(data.value).toLocaleString('id-ID')} Formasi</span>
+        </div>
+        <div className="tooltip-sub">
+          {data.note}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Tooltip untuk Rincian per Eselon
+const CustomEselonTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="gap-chart-tooltip">
+        <div className="tooltip-title">{label}</div>
+        {payload.map((entry, idx) => (
+          <div key={`item-${idx}`} className="tooltip-row">
+            <span className="tooltip-dot" style={{ background: entry.color }} />
+            <span>{entry.name}:</span>
+            <span className="tooltip-val">{Number(entry.value).toLocaleString('id-ID')}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 const SortIcon = ({ active, direction }) => {
   if (!active) return <ArrowUpDown size={13} color="#94a3b8" opacity={0.6} />;
@@ -436,6 +624,101 @@ const Profil = () => {
   // Summary
   const summary = manajerialData?.summary;
 
+  // State mode tampilan grafik gap ('total' | 'eselon')
+  const [gapChartView, setGapChartView] = useState('total');
+
+  // Summary Gap & Chart Data
+  const gapMetrics = useMemo(() => {
+    const isFiltered = Boolean(activeFilter && activeFilter !== 'Semua');
+    const rawBezetting = !isFiltered
+      ? Number(summary?.total_bezetting || 818)
+      : rekapFiltered.reduce((acc, r) => acc + Number(r.total_bezetting || 0), 0);
+
+    const rawKebutuhan = !isFiltered
+      ? Number(summary?.total_kebutuhan || 851)
+      : rekapFiltered.reduce((acc, r) => acc + Number(r.total_kebutuhan || 0), 0);
+
+    const rawKosong = !isFiltered
+      ? Number(summary?.total_jabatan_kosong || 33)
+      : Math.max(0, rawKebutuhan - rawBezetting);
+
+    const gap = Math.max(0, rawKebutuhan - rawBezetting);
+    const persentaseTerisi = rawKebutuhan > 0 ? ((rawBezetting / rawKebutuhan) * 100).toFixed(1) : '0';
+    const persentaseGap = rawKebutuhan > 0 ? ((rawKosong / rawKebutuhan) * 100).toFixed(1) : '0';
+
+    return {
+      bezetting: rawBezetting,
+      kebutuhan: rawKebutuhan,
+      kosong: rawKosong,
+      gap,
+      persentaseTerisi,
+      persentaseGap,
+      isFiltered,
+    };
+  }, [summary, activeFilter, rekapFiltered]);
+
+  // Data bar chart untuk perbandingan 2 batang (Total Kebutuhan & Total Bezetting)
+  const gapTotalChartData = useMemo(() => {
+    return [
+      {
+        category: 'Total Kebutuhan',
+        shortName: 'Kebutuhan',
+        value: gapMetrics.kebutuhan,
+        color: '#3b82f6',
+        note: 'Target total formasi kebutuhan jabatan manajerial',
+        badge: 'Target 100%',
+        subLabel: 'Target Formasi',
+      },
+      {
+        category: 'Total Bezetting',
+        shortName: 'Bezetting (Terisi)',
+        value: gapMetrics.bezetting,
+        color: '#10b981',
+        note: `${gapMetrics.persentaseTerisi}% dari total kebutuhan telah terpenuhi (Selisih Gap: ${gapMetrics.kosong} lowong)`,
+        badge: `${gapMetrics.persentaseTerisi}% Terisi`,
+        subLabel: `${gapMetrics.persentaseTerisi}% Terisi`,
+      },
+      {
+        category: 'Jabatan Kosong (Gap)',
+        shortName: 'Gap (Kosong)',
+        value: gapMetrics.kosong,
+        color: '#ef4444',
+        note: `Selisih belum terpenuhi: ${gapMetrics.kosong} formasi lowong (${gapMetrics.persentaseGap}%)`,
+        badge: `${gapMetrics.persentaseGap}% Kosong`,
+        subLabel: 'Lowong / Selisih',
+      },
+    ];
+  }, [gapMetrics]);
+
+  // Data grouped bar chart per eselon
+  const gapEselonChartData = useMemo(() => {
+    if (!manajerialData?.rekap) return [];
+    const grouped = {};
+    const order = ['Eselon II.a', 'Eselon II.b', 'Eselon III.a', 'Eselon III.b', 'Eselon IV.a', 'Eselon IV.b'];
+
+    manajerialData.rekap.forEach((item) => {
+      const e = item.jenis_eselon;
+      if (!grouped[e]) {
+        grouped[e] = { eselon: e, bezetting: 0, kebutuhan: 0, kosong: 0 };
+      }
+      grouped[e].bezetting += Number(item.total_bezetting || 0);
+      grouped[e].kebutuhan += Number(item.total_kebutuhan || 0);
+    });
+
+    return order
+      .filter(e => grouped[e])
+      .map(e => {
+        const item = grouped[e];
+        const gap = Math.max(0, item.kebutuhan - item.bezetting);
+        return {
+          eselon: item.eselon,
+          'Total Kebutuhan': item.kebutuhan,
+          'Total Bezetting': item.bezetting,
+          'Jabatan Kosong (Gap)': gap,
+        };
+      });
+  }, [manajerialData]);
+
   return (
     <div className="dashboard-layout">
       <main className="main-content" style={{ marginLeft: 0 }}>
@@ -672,6 +955,188 @@ const Profil = () => {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* ── GRAFIK PERBANDINGAN & ANALISIS GAP ── */}
+              <div className="gap-chart-card">
+                {/* Header */}
+                <div className="gap-chart-header">
+                  <div className="gap-chart-title-area">
+                    <div className="gap-chart-icon-box">
+                      <BarChart2 size={20} color="#7e22ce" />
+                    </div>
+                    <div>
+                      <h3 className="gap-chart-title">Grafik Perbandingan & Analisis Gap Formasi</h3>
+                      <div className="gap-chart-subtitle">
+                        {gapMetrics.isFiltered
+                          ? `Menampilkan formasi terfilter: ${activeFilter}`
+                          : 'Perbandingan Total Kebutuhan (851), Bezetting Terisi (818), dan Selisih Gap Jabatan Kosong (33)'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Toggle Mode */}
+                  <div className="gap-view-toggle">
+                    <button
+                      type="button"
+                      className={`gap-view-btn ${gapChartView === 'total' ? 'active' : ''}`}
+                      onClick={() => setGapChartView('total')}
+                    >
+                      Ringkasan Total & Gap
+                    </button>
+                    <button
+                      type="button"
+                      className={`gap-view-btn ${gapChartView === 'eselon' ? 'active' : ''}`}
+                      onClick={() => setGapChartView('eselon')}
+                    >
+                      Rincian per Eselon (Line)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Visual Ratio Progress Track */}
+                <div className="gap-progress-section">
+                  <div className="gap-progress-header">
+                    <span>
+                      <strong>Rasio Pemenuhan Formasi</strong>: {gapMetrics.bezetting.toLocaleString('id-ID')} dari {gapMetrics.kebutuhan.toLocaleString('id-ID')} formasi terpenuhi
+                    </span>
+                    <span style={{ color: '#dc2626', fontWeight: 700 }}>
+                      Gap Defisit: {gapMetrics.kosong} Formasi ({gapMetrics.persentaseGap}%)
+                    </span>
+                  </div>
+
+                  <div className="gap-progress-track">
+                    <div
+                      className="gap-progress-seg-terisi"
+                      style={{ width: `${gapMetrics.persentaseTerisi}%` }}
+                      title={`Bezetting Terisi: ${gapMetrics.bezetting} (${gapMetrics.persentaseTerisi}%)`}
+                    >
+                      {Number(gapMetrics.persentaseTerisi) >= 15 && (
+                        <span>✓ {gapMetrics.bezetting} Terisi ({gapMetrics.persentaseTerisi}%)</span>
+                      )}
+                    </div>
+                    <div
+                      className="gap-progress-seg-kosong"
+                      style={{ width: `${gapMetrics.persentaseGap}%` }}
+                      title={`Jabatan Kosong / Gap: ${gapMetrics.kosong} (${gapMetrics.persentaseGap}%)`}
+                    >
+                      {Number(gapMetrics.persentaseGap) >= 4 && (
+                        <span>{gapMetrics.kosong} Kosong</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="gap-progress-legend">
+                    <div className="gap-legend-item">
+                      <span className="gap-legend-box" style={{ background: '#10b981' }} />
+                      <span>Formasi Terisi ({gapMetrics.bezetting})</span>
+                    </div>
+                    <div className="gap-legend-item">
+                      <span
+                        className="gap-legend-box"
+                        style={{
+                          background: 'repeating-linear-gradient(-45deg, #ef4444, #ef4444 4px, #dc2626 4px, #dc2626 8px)'
+                        }}
+                      />
+                      <span>Gap Formasi Kosong ({gapMetrics.kosong})</span>
+                    </div>
+                    <div className="gap-legend-item" style={{ color: '#1e293b' }}>
+                      <span>Total Target Formasi: <strong>{gapMetrics.kebutuhan}</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recharts Canvas */}
+                <div className="gap-chart-canvas-area">
+                  {gapChartView === 'total' ? (
+                    <ResponsiveContainer width="100%" height={320}>
+                      <LineChart
+                        data={gapTotalChartData}
+                        margin={{ top: 35, right: 40, left: 15, bottom: 20 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis
+                          dataKey="category"
+                          tick={{ fill: '#334155', fontSize: 13, fontWeight: 700 }}
+                          axisLine={{ stroke: '#cbd5e1' }}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                          axisLine={{ stroke: '#cbd5e1' }}
+                          tickLine={false}
+                        />
+                        <Tooltip content={<CustomGapTooltip />} cursor={{ stroke: 'rgba(0, 0, 0, 0.12)', strokeDasharray: '3 3' }} />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          name="Jumlah Formasi"
+                          stroke="#7e22ce"
+                          strokeWidth={3}
+                          dot={renderCustomLineDot}
+                          activeDot={{ r: 9, strokeWidth: 2, stroke: '#ffffff' }}
+                        >
+                          <LabelList dataKey="value" content={renderCustomLineValueLabel} />
+                        </Line>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={340}>
+                      <LineChart
+                        data={gapEselonChartData}
+                        margin={{ top: 35, right: 30, left: 10, bottom: 25 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis
+                          dataKey="eselon"
+                          tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }}
+                          axisLine={{ stroke: '#cbd5e1' }}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                          axisLine={{ stroke: '#cbd5e1' }}
+                          tickLine={false}
+                        />
+                        <Tooltip content={<CustomEselonTooltip />} cursor={{ stroke: 'rgba(0, 0, 0, 0.12)', strokeDasharray: '3 3' }} />
+                        <Legend
+                          wrapperStyle={{ paddingTop: 14, fontSize: 12, fontWeight: 600 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="Total Kebutuhan"
+                          stroke="#2563eb"
+                          strokeWidth={3}
+                          dot={{ r: 5, fill: '#2563eb' }}
+                          activeDot={{ r: 8 }}
+                        >
+                          <LabelList dataKey="Total Kebutuhan" content={renderKebutuhanLabel} />
+                        </Line>
+                        <Line
+                          type="monotone"
+                          dataKey="Total Bezetting"
+                          stroke="#059669"
+                          strokeWidth={3}
+                          dot={{ r: 5, fill: '#059669' }}
+                          activeDot={{ r: 8 }}
+                        >
+                          <LabelList dataKey="Total Bezetting" content={renderBezettingLabel} />
+                        </Line>
+                        <Line
+                          type="monotone"
+                          dataKey="Jabatan Kosong (Gap)"
+                          stroke="#dc2626"
+                          strokeWidth={2.5}
+                          strokeDasharray="5 5"
+                          dot={{ r: 5, fill: '#dc2626' }}
+                          activeDot={{ r: 8 }}
+                        >
+                          <LabelList dataKey="Jabatan Kosong (Gap)" content={renderGapLabel} />
+                        </Line>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
               </div>
             </div>
           )}
