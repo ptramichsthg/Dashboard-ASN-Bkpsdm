@@ -219,6 +219,7 @@ class KlasifikasiJabatanController extends Controller
                 )
                 ->orderByRaw('FIELD(jenis_eselon, "Eselon II.a", "Eselon II.b", "Eselon III.a", "Eselon III.b", "Eselon IV.a", "Eselon IV.b")')
                 ->orderBy('perangkat_daerah')
+                ->limit(200)
                 ->get();
 
             return response()->json([
@@ -349,6 +350,7 @@ class KlasifikasiJabatanController extends Controller
                 ->orderBy('subklasifikasi')
                 ->orderBy('jenjang_jf')
                 ->orderBy('perangkat_daerah')
+                ->limit(200)
                 ->get();
 
             return response()->json([

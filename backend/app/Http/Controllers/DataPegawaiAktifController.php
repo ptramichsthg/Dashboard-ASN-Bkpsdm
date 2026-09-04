@@ -105,8 +105,7 @@ class DataPegawaiAktifController extends Controller
 
             $total = (clone $baseQuery)->count();
 
-            // Ringkasan Jenjang Pendidikan
-            $allPendidikan = (clone $baseQuery)->select('pendidikan')->get();
+            // Ringkasan Jenjang Pendidikan (optimized with SQL)
             $jenjangCounts = [
                 'S3 (Doktor)' => 0,
                 'S2 (Magister)' => 0,
@@ -116,20 +115,29 @@ class DataPegawaiAktifController extends Controller
                 'Lainnya' => 0,
             ];
 
-            foreach ($allPendidikan as $p) {
-                $text = strtoupper($p->pendidikan ?? '');
+            $pendidikanGroups = (clone $baseQuery)
+                ->whereNotNull('pendidikan')
+                ->where('pendidikan', '!=', '')
+                ->select('pendidikan', DB::raw('count(*) as total'))
+                ->groupBy('pendidikan')
+                ->get();
+
+            foreach ($pendidikanGroups as $p) {
+                $text = strtoupper($p->pendidikan);
+                $count = $p->total;
+                
                 if (str_contains($text, 'S-3') || str_contains($text, 'S3') || str_contains($text, 'DOKTOR')) {
-                    $jenjangCounts['S3 (Doktor)']++;
+                    $jenjangCounts['S3 (Doktor)'] += $count;
                 } elseif (str_contains($text, 'S-2') || str_contains($text, 'S2') || str_contains($text, 'MAGISTER')) {
-                    $jenjangCounts['S2 (Magister)']++;
+                    $jenjangCounts['S2 (Magister)'] += $count;
                 } elseif (str_contains($text, 'S-1') || str_contains($text, 'S1') || str_contains($text, 'SARJANA') || str_contains($text, 'D-IV') || str_contains($text, 'DIV')) {
-                    $jenjangCounts['S1 / D-IV']++;
+                    $jenjangCounts['S1 / D-IV'] += $count;
                 } elseif (str_contains($text, 'D-III') || str_contains($text, 'D3') || str_contains($text, 'DIPLOMA')) {
-                    $jenjangCounts['D-III / D3']++;
+                    $jenjangCounts['D-III / D3'] += $count;
                 } elseif (str_contains($text, 'SLTA') || str_contains($text, 'SMA') || str_contains($text, 'SMK') || str_contains($text, 'ALIYAH')) {
-                    $jenjangCounts['SMA / SMK']++;
+                    $jenjangCounts['SMA / SMK'] += $count;
                 } else {
-                    $jenjangCounts['Lainnya']++;
+                    $jenjangCounts['Lainnya'] += $count;
                 }
             }
 

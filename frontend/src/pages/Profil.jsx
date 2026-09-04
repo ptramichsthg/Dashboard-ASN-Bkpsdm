@@ -1387,8 +1387,8 @@ const Profil = () => {
               SECTION 4 — DETAIL JABATAN KOSONG
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
-            <div className="profil-section-icon" style={{ background: '#fee2e2', border: '1px solid #fecaca', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)' }}>
-              <AlertCircle size={22} color="#dc2626" />
+            <div className="profil-section-icon" style={{ background: '#d1fae5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+              <AlertCircle size={22} color="#059669" />
             </div>
             <div className="profil-section-title-wrap">
               <h2 className="profil-section-title">Detail Jabatan Manajerial Kosong / Lowong</h2>
@@ -1868,8 +1868,8 @@ const Profil = () => {
                   SECTION 4 — DETAIL JABATAN NON-MANAJERIAL KOSONG
               ═══════════════════════════════════════════════ */}
               <div className="profil-section-header">
-                <div className="profil-section-icon" style={{ background: '#fee2e2', border: '1px solid #fecaca', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)' }}>
-                  <AlertCircle size={22} color="#dc2626" />
+                <div className="profil-section-icon" style={{ background: '#d1fae5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+                  <AlertCircle size={22} color="#059669" />
                 </div>
                 <div className="profil-section-title-wrap">
                   <h2 className="profil-section-title">Detail Jabatan Non-Manajerial Kosong / Lowong</h2>

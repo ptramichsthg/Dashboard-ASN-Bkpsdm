@@ -661,8 +661,8 @@ table.bezetting-table tbody td.text-center {
 .jabatan-kosong-count {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #dc2626;
-  background: #fee2e2;
+  color: #059669;
+  background: #d1fae5;
   border-radius: 20px;
   padding: 0.25rem 0.75rem;
   white-space: nowrap;
@@ -676,7 +676,7 @@ table.jabatan-kosong-table {
 }
 
 table.jabatan-kosong-table thead tr {
-  background: rgba(254, 242, 242, 0.5);
+  background: rgba(209, 250, 229, 0.5);
   backdrop-filter: blur(8px);
 }
 
@@ -685,10 +685,10 @@ table.jabatan-kosong-table thead th {
   text-align: left;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #991b1b;
+  color: #064e3b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #fecaca;
+  border-bottom: 1px solid #a7f3d0;
 }
 
 table.jabatan-kosong-table thead th.text-center {
@@ -709,9 +709,9 @@ table.jabatan-kosong-table tbody tr:last-child td {
 }
 
 table.jabatan-kosong-table tbody tr:hover {
-  background: #fffafa;
+  background: #f0fdf4;
   transform: scale(1.002);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.04);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
   position: relative;
   z-index: 10;
 }
