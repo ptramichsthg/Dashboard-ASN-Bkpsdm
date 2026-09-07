@@ -255,7 +255,7 @@ class KlasifikasiJabatanController extends Controller
     public function nonManajerial(): JsonResponse
     {
         try {
-            $data = Cache::remember('nonmanajerial_full_v4', 1800, function () {
+            $data = Cache::remember('nonmanajerial_full_v5', 1800, function () {
                 // Urutan jenjang fungsional & pelaksana
                 $jenjangOrder = [
                     'Ahli Utama' => 1,
@@ -271,7 +271,7 @@ class KlasifikasiJabatanController extends Controller
 
                 // 1. Rekap Fungsional Keahlian & Keterampilan
                 $rekapJF = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
-                    ->whereIn('kelompok_jf', ['Fungsional Tertentu', 'Fungsional Umum'])
+                    ->where('subklasifikasi', 'Jabatan Fungsional')
                     ->selectRaw('
                         subklasifikasi,
                         kelompok_jf,
