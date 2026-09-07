@@ -99,7 +99,7 @@ class DataPegawaiAktifController extends Controller
     {
         try {
             $satker = $request->input('satuan_kerja', 'Semua');
-            $cacheKey = 'pegawai_stats_satker_' . str_replace(' ', '_', $satker);
+            $cacheKey = 'pegawai_stats_satker_v2_' . str_replace(' ', '_', $satker);
 
             $data = Cache::remember($cacheKey, 1800, function () use ($satker) {
                 $baseQuery = DataPegawaiAktif::query();
@@ -161,7 +161,8 @@ class DataPegawaiAktifController extends Controller
                     ->groupBy('golongan_akhir')
                     ->orderByDesc('value')
                     ->limit(10)
-                    ->get();
+                    ->get()
+                    ->toArray();
 
                 // Sebaran Eselon
                 $eselonChart = (clone $baseQuery)
@@ -171,7 +172,8 @@ class DataPegawaiAktifController extends Controller
                     ->select('eselon as name', DB::raw('count(*) as value'))
                     ->groupBy('eselon')
                     ->orderByDesc('value')
-                    ->get();
+                    ->get()
+                    ->toArray();
 
                 // Sebaran Satuan Kerja
                 $satkerChart = (clone $baseQuery)
@@ -181,7 +183,8 @@ class DataPegawaiAktifController extends Controller
                     ->groupBy('satuan_kerja')
                     ->orderByDesc('value')
                     ->limit(8)
-                    ->get();
+                    ->get()
+                    ->toArray();
 
                 return [
                     'total_pegawai' => $total,

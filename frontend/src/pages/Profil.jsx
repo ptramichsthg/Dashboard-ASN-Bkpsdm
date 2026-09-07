@@ -537,7 +537,7 @@ const Profil = () => {
 
   // Filtered & Sorted rekap tabel Manajerial
   const rekapFiltered = useMemo(() => {
-    if (!manajerialData?.rekap) return [];
+    if (!manajerialData?.rekap || !Array.isArray(manajerialData.rekap)) return [];
     if (!activeFilter || activeFilter === 'Semua') return manajerialData.rekap;
     return manajerialData.rekap.filter(r => 
       r.jenis_eselon === activeFilter || r.subklasifikasi === activeFilter
@@ -567,7 +567,7 @@ const Profil = () => {
 
   // Filtered & Sorted rekap tabel Non-Manajerial
   const rekapFilteredNM = useMemo(() => {
-    if (!nonManajerialData?.rekap) return [];
+    if (!nonManajerialData?.rekap || !Array.isArray(nonManajerialData.rekap)) return [];
     if (!activeFilterNM || activeFilterNM === 'Semua') return nonManajerialData.rekap;
     return nonManajerialData.rekap.filter(r => 
       r.kategori === activeFilterNM || r.jenjang_jf === activeFilterNM || r.subklasifikasi === activeFilterNM
@@ -597,12 +597,12 @@ const Profil = () => {
 
   // Filtered & Sorted jabatan kosong Manajerial
   const jabatanKosongFiltered = useMemo(() => {
-    if (!manajerialData?.jabatan_kosong) return [];
+    if (!manajerialData?.jabatan_kosong || !Array.isArray(manajerialData.jabatan_kosong)) return [];
     return manajerialData.jabatan_kosong.filter(j => {
       const matchSearch =
         searchKosong === '' ||
-        j.jabatan.toLowerCase().includes(searchKosong.toLowerCase()) ||
-        j.perangkat_daerah.toLowerCase().includes(searchKosong.toLowerCase());
+        j.jabatan?.toLowerCase().includes(searchKosong.toLowerCase()) ||
+        j.perangkat_daerah?.toLowerCase().includes(searchKosong.toLowerCase());
       const matchEselon =
         filterEselon === 'Semua' || j.jenis_eselon === filterEselon;
       return matchSearch && matchEselon;
@@ -639,12 +639,12 @@ const Profil = () => {
 
   // Filtered & Sorted jabatan kosong Non-Manajerial
   const jabatanKosongFilteredNM = useMemo(() => {
-    if (!nonManajerialData?.jabatan_kosong) return [];
+    if (!nonManajerialData?.jabatan_kosong || !Array.isArray(nonManajerialData.jabatan_kosong)) return [];
     return nonManajerialData.jabatan_kosong.filter(j => {
       const matchSearch =
         searchKosongNM === '' ||
-        j.jabatan.toLowerCase().includes(searchKosongNM.toLowerCase()) ||
-        j.perangkat_daerah.toLowerCase().includes(searchKosongNM.toLowerCase()) ||
+        j.jabatan?.toLowerCase().includes(searchKosongNM.toLowerCase()) ||
+        j.perangkat_daerah?.toLowerCase().includes(searchKosongNM.toLowerCase()) ||
         (j.unit_kerja && j.unit_kerja.toLowerCase().includes(searchKosongNM.toLowerCase()));
       
       const matchJenjang =
@@ -831,7 +831,7 @@ const Profil = () => {
   }, [gapMetrics]);
 
   const gapEselonChartData = useMemo(() => {
-    if (!manajerialData?.rekap) return [];
+    if (!manajerialData?.rekap || !Array.isArray(manajerialData.rekap)) return [];
     const grouped = {};
     const order = ['Eselon II.a', 'Eselon II.b', 'Eselon III.a', 'Eselon III.b', 'Eselon IV.a', 'Eselon IV.b'];
 
@@ -924,7 +924,7 @@ const Profil = () => {
   }, [gapMetricsNM]);
 
   const gapJenjangChartDataNM = useMemo(() => {
-    if (!nonManajerialData?.rekap) return [];
+    if (!nonManajerialData?.rekap || !Array.isArray(nonManajerialData.rekap)) return [];
     return nonManajerialData.rekap.map((item) => {
       const gap = Math.max(0, Number(item.total_kebutuhan || 0) - Number(item.total_bezetting || 0));
       return {

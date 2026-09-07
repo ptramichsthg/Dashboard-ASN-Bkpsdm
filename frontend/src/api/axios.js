@@ -13,7 +13,8 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Generate cache key based on URL and params
-    if (config.method === 'get') {
+    const method = config.method ? config.method.toLowerCase() : 'get';
+    if (method === 'get') {
       const cacheKey = config.url + (config.params ? JSON.stringify(config.params) : '');
       
       // If cached data exists, short-circuit the request using a custom adapter
@@ -46,7 +47,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Save successful GET requests to cache
-    if (response.config.method === 'get') {
+    const method = response.config?.method ? response.config.method.toLowerCase() : 'get';
+    if (method === 'get' && response.data && response.data.success !== false) {
       const cacheKey = response.config.url + (response.config.params ? JSON.stringify(response.config.params) : '');
       apiCache.set(cacheKey, response.data);
     }
