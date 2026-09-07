@@ -228,7 +228,6 @@ const Dashboard = () => {
 
   // Data State
   const [summaryData, setSummaryData] = useState(INITIAL_SUMMARY);
-  const [statusPegawaiData, setStatusPegawaiData] = useState([]);
   const [golonganPNSData, setGolonganPNSData] = useState([]);
   const [golonganPPPKData, setGolonganPPPKData] = useState([]);
   const [eselonData, setEselonData] = useState([]);

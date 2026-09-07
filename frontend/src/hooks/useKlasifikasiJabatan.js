@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 
 /**
@@ -12,7 +12,7 @@ export function useKlasifikasiJabatan(type = 'manajerial') {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -27,11 +27,11 @@ export function useKlasifikasiJabatan(type = 'manajerial') {
     } finally {
       setLoading(false);
     }
-  };
+  }, [type]);
 
   useEffect(() => {
     fetchData();
-  }, [type]);
+  }, [fetchData]);
 
   return { data, loading, error, refetch: fetchData };
 }

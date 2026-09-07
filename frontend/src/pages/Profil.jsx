@@ -19,7 +19,6 @@ import {
   Award,
   AlertCircle,
   BarChart2,
-  TrendingUp,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -29,13 +28,11 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
-  Info,
 } from 'lucide-react';
 
 import {
   ResponsiveContainer,
   ComposedChart,
-  LineChart,
   Line,
   BarChart,
   Bar,
@@ -46,41 +43,7 @@ import {
   Legend,
   Cell,
   LabelList,
-  ReferenceLine,
 } from 'recharts';
-
-// Custom Line Dot untuk titik kategori Ringkasan Total & Gap
-const renderCustomLineDot = (props) => {
-  const { cx, cy, payload } = props;
-  const color = payload.color || '#6366f1';
-  return (
-    <g key={`dot-${payload.category}`}>
-      <circle cx={cx} cy={cy} r={8} fill="#ffffff" stroke={color} strokeWidth={3} />
-      <circle cx={cx} cy={cy} r={4} fill={color} />
-    </g>
-  );
-};
-
-// Custom Line Value Label di atas titik garis Ringkasan Total
-const renderCustomLineValueLabel = (props) => {
-  const { x, y, value } = props;
-  if (value === undefined || value === null) return null;
-  return (
-    <text
-      x={x}
-      y={y - 14}
-      fill="#0f172a"
-      stroke="#ffffff"
-      strokeWidth={3}
-      paintOrder="stroke fill"
-      textAnchor="middle"
-      fontSize={13}
-      fontWeight={800}
-    >
-      {Number(value).toLocaleString('id-ID')}
-    </text>
-  );
-};
 
 // Custom Bar Label di atas 2 batang bar chart (Total Kebutuhan & Total Bezetting)
 const renderCustomBarLabel = (props) => {
@@ -113,69 +76,6 @@ const renderCustomBarLabel = (props) => {
         {isKebutuhan ? 'Target Formasi' : 'Sudah Terisi'}
       </text>
     </g>
-  );
-};
-
-// Custom Label untuk Total Kebutuhan (di ATAS titik, warna Biru dengan outline putih)
-const renderKebutuhanLabel = (props) => {
-  const { x, y, value } = props;
-  if (value === undefined || value === null) return null;
-  return (
-    <text
-      x={x}
-      y={y - 13}
-      fill="#1d4ed8"
-      stroke="#ffffff"
-      strokeWidth={3}
-      paintOrder="stroke fill"
-      textAnchor="middle"
-      fontSize={12}
-      fontWeight={800}
-    >
-      {Number(value).toLocaleString('id-ID')}
-    </text>
-  );
-};
-
-// Custom Label untuk Total Bezetting (di BAWAH titik, warna Hijau dengan outline putih)
-const renderBezettingLabel = (props) => {
-  const { x, y, value } = props;
-  if (value === undefined || value === null) return null;
-  return (
-    <text
-      x={x}
-      y={y + 19}
-      fill="#047857"
-      stroke="#ffffff"
-      strokeWidth={3}
-      paintOrder="stroke fill"
-      textAnchor="middle"
-      fontSize={12}
-      fontWeight={800}
-    >
-      {Number(value).toLocaleString('id-ID')}
-    </text>
-  );
-};
-
-// Custom Label untuk Jabatan Kosong / Gap (di ATAS titik, warna Merah dengan outline putih)
-const renderGapLabel = (props) => {
-  const { x, y, value } = props;
-  if (value === undefined || value === null) return null;
-  return (
-    <text
-      x={x}
-      y={y - 11}
-      fill="#b91c1c"
-      stroke="#ffffff"
-      strokeWidth={3}
-      paintOrder="stroke fill"
-      textAnchor="middle"
-      fontSize={12}
-      fontWeight={800}
-    >
-      {Number(value).toLocaleString('id-ID')}
-    </text>
   );
 };
 

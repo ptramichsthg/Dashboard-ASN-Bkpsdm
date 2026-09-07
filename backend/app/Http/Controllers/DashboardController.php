@@ -53,11 +53,20 @@ class DashboardController extends Controller
         if ($satker !== 'Semua Satuan Kerja') {
             $pegawaiAktifQuery->where('satuan_kerja', $satker);
         }
+        $agg = (clone $pegawaiAktifQuery)
+            ->selectRaw('
+                COUNT(*) as total,
+                COUNT(CASE WHEN status_pegawai = "PNS" THEN 1 END) as pns,
+                COUNT(CASE WHEN status_pegawai = "PPPK" THEN 1 END) as pppk,
+                COUNT(CASE WHEN status_pegawai = "CPNS" THEN 1 END) as cpns
+            ')
+            ->first();
+
         $pegawaiAktifSummary = [
-            'total' => (clone $pegawaiAktifQuery)->count(),
-            'pns'   => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PNS')->count(),
-            'pppk'  => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PPPK')->count(),
-            'cpns'  => (clone $pegawaiAktifQuery)->where('status_pegawai', 'CPNS')->count(),
+            'total' => (int) ($agg->total ?? 0),
+            'pns'   => (int) ($agg->pns ?? 0),
+            'pppk'  => (int) ($agg->pppk ?? 0),
+            'cpns'  => (int) ($agg->cpns ?? 0),
         ];
 
         return response()->json([

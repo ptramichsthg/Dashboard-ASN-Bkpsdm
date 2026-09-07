@@ -10,20 +10,15 @@ import {
   Users,
   GraduationCap,
   Award,
-  Shield,
   Search,
   X,
-  Filter,
   RotateCcw,
   ChevronLeft,
   ChevronRight,
   Briefcase,
-  Building2,
   Eye,
   Copy,
   Check,
-  ArrowUpDown,
-  BookOpen
 } from 'lucide-react';
 
 export default function DataPegawai() {
@@ -87,14 +82,14 @@ export default function DataPegawai() {
   // Sync state if URL searchParams change
   useEffect(() => {
     const urlStatus = searchParams.get('status') || searchParams.get('status_pegawai');
-    if (urlStatus && urlStatus !== filterStatusPegawai) {
-      setFilterStatusPegawai(urlStatus);
+    if (urlStatus) {
+      setFilterStatusPegawai(prev => (prev !== urlStatus ? urlStatus : prev));
       setPage(1);
     }
     const urlSearch = searchParams.get('search');
-    if (urlSearch !== null && urlSearch !== search) {
-      setSearch(urlSearch);
-      setDebouncedSearch(urlSearch);
+    if (urlSearch !== null) {
+      setSearch(prev => (prev !== urlSearch ? urlSearch : prev));
+      setDebouncedSearch(prev => (prev !== urlSearch ? urlSearch : prev));
       setPage(1);
     }
   }, [searchParams]);
@@ -120,18 +115,22 @@ export default function DataPegawai() {
     }
   };
 
-  // Load Statistics
-  const loadStatistics = async () => {
+  // Load Statistics Cards
+  const loadStatistics = useCallback(async () => {
     try {
-      const res = await api.get('/pegawai/statistics', {
-        params: { satuan_kerja: filterSatker !== 'Semua' ? filterSatker : undefined },
-      });
+      const params = {};
+      if (filterSatker !== 'Semua') params.satuan_kerja = filterSatker;
+
+      const res = await api.get('/pegawai/statistics', { params });
       if (res.data?.success && res.data?.data) {
         const d = res.data.data;
-        const s1 = d.jenjang_pendidikan?.find((j) => j.name.includes('S1'))?.value || 0;
-        const s2 = d.jenjang_pendidikan?.find((j) => j.name.includes('S2'))?.value || 0;
-        const s3 = d.jenjang_pendidikan?.find((j) => j.name.includes('S3'))?.value || 0;
-        const topGol = d.sebaran_golongan?.[0]?.name || '-';
+        const pend = d.sebaran_pendidikan || [];
+        const s1 = pend.find(p => p.pendidikan?.toUpperCase().includes('S-1') || p.pendidikan?.toUpperCase().includes('SARJANA'))?.jumlah || 0;
+        const s2 = pend.find(p => p.pendidikan?.toUpperCase().includes('S-2') || p.pendidikan?.toUpperCase().includes('MAGISTER'))?.jumlah || 0;
+        const s3 = pend.find(p => p.pendidikan?.toUpperCase().includes('S-3') || p.pendidikan?.toUpperCase().includes('DOKTOR'))?.jumlah || 0;
+
+        const gol = d.sebaran_golongan || [];
+        const topGol = gol.length > 0 ? gol[0].golongan_akhir : '-';
 
         setStats({
           total_pegawai: d.total_pegawai || 0,
@@ -146,7 +145,7 @@ export default function DataPegawai() {
     } catch (err) {
       console.error('Gagal memuat statistik:', err);
     }
-  };
+  }, [filterSatker]);
 
   // Load Data Pegawai
   const fetchPegawai = useCallback(async () => {
@@ -189,7 +188,7 @@ export default function DataPegawai() {
 
   useEffect(() => {
     loadStatistics();
-  }, [filterSatker]);
+  }, [loadStatistics]);
 
   useEffect(() => {
     fetchPegawai();
