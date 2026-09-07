@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\KlasifikasiJabatan;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class KlasifikasiJabatanController extends Controller
 {
@@ -177,50 +179,56 @@ class KlasifikasiJabatanController extends Controller
             ];
 
             // Rekap per subklasifikasi + eselon
-            $rekap = KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
-                ->selectRaw('
-                    subklasifikasi,
-                    jenis_eselon,
-                    SUM(bezetting) as total_bezetting,
-                    SUM(kebutuhan) as total_kebutuhan,
-                    SUM(selisih) as total_selisih,
-                    COUNT(*) as total_jabatan
-                ')
-                ->groupBy('subklasifikasi', 'jenis_eselon')
-                ->get()
-                ->sortBy(function ($item) use ($eselonOrder) {
-                    return $eselonOrder[$item->jenis_eselon] ?? 99;
-                })
-                ->values();
+            $rekap = Cache::remember('manajerial_rekap_v1', 1800, function() use ($eselonOrder) {
+                return KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
+                    ->selectRaw('
+                        subklasifikasi,
+                        jenis_eselon,
+                        SUM(bezetting) as total_bezetting,
+                        SUM(kebutuhan) as total_kebutuhan,
+                        SUM(selisih) as total_selisih,
+                        COUNT(*) as total_jabatan
+                    ')
+                    ->groupBy('subklasifikasi', 'jenis_eselon')
+                    ->get()
+                    ->sortBy(function ($item) use ($eselonOrder) {
+                        return $eselonOrder[$item->jenis_eselon] ?? 99;
+                    })
+                    ->values();
+            });
 
             // Ringkasan total
-            $summary = KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
-                ->selectRaw('
-                    SUM(bezetting) as total_bezetting,
-                    SUM(kebutuhan) as total_kebutuhan,
-                    SUM(selisih) as total_selisih,
-                    COUNT(CASE WHEN bezetting < kebutuhan THEN 1 END) as total_jabatan_kosong
-                ')
-                ->first();
+            $summary = Cache::remember('manajerial_summary_v1', 1800, function() {
+                return KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
+                    ->selectRaw('
+                        SUM(bezetting) as total_bezetting,
+                        SUM(kebutuhan) as total_kebutuhan,
+                        SUM(selisih) as total_selisih,
+                        COUNT(CASE WHEN bezetting < kebutuhan THEN 1 END) as total_jabatan_kosong
+                    ')
+                    ->first();
+            });
 
             // List jabatan yang kosong/lowong (bezetting < kebutuhan)
-            $jabatanKosong = KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
-                ->whereRaw('bezetting < kebutuhan')
-                ->select(
-                    'id',
-                    'perangkat_daerah',
-                    'jabatan',
-                    'unit_kerja',
-                    'subklasifikasi',
-                    'jenis_eselon',
-                    'bezetting',
-                    'kebutuhan',
-                    'selisih'
-                )
-                ->orderByRaw('FIELD(jenis_eselon, "Eselon II.a", "Eselon II.b", "Eselon III.a", "Eselon III.b", "Eselon IV.a", "Eselon IV.b")')
-                ->orderBy('perangkat_daerah')
-                ->limit(200)
-                ->get();
+            $jabatanKosong = Cache::remember('manajerial_kosong_v1', 1800, function() {
+                return KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
+                    ->whereRaw('bezetting < kebutuhan')
+                    ->select(
+                        'id',
+                        'perangkat_daerah',
+                        'jabatan',
+                        'unit_kerja',
+                        'subklasifikasi',
+                        'jenis_eselon',
+                        'bezetting',
+                        'kebutuhan',
+                        'selisih'
+                    )
+                    ->orderByRaw('FIELD(jenis_eselon, "Eselon II.a", "Eselon II.b", "Eselon III.a", "Eselon III.b", "Eselon IV.a", "Eselon IV.b")')
+                    ->orderBy('perangkat_daerah')
+                    ->limit(200)
+                    ->get();
+            });
 
             return response()->json([
                 'success' => true,
@@ -261,35 +269,32 @@ class KlasifikasiJabatanController extends Controller
             ];
 
             // 1. Rekap Fungsional Keahlian & Keterampilan
-            $rekapJF = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
-                ->where('subklasifikasi', 'Jabatan Fungsional')
-                ->selectRaw('
-                    subklasifikasi,
-                    kelompok_jf,
-                    jenjang_jf,
-                    SUM(bezetting) as total_bezetting,
-                    SUM(kebutuhan) as total_kebutuhan,
-                    SUM(selisih) as total_selisih,
-                    COUNT(*) as total_jabatan
-                ')
-                ->groupBy('subklasifikasi', 'kelompok_jf', 'jenjang_jf')
-                ->get()
-                ->map(function ($row) {
-                    $kategori = ($row->kelompok_jf === 'Fungsional Ahli') 
-                        ? 'Fungsional Keahlian' 
-                        : 'Fungsional Keterampilan';
-                    return [
-                        'kategori' => $kategori,
-                        'subklasifikasi' => $row->subklasifikasi,
-                        'kelompok_jf' => $row->kelompok_jf,
-                        'jenjang_jf' => $row->jenjang_jf,
-                        'jenjang_label' => $row->jenjang_jf,
-                        'total_bezetting' => (int) $row->total_bezetting,
-                        'total_kebutuhan' => (int) $row->total_kebutuhan,
-                        'total_selisih' => (int) $row->total_selisih,
-                        'total_jabatan' => (int) $row->total_jabatan,
-                    ];
-                });
+            $rekapJF = Cache::remember('nonmanajerial_rekapJF_v1', 1800, function() {
+                return KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
+                    ->whereIn('kelompok_jf', ['Fungsional Tertentu', 'Fungsional Umum'])
+                    ->selectRaw('
+                        subklasifikasi,
+                        kelompok_jf,
+                        jenjang_jf,
+                        SUM(bezetting) as total_bezetting,
+                        SUM(kebutuhan) as total_kebutuhan,
+                        SUM(selisih) as total_selisih,
+                        COUNT(*) as total_jabatan
+                    ')
+                    ->groupBy('subklasifikasi', 'kelompok_jf', 'jenjang_jf')
+                    ->get()
+                    ->map(function ($item) {
+                        return [
+                            'subklasifikasi' => $item->subklasifikasi,
+                            'kelompok_jf' => $item->kelompok_jf,
+                            'jenjang_jf' => $item->jenjang_jf ?? 'Lainnya',
+                            'total_bezetting' => (int) $item->total_bezetting,
+                            'total_kebutuhan' => (int) $item->total_kebutuhan,
+                            'total_selisih' => (int) $item->total_selisih,
+                            'total_jabatan' => (int) $item->total_jabatan,
+                        ];
+                    });
+            });
 
             // 2. Rekap Jabatan Pelaksana
             $rekapPelaksana = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
@@ -323,35 +328,39 @@ class KlasifikasiJabatanController extends Controller
             })->values();
 
             // Ringkasan total non manajerial
-            $summary = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
-                ->selectRaw('
-                    SUM(bezetting) as total_bezetting,
-                    SUM(kebutuhan) as total_kebutuhan,
-                    SUM(selisih) as total_selisih,
-                    COUNT(CASE WHEN bezetting < kebutuhan THEN 1 END) as total_jabatan_kosong
-                ')
-                ->first();
+            $summary = Cache::remember('nonmanajerial_summary_v1', 1800, function() {
+                return KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
+                    ->selectRaw('
+                        SUM(bezetting) as total_bezetting,
+                        SUM(kebutuhan) as total_kebutuhan,
+                        SUM(selisih) as total_selisih,
+                        COUNT(CASE WHEN bezetting < kebutuhan THEN 1 END) as total_jabatan_kosong
+                    ')
+                    ->first();
+            });
 
             // List jabatan non manajerial yang kosong/lowong (bezetting < kebutuhan)
-            $jabatanKosong = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
-                ->whereRaw('bezetting < kebutuhan')
-                ->select(
-                    'id',
-                    'perangkat_daerah',
-                    'jabatan',
-                    'unit_kerja',
-                    'subklasifikasi',
-                    'kelompok_jf',
-                    'jenjang_jf',
-                    'bezetting',
-                    'kebutuhan',
-                    'selisih'
-                )
-                ->orderBy('subklasifikasi')
-                ->orderBy('jenjang_jf')
-                ->orderBy('perangkat_daerah')
-                ->limit(200)
-                ->get();
+            $jabatanKosong = Cache::remember('nonmanajerial_kosong_v1', 1800, function() {
+                return KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
+                    ->whereRaw('bezetting < kebutuhan')
+                    ->select(
+                        'id',
+                        'perangkat_daerah',
+                        'jabatan',
+                        'unit_kerja',
+                        'subklasifikasi',
+                        'kelompok_jf',
+                        'jenjang_jf',
+                        'bezetting',
+                        'kebutuhan',
+                        'selisih'
+                    )
+                    ->orderBy('subklasifikasi')
+                    ->orderBy('jenjang_jf')
+                    ->orderBy('perangkat_daerah')
+                    ->limit(200)
+                    ->get();
+            });
 
             return response()->json([
                 'success' => true,

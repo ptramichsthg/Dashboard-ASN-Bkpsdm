@@ -6,6 +6,7 @@ use App\Models\DataPegawaiAktif;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class DataPegawaiAktifController extends Controller
 {
@@ -97,96 +98,103 @@ class DataPegawaiAktifController extends Controller
     public function statistics(Request $request): JsonResponse
     {
         try {
-            $baseQuery = DataPegawaiAktif::query();
+            $satker = $request->input('satuan_kerja', 'Semua');
+            $cacheKey = 'pegawai_stats_satker_' . str_replace(' ', '_', $satker);
 
-            if ($request->filled('satuan_kerja') && $request->satuan_kerja !== 'Semua') {
-                $baseQuery->where('satuan_kerja', $request->satuan_kerja);
-            }
+            $data = Cache::remember($cacheKey, 1800, function () use ($satker) {
+                $baseQuery = DataPegawaiAktif::query();
 
-            $total = (clone $baseQuery)->count();
-
-            // Ringkasan Jenjang Pendidikan (optimized with SQL)
-            $jenjangCounts = [
-                'S3 (Doktor)' => 0,
-                'S2 (Magister)' => 0,
-                'S1 / D-IV' => 0,
-                'D-III / D3' => 0,
-                'SMA / SMK' => 0,
-                'Lainnya' => 0,
-            ];
-
-            $pendidikanGroups = (clone $baseQuery)
-                ->whereNotNull('pendidikan')
-                ->where('pendidikan', '!=', '')
-                ->select('pendidikan', DB::raw('count(*) as total'))
-                ->groupBy('pendidikan')
-                ->get();
-
-            foreach ($pendidikanGroups as $p) {
-                $text = strtoupper($p->pendidikan);
-                $count = $p->total;
-                
-                if (str_contains($text, 'S-3') || str_contains($text, 'S3') || str_contains($text, 'DOKTOR')) {
-                    $jenjangCounts['S3 (Doktor)'] += $count;
-                } elseif (str_contains($text, 'S-2') || str_contains($text, 'S2') || str_contains($text, 'MAGISTER')) {
-                    $jenjangCounts['S2 (Magister)'] += $count;
-                } elseif (str_contains($text, 'S-1') || str_contains($text, 'S1') || str_contains($text, 'SARJANA') || str_contains($text, 'D-IV') || str_contains($text, 'DIV')) {
-                    $jenjangCounts['S1 / D-IV'] += $count;
-                } elseif (str_contains($text, 'D-III') || str_contains($text, 'D3') || str_contains($text, 'DIPLOMA')) {
-                    $jenjangCounts['D-III / D3'] += $count;
-                } elseif (str_contains($text, 'SLTA') || str_contains($text, 'SMA') || str_contains($text, 'SMK') || str_contains($text, 'ALIYAH')) {
-                    $jenjangCounts['SMA / SMK'] += $count;
-                } else {
-                    $jenjangCounts['Lainnya'] += $count;
+                if ($satker !== 'Semua') {
+                    $baseQuery->where('satuan_kerja', $satker);
                 }
-            }
 
-            $pendidikanChart = [];
-            foreach ($jenjangCounts as $name => $count) {
-                if ($count > 0) {
-                    $pendidikanChart[] = ['name' => $name, 'value' => $count];
+                $total = (clone $baseQuery)->count();
+
+                // Ringkasan Jenjang Pendidikan
+                $jenjangCounts = [
+                    'S3 (Doktor)' => 0,
+                    'S2 (Magister)' => 0,
+                    'S1 / D-IV' => 0,
+                    'D-III / D3' => 0,
+                    'SMA / SMK' => 0,
+                    'Lainnya' => 0,
+                ];
+
+                $pendidikanGroups = (clone $baseQuery)
+                    ->whereNotNull('pendidikan')
+                    ->where('pendidikan', '!=', '')
+                    ->select('pendidikan', DB::raw('count(*) as total'))
+                    ->groupBy('pendidikan')
+                    ->get();
+
+                foreach ($pendidikanGroups as $p) {
+                    $text = strtoupper($p->pendidikan);
+                    $count = $p->total;
+                    
+                    if (str_contains($text, 'S-3') || str_contains($text, 'S3') || str_contains($text, 'DOKTOR')) {
+                        $jenjangCounts['S3 (Doktor)'] += $count;
+                    } elseif (str_contains($text, 'S-2') || str_contains($text, 'S2') || str_contains($text, 'MAGISTER')) {
+                        $jenjangCounts['S2 (Magister)'] += $count;
+                    } elseif (str_contains($text, 'S-1') || str_contains($text, 'S1') || str_contains($text, 'SARJANA') || str_contains($text, 'D-IV') || str_contains($text, 'DIV')) {
+                        $jenjangCounts['S1 / D-IV'] += $count;
+                    } elseif (str_contains($text, 'D-III') || str_contains($text, 'D3') || str_contains($text, 'DIPLOMA')) {
+                        $jenjangCounts['D-III / D3'] += $count;
+                    } elseif (str_contains($text, 'SLTA') || str_contains($text, 'SMA') || str_contains($text, 'SMK') || str_contains($text, 'ALIYAH')) {
+                        $jenjangCounts['SMA / SMK'] += $count;
+                    } else {
+                        $jenjangCounts['Lainnya'] += $count;
+                    }
                 }
-            }
 
-            // Sebaran Golongan (Top 10)
-            $golonganChart = (clone $baseQuery)
-                ->whereNotNull('golongan_akhir')
-                ->where('golongan_akhir', '!=', '')
-                ->select('golongan_akhir as name', DB::raw('count(*) as value'))
-                ->groupBy('golongan_akhir')
-                ->orderByDesc('value')
-                ->limit(10)
-                ->get();
+                $pendidikanChart = [];
+                foreach ($jenjangCounts as $name => $count) {
+                    if ($count > 0) {
+                        $pendidikanChart[] = ['name' => $name, 'value' => $count];
+                    }
+                }
 
-            // Sebaran Eselon
-            $eselonChart = (clone $baseQuery)
-                ->whereNotNull('eselon')
-                ->where('eselon', '!=', '')
-                ->where('eselon', '!=', '-')
-                ->select('eselon as name', DB::raw('count(*) as value'))
-                ->groupBy('eselon')
-                ->orderByDesc('value')
-                ->get();
+                // Sebaran Golongan
+                $golonganChart = (clone $baseQuery)
+                    ->whereNotNull('golongan_akhir')
+                    ->where('golongan_akhir', '!=', '')
+                    ->select('golongan_akhir as name', DB::raw('count(*) as value'))
+                    ->groupBy('golongan_akhir')
+                    ->orderByDesc('value')
+                    ->limit(10)
+                    ->get();
 
-            // Sebaran Satuan Kerja (Top 8)
-            $satkerChart = (clone $baseQuery)
-                ->whereNotNull('satuan_kerja')
-                ->where('satuan_kerja', '!=', '')
-                ->select('satuan_kerja as name', DB::raw('count(*) as value'))
-                ->groupBy('satuan_kerja')
-                ->orderByDesc('value')
-                ->limit(8)
-                ->get();
+                // Sebaran Eselon
+                $eselonChart = (clone $baseQuery)
+                    ->whereNotNull('eselon')
+                    ->where('eselon', '!=', '')
+                    ->where('eselon', '!=', '-')
+                    ->select('eselon as name', DB::raw('count(*) as value'))
+                    ->groupBy('eselon')
+                    ->orderByDesc('value')
+                    ->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => [
+                // Sebaran Satuan Kerja
+                $satkerChart = (clone $baseQuery)
+                    ->whereNotNull('satuan_kerja')
+                    ->where('satuan_kerja', '!=', '')
+                    ->select('satuan_kerja as name', DB::raw('count(*) as value'))
+                    ->groupBy('satuan_kerja')
+                    ->orderByDesc('value')
+                    ->limit(8)
+                    ->get();
+
+                return [
                     'total_pegawai' => $total,
                     'jenjang_pendidikan' => $pendidikanChart,
                     'sebaran_golongan' => $golonganChart,
                     'sebaran_eselon' => $eselonChart,
                     'sebaran_satker' => $satkerChart,
-                ],
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
