@@ -61,8 +61,8 @@ class DataPegawaiAktifController extends Controller
             }
 
             // Sorting
-            $sortBy = $request->get('sort_by', 'nama_lengkap');
-            $sortOrder = strtolower($request->get('sort_order', 'asc')) === 'desc' ? 'desc' : 'asc';
+            $sortBy = $request->input('sort_by', 'nama_lengkap');
+            $sortOrder = strtolower($request->input('sort_order', 'asc')) === 'desc' ? 'desc' : 'asc';
             
             $allowedSorts = ['id', 'nip', 'nama_lengkap', 'golongan_akhir', 'pendidikan', 'eselon', 'jabatan_utama', 'unit_kerja', 'satuan_kerja'];
             if (!in_array($sortBy, $allowedSorts)) {
@@ -72,7 +72,7 @@ class DataPegawaiAktifController extends Controller
             $query->orderBy($sortBy, $sortOrder);
 
             // Pagination
-            $perPage = (int) $request->get('per_page', 15);
+            $perPage = (int) $request->input('per_page', 15);
             if ($perPage <= 0 || $perPage > 100) {
                 $perPage = 15;
             }
@@ -247,9 +247,9 @@ class DataPegawaiAktifController extends Controller
     public function byJabatan(Request $request): JsonResponse
     {
         try {
-            $jabatan = trim($request->get('jabatan', ''));
-            $unitKerja = trim($request->get('unit_kerja', ''));
-            $satker = trim($request->get('satuan_kerja', ''));
+            $jabatan = trim($request->input('jabatan', ''));
+            $unitKerja = trim($request->input('unit_kerja', ''));
+            $satker = trim($request->input('satuan_kerja', ''));
 
             if (empty($jabatan) && empty($unitKerja)) {
                 return response()->json([

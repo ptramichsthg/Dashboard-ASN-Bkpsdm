@@ -74,12 +74,12 @@ class KlasifikasiJabatanController extends Controller
             }
 
             // Sorting
-            $sortBy = $request->get('sort_by', 'no_urut');
-            $sortOrder = $request->get('sort_order', 'asc');
+            $sortBy = $request->input('sort_by', 'no_urut');
+            $sortOrder = $request->input('sort_order', 'asc');
             $query->orderBy($sortBy, $sortOrder);
 
             // Pagination
-            $perPage = $request->get('per_page', 15);
+            $perPage = $request->input('per_page', 15);
             $data = $query->paginate($perPage);
 
             return response()->json([

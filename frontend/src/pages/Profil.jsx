@@ -33,6 +33,7 @@ import {
 
 import {
   ResponsiveContainer,
+  ComposedChart,
   LineChart,
   Line,
   BarChart,
@@ -201,13 +202,17 @@ const CustomGapTooltip = ({ active, payload }) => {
 // Custom Tooltip untuk Rincian per Eselon
 const CustomEselonTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
+    const uniquePayload = Array.from(
+      new Map(payload.map(item => [item.dataKey, item])).values()
+    );
+
     return (
       <div className="gap-chart-tooltip">
         <div className="tooltip-title">{label}</div>
-        {payload.map((entry, idx) => (
+        {uniquePayload.map((entry, idx) => (
           <div key={`item-${idx}`} className="tooltip-row">
             <span className="tooltip-dot" style={{ background: entry.color }} />
-            <span>{entry.name}:</span>
+            <span>{entry.name || entry.dataKey}:</span>
             <span className="tooltip-val">{Number(entry.value).toLocaleString('id-ID')}</span>
           </div>
         ))}
@@ -1231,7 +1236,7 @@ const Profil = () => {
                       className={`gap-view-btn ${gapChartView === 'eselon' ? 'active' : ''}`}
                       onClick={() => setGapChartView('eselon')}
                     >
-                      Rincian per Eselon (Line)
+                      Rincian per Eselon
                     </button>
                   </div>
                 </div>
@@ -1292,9 +1297,10 @@ const Profil = () => {
                 <div className="gap-chart-canvas-area">
                   {gapChartView === 'total' ? (
                     <ResponsiveContainer width="100%" height={320}>
-                      <LineChart
+                      <BarChart
                         data={gapTotalChartData}
                         margin={{ top: 35, right: 40, left: 15, bottom: 20 }}
+                        barSize={55}
                       >
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis
@@ -1308,23 +1314,18 @@ const Profil = () => {
                           axisLine={{ stroke: '#cbd5e1' }}
                           tickLine={false}
                         />
-                        <Tooltip content={<CustomGapTooltip />} cursor={{ stroke: 'rgba(0, 0, 0, 0.12)', strokeDasharray: '3 3' }} />
-                        <Line
-                          type="monotone"
-                          dataKey="value"
-                          name="Jumlah Formasi"
-                          stroke="#7e22ce"
-                          strokeWidth={3}
-                          dot={renderCustomLineDot}
-                          activeDot={{ r: 9, strokeWidth: 2, stroke: '#ffffff' }}
-                        >
-                          <LabelList dataKey="value" content={renderCustomLineValueLabel} />
-                        </Line>
-                      </LineChart>
+                        <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                        <Bar dataKey="value" name="Jumlah Formasi" radius={[8, 8, 0, 0]}>
+                          <LabelList dataKey="value" content={renderCustomBarLabel} />
+                          {gapTotalChartData.map((entry, idx) => (
+                            <Cell key={`cell-${idx}`} fill={entry.color || '#7e22ce'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
                     </ResponsiveContainer>
                   ) : (
                     <ResponsiveContainer width="100%" height={340}>
-                      <LineChart
+                      <ComposedChart
                         data={gapEselonChartData}
                         margin={{ top: 35, right: 30, left: 10, bottom: 25 }}
                       >
@@ -1340,42 +1341,49 @@ const Profil = () => {
                           axisLine={{ stroke: '#cbd5e1' }}
                           tickLine={false}
                         />
-                        <Tooltip content={<CustomEselonTooltip />} cursor={{ stroke: 'rgba(0, 0, 0, 0.12)', strokeDasharray: '3 3' }} />
+                        <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
                         <Legend
                           wrapperStyle={{ paddingTop: 14, fontSize: 12, fontWeight: 600 }}
+                        />
+                        <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]}>
+                          <LabelList dataKey="Total Bezetting" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                        </Bar>
+                        <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]}>
+                          <LabelList dataKey="Total Kebutuhan" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                        </Bar>
+                        <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]}>
+                          <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                        </Bar>
+                        
+                        <Line
+                          type="monotone"
+                          dataKey="Total Bezetting"
+                          stroke="#2563eb"
+                          strokeWidth={2}
+                          dot={{ r: 3, fill: '#2563eb' }}
+                          activeDot={{ r: 5 }}
+                          legendType="none"
                         />
                         <Line
                           type="monotone"
                           dataKey="Total Kebutuhan"
-                          stroke="#2563eb"
-                          strokeWidth={3}
-                          dot={{ r: 5, fill: '#2563eb' }}
-                          activeDot={{ r: 8 }}
-                        >
-                          <LabelList dataKey="Total Kebutuhan" content={renderKebutuhanLabel} />
-                        </Line>
-                        <Line
-                          type="monotone"
-                          dataKey="Total Bezetting"
                           stroke="#059669"
-                          strokeWidth={3}
-                          dot={{ r: 5, fill: '#059669' }}
-                          activeDot={{ r: 8 }}
-                        >
-                          <LabelList dataKey="Total Bezetting" content={renderBezettingLabel} />
-                        </Line>
+                          strokeWidth={2}
+                          dot={{ r: 3, fill: '#059669' }}
+                          activeDot={{ r: 5 }}
+                          legendType="none"
+                        />
                         <Line
                           type="monotone"
                           dataKey="Jabatan Kosong (Gap)"
                           stroke="#dc2626"
-                          strokeWidth={2.5}
-                          strokeDasharray="5 5"
-                          dot={{ r: 5, fill: '#dc2626' }}
-                          activeDot={{ r: 8 }}
-                        >
-                          <LabelList dataKey="Jabatan Kosong (Gap)" content={renderGapLabel} />
-                        </Line>
-                      </LineChart>
+                          strokeWidth={2}
+                          strokeDasharray="4 4"
+                          dot={{ r: 3, fill: '#dc2626' }}
+                          activeDot={{ r: 5 }}
+                          legendType="none"
+                        />
+                      </ComposedChart>
                     </ResponsiveContainer>
                   )}
                 </div>
@@ -1708,7 +1716,7 @@ const Profil = () => {
                           className={`gap-view-btn ${gapChartViewNM === 'jenjang' ? 'active' : ''}`}
                           onClick={() => setGapChartViewNM('jenjang')}
                         >
-                          Rincian per Jenjang (Line)
+                          Rincian per Jenjang
                         </button>
                       </div>
                     </div>
@@ -1799,7 +1807,7 @@ const Profil = () => {
                       ) : (
                         <div style={{ width: '100%', height: 260 }}>
                           <ResponsiveContainer width="100%" height="100%">
-                            <LineChart
+                            <ComposedChart
                               data={gapJenjangChartDataNM}
                               margin={{ top: 25, right: 30, left: 10, bottom: 20 }}
                             >
@@ -1817,45 +1825,52 @@ const Profil = () => {
                                 domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
                                 tickFormatter={(val) => val.toLocaleString('id-ID')}
                               />
-                              <Tooltip content={<CustomEselonTooltip />} />
+                              <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
                               <Legend
                                 verticalAlign="bottom"
                                 height={36}
                                 iconType="circle"
                                 wrapperStyle={{ paddingTop: 12, fontSize: '0.8rem', fontWeight: 600 }}
                               />
-                              <Line
-                                type="monotone"
-                                dataKey="Total Kebutuhan"
-                                stroke="#3b82f6"
-                                strokeWidth={2.5}
-                                dot={{ r: 4, fill: '#3b82f6' }}
-                                activeDot={{ r: 6 }}
-                              >
-                                <LabelList dataKey="Total Kebutuhan" content={renderCustomLineValueLabel} />
-                              </Line>
+                              <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]}>
+                                <LabelList dataKey="Total Bezetting" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                              </Bar>
+                              <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]}>
+                                <LabelList dataKey="Total Kebutuhan" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                              </Bar>
+                              <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]}>
+                                <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                              </Bar>
+                              
                               <Line
                                 type="monotone"
                                 dataKey="Total Bezetting"
-                                stroke="#10b981"
-                                strokeWidth={2.5}
-                                dot={{ r: 4, fill: '#10b981' }}
-                                activeDot={{ r: 6 }}
-                              >
-                                <LabelList dataKey="Total Bezetting" content={renderCustomLineValueLabel} />
-                              </Line>
+                                stroke="#2563eb"
+                                strokeWidth={2}
+                                dot={{ r: 3, fill: '#2563eb' }}
+                                activeDot={{ r: 5 }}
+                                legendType="none"
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="Total Kebutuhan"
+                                stroke="#059669"
+                                strokeWidth={2}
+                                dot={{ r: 3, fill: '#059669' }}
+                                activeDot={{ r: 5 }}
+                                legendType="none"
+                              />
                               <Line
                                 type="monotone"
                                 dataKey="Jabatan Kosong (Gap)"
-                                stroke="#ef4444"
+                                stroke="#dc2626"
                                 strokeWidth={2}
                                 strokeDasharray="4 4"
-                                dot={{ r: 4, fill: '#ef4444' }}
-                                activeDot={{ r: 6 }}
-                              >
-                                <LabelList dataKey="Jabatan Kosong (Gap)" content={renderGapLabel} />
-                              </Line>
-                            </LineChart>
+                                dot={{ r: 3, fill: '#dc2626' }}
+                                activeDot={{ r: 5 }}
+                                legendType="none"
+                              />
+                            </ComposedChart>
                           </ResponsiveContainer>
                         </div>
                       )}
