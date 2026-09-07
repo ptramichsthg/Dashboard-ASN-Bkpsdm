@@ -101,11 +101,23 @@ function JenisAsnCard({ label, value }) {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-function DataCard({ title, laki, perempuan, total: customTotal }) {
+function DataCard({ title, laki, perempuan, total: customTotal, onClick }) {
   const total = customTotal !== undefined ? customTotal : ((Number(laki) || 0) + (Number(perempuan) || 0));
   return (
-    <div className="data-card">
-      <div className="data-card-title">{title}</div>
+    <div
+      className={`data-card ${onClick ? 'clickable' : ''}`}
+      onClick={onClick}
+      style={onClick ? { cursor: 'pointer', transition: 'all 0.2s ease' } : undefined}
+      title={onClick ? `Klik untuk melihat data pegawai ${title} di Direktori Pegawai` : undefined}
+    >
+      <div className="data-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span>{title}</span>
+        {onClick && (
+          <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700 }}>
+            Lihat ↗
+          </span>
+        )}
+      </div>
       <div className="data-card-gender-row">
         <div className="gender-col laki">
           <div className="gender-label">Laki-laki</div>
@@ -809,7 +821,16 @@ const Dashboard = () => {
           </div>
 
           <div className="status-pegawai-grid">
-            {computedStatusPegawai.map(d => <DataCard key={d.title} {...d} />)}
+            {computedStatusPegawai.map(d => (
+              <DataCard
+                key={d.title}
+                {...d}
+                onClick={() => {
+                  const statusParam = d.title === 'PPPK PW' ? 'PPPK' : d.title;
+                  navigate(`/sebaran-pegawai?status=${encodeURIComponent(statusParam)}`);
+                }}
+              />
+            ))}
           </div>
 
           {/* Row 1: Distribusi Gender (Donat) + Sebaran OPD (Bar Total) */}

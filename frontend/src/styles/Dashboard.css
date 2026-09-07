@@ -583,7 +583,7 @@
 /* ── Struktur Hierarki OPD Table (Gaya Profil Jabatan Kosong) ── */
 .hierarki-opd-card {
   background: #ffffff;
-  border: 1px solid #cbd5e1;
+  border: 2px solid #000000;
   border-radius: 16px;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
   margin-bottom: 2.5rem;
@@ -594,7 +594,7 @@
 
 .hierarki-opd-toolbar {
   padding: 1.15rem 1.5rem;
-  border-bottom: 1px solid #cbd5e1;
+  border-bottom: 1.5px solid #000000;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -699,7 +699,7 @@ table.hierarki-table thead th {
   color: #0f172a;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  border-bottom: 2px solid #94a3b8;
+  border-bottom: 1.5px solid #000000;
 }
 
 table.hierarki-table thead th.text-center {
@@ -794,7 +794,7 @@ table.hierarki-table tbody td.text-center {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-top: 1px solid #cbd5e1;
+  border-top: 1.5px solid #000000;
   font-size: 0.85rem;
   color: #334155;
   font-weight: 600;
@@ -902,6 +902,7 @@ table.hierarki-table tbody td.text-center {
 
 .unit-modal-container {
   background: #ffffff;
+  border: 2px solid #000000;
   border-radius: 20px;
   width: 100%;
   max-width: 1000px;
@@ -909,7 +910,7 @@ table.hierarki-table tbody td.text-center {
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   animation: unitModalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -936,7 +937,7 @@ table.hierarki-table tbody td.text-center {
   justify-content: space-between;
   gap: 1rem;
   padding: 1.25rem 1.75rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1.5px solid #000000;
   background: linear-gradient(to right, #f8fafc, #ffffff);
 }
 
@@ -993,7 +994,7 @@ table.hierarki-table tbody td.text-center {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1.5px solid #000000;
   padding: 0.75rem 1.75rem;
 }
 
@@ -1002,7 +1003,7 @@ table.hierarki-table tbody td.text-center {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1.5px solid #000000;
 }
 
 .unit-summary-item:last-child {
@@ -1105,7 +1106,7 @@ table.hierarki-table tbody td.text-center {
 }
 
 .unit-modal-table-wrap {
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #000000;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -1128,7 +1129,7 @@ table.unit-modal-table thead th {
   color: #0f172a;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  border-bottom: 2px solid #cbd5e1;
+  border-bottom: 1.5px solid #000000;
 }
 
 table.unit-modal-table thead th.text-center {
@@ -1136,8 +1137,12 @@ table.unit-modal-table thead th.text-center {
 }
 
 table.unit-modal-table tbody tr {
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #cbd5e1;
   transition: background 0.15s;
+}
+
+table.unit-modal-table tbody tr:last-child {
+  border-bottom: none;
 }
 
 table.unit-modal-table tbody tr:hover {
@@ -1167,7 +1172,7 @@ table.unit-modal-table tbody td {
   align-items: center;
   justify-content: space-between;
   padding: 0.9rem 1.75rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1.5px solid #000000;
   background: #f8fafc;
   font-size: 0.85rem;
   color: #475569;

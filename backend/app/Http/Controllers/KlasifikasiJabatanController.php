@@ -255,20 +255,20 @@ class KlasifikasiJabatanController extends Controller
     public function nonManajerial(): JsonResponse
     {
         try {
-            // Urutan jenjang fungsional & pelaksana
-            $jenjangOrder = [
-                'Ahli Utama' => 1,
-                'Ahli Madya' => 2,
-                'Ahli Muda' => 3,
-                'Ahli Pertama' => 4,
-                'Penyelia' => 5,
-                'Mahir' => 6,
-                'Terampil' => 7,
-                'Pemula' => 8,
-                'Pelaksana' => 9,
-            ];
+            $data = Cache::remember('nonmanajerial_full_v4', 1800, function () {
+                // Urutan jenjang fungsional & pelaksana
+                $jenjangOrder = [
+                    'Ahli Utama' => 1,
+                    'Ahli Madya' => 2,
+                    'Ahli Muda' => 3,
+                    'Ahli Pertama' => 4,
+                    'Penyelia' => 5,
+                    'Mahir' => 6,
+                    'Terampil' => 7,
+                    'Pemula' => 8,
+                    'Pelaksana' => 9,
+                ];
 
-            $data = Cache::remember('nonmanajerial_full_v4', 1800, function () use ($jenjangOrder) {
                 // 1. Rekap Fungsional Keahlian & Keterampilan
                 $rekapJF = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
                     ->whereIn('kelompok_jf', ['Fungsional Tertentu', 'Fungsional Umum'])
@@ -283,15 +283,21 @@ class KlasifikasiJabatanController extends Controller
                     ')
                     ->groupBy('subklasifikasi', 'kelompok_jf', 'jenjang_jf')
                     ->get()
-                    ->map(function ($item) {
+                    ->map(function ($row) {
+                        $kategori = ($row->kelompok_jf === 'Fungsional Ahli') 
+                            ? 'Fungsional Keahlian' 
+                            : 'Fungsional Keterampilan';
                         return [
-                            'subklasifikasi' => $item->subklasifikasi,
-                            'kelompok_jf' => $item->kelompok_jf,
-                            'jenjang_jf' => $item->jenjang_jf ?? 'Lainnya',
-                            'total_bezetting' => (int) $item->total_bezetting,
-                            'total_kebutuhan' => (int) $item->total_kebutuhan,
-                            'total_selisih' => (int) $item->total_selisih,
-                            'total_jabatan' => (int) $item->total_jabatan,
+                            'kategori' => $kategori,
+                            'kategori_label' => $kategori,
+                            'subklasifikasi' => $row->subklasifikasi,
+                            'kelompok_jf' => $row->kelompok_jf,
+                            'jenjang_jf' => $row->jenjang_jf,
+                            'jenjang_label' => $row->jenjang_jf,
+                            'total_bezetting' => (int) $row->total_bezetting,
+                            'total_kebutuhan' => (int) $row->total_kebutuhan,
+                            'total_selisih' => (int) $row->total_selisih,
+                            'total_jabatan' => (int) $row->total_jabatan,
                         ];
                     });
 
@@ -310,6 +316,7 @@ class KlasifikasiJabatanController extends Controller
                     ->map(function ($row) {
                         return [
                             'kategori' => 'Jabatan Pelaksana',
+                            'kategori_label' => 'Jabatan Pelaksana',
                             'subklasifikasi' => $row->subklasifikasi,
                             'kelompok_jf' => null,
                             'jenjang_jf' => 'Pelaksana',

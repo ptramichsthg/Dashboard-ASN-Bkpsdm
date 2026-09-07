@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import apiCache from '../utils/apiCache';
 import useKlasifikasiJabatan, { useKlasifikasiJabatanNonManajerial } from '../hooks/useKlasifikasiJabatan';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import bgCard from '../assets/bg-card.png';
@@ -273,10 +274,15 @@ const SUB_COLOR = {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 // Card Jenis ASN
-function JenisAsnCard({ label, value }) {
+function JenisAsnCard({ label, value, onClick }) {
   const cfg = ASN_CONFIG[label] || ASN_CONFIG['PNS'];
   return (
-    <div className="jenis-asn-card" style={{ '--card-accent': cfg.accent }}>
+    <div
+      className={`jenis-asn-card ${onClick ? 'clickable' : ''}`}
+      style={{ '--card-accent': cfg.accent }}
+      onClick={onClick}
+      title={onClick ? `Lihat data ${label} di Direktori Pegawai` : undefined}
+    >
       <div className="jenis-asn-card-icon" style={{ background: cfg.bg }}>
         {cfg.icon}
       </div>
@@ -285,6 +291,11 @@ function JenisAsnCard({ label, value }) {
         <div className="jenis-asn-card-value">
           {value.toLocaleString('id-ID')} <span className="jenis-asn-card-unit">orang</span>
         </div>
+        {onClick && (
+          <div className="jenis-asn-card-action">
+            Lihat Pegawai ↗
+          </div>
+        )}
       </div>
     </div>
   );
@@ -469,6 +480,7 @@ const Profil = () => {
   const handleRefresh = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
+    apiCache.clear();
     await Promise.all([fetchProfil(), refetch(), refetchNM()]);
     setIsRefreshing(false);
   };
@@ -690,7 +702,7 @@ const Profil = () => {
       ? manajerialData?.jabatan_kosong 
       : nonManajerialData?.jabatan_kosong;
       
-    if (!sourceData) return [];
+    if (!Array.isArray(sourceData)) return [];
 
     return sourceData.filter((j) => {
       let matchGroup = false;
@@ -746,7 +758,7 @@ const Profil = () => {
 
   // Filtered & Paged untuk Pop-up Modal Daftar Seluruh Jabatan (Eselon / Jenjang)
   const eselonModalFiltered = useMemo(() => {
-    if (!eselonJabatanList.length) return [];
+    if (!Array.isArray(eselonJabatanList) || !eselonJabatanList.length) return [];
     if (!searchEselonModal) return eselonJabatanList;
     const q = searchEselonModal.toLowerCase();
     return eselonJabatanList.filter((j) => {
@@ -928,7 +940,7 @@ const Profil = () => {
     return nonManajerialData.rekap.map((item) => {
       const gap = Math.max(0, Number(item.total_kebutuhan || 0) - Number(item.total_bezetting || 0));
       return {
-        eselon: item.jenjang_label,
+        eselon: item.jenjang_label || item.jenjang_jf || 'Lainnya',
         'Total Kebutuhan': Number(item.total_kebutuhan || 0),
         'Total Bezetting': Number(item.total_bezetting || 0),
         'Jabatan Kosong (Gap)': gap,
@@ -1006,7 +1018,15 @@ const Profil = () => {
           ) : (
             <div className="jenis-asn-grid">
               {(profilData?.jenis_asn || []).map(item => (
-                <JenisAsnCard key={item.label} label={item.label} value={item.value} />
+                <JenisAsnCard
+                  key={item.label}
+                  label={item.label}
+                  value={item.value}
+                  onClick={() => {
+                    const st = item.label === 'PPPK PW' ? 'PPPK' : item.label;
+                    navigate(`/sebaran-pegawai?status=${encodeURIComponent(st)}`);
+                  }}
+                />
               ))}
             </div>
           )}
@@ -1020,24 +1040,7 @@ const Profil = () => {
           </div>
 
           {/* ═══════════════════════════════════════════════
-              SECTION 2 — STATISTIK UMUM (Skeleton)
-          ═══════════════════════════════════════════════ */}
-          <div className="profil-section-header">
-            <div className="profil-section-icon" style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', boxShadow: '0 4px 12px rgba(100, 116, 139, 0.12)' }}>
-              <BarChart2 size={22} color="#64748b" />
-            </div>
-            <div className="profil-section-title-wrap">
-              <h2 className="profil-section-title">Statistik Umum</h2>
-            </div>
-            <div className="profil-section-line" />
-          </div>
-          <div className="statistik-skeleton-card">
-            <div className="statistik-skeleton-icon">📊</div>
-            <div className="statistik-skeleton-text">Statistik Umum sedang dalam pengembangan</div>
-          </div>
-
-          {/* ═══════════════════════════════════════════════
-              SECTION 3 — JABATAN MANAJERIAL & NON-MANAJERIAL
+              SECTION 2 — JABATAN MANAJERIAL & NON-MANAJERIAL
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
             <div className="profil-section-icon" style={{ background: '#fdf4ff', border: '1px solid #f5d0fe', boxShadow: '0 4px 12px rgba(168, 85, 247, 0.15)' }}>
@@ -1134,7 +1137,7 @@ const Profil = () => {
                     </div>
                     <div className="bezetting-kpi-item">
                       <div className="bezetting-kpi-label">Jabatan Kosong</div>
-                      <div className="bezetting-kpi-value danger">{Number(summary.total_jabatan_kosong)}</div>
+                      <div className="bezetting-kpi-value danger">{Number(summary.total_jabatan_kosong).toLocaleString('id-ID')}</div>
                     </div>
                   </div>
                 )}
@@ -1187,8 +1190,8 @@ const Profil = () => {
                                 {row.jenis_eselon}
                               </button>
                             </td>
-                            <td className="text-center num-cell">{row.total_bezetting}</td>
-                            <td className="text-center num-cell">{row.total_kebutuhan}</td>
+                            <td className="text-center num-cell">{Number(row.total_bezetting).toLocaleString('id-ID')}</td>
+                            <td className="text-center num-cell">{Number(row.total_kebutuhan).toLocaleString('id-ID')}</td>
                             <td className="text-center">
                               <SelisihBadge
                                 value={Number(row.total_selisih)}
@@ -1217,7 +1220,7 @@ const Profil = () => {
                       <div className="gap-chart-subtitle">
                         {gapMetrics.isFiltered
                           ? `Menampilkan formasi terfilter: ${activeFilter}`
-                          : 'Perbandingan Total Kebutuhan (851), Bezetting Terisi (818), dan Selisih Gap Jabatan Kosong (33)'}
+                          : `Perbandingan Total Kebutuhan (${gapMetrics.kebutuhan.toLocaleString('id-ID')}), Bezetting Terisi (${gapMetrics.bezetting.toLocaleString('id-ID')}), dan Selisih Gap Jabatan Kosong (${gapMetrics.kosong.toLocaleString('id-ID')})`}
                       </div>
                     </div>
                   </div>
@@ -1248,7 +1251,7 @@ const Profil = () => {
                       <strong>Rasio Pemenuhan Formasi</strong>: {gapMetrics.bezetting.toLocaleString('id-ID')} dari {gapMetrics.kebutuhan.toLocaleString('id-ID')} formasi terpenuhi
                     </span>
                     <span style={{ color: '#dc2626', fontWeight: 700 }}>
-                      Gap Defisit: {gapMetrics.kosong} Formasi ({gapMetrics.persentaseGap}%)
+                      Gap Defisit: {gapMetrics.kosong.toLocaleString('id-ID')} Formasi ({gapMetrics.persentaseGap}%)
                     </span>
                   </div>
 
@@ -1256,19 +1259,19 @@ const Profil = () => {
                     <div
                       className="gap-progress-seg-terisi"
                       style={{ width: `${gapMetrics.persentaseTerisi}%` }}
-                      title={`Bezetting Terisi: ${gapMetrics.bezetting} (${gapMetrics.persentaseTerisi}%)`}
+                      title={`Bezetting Terisi: ${gapMetrics.bezetting.toLocaleString('id-ID')} (${gapMetrics.persentaseTerisi}%)`}
                     >
                       {Number(gapMetrics.persentaseTerisi) >= 15 && (
-                        <span>✓ {gapMetrics.bezetting} Terisi ({gapMetrics.persentaseTerisi}%)</span>
+                        <span>✓ {gapMetrics.bezetting.toLocaleString('id-ID')} Terisi ({gapMetrics.persentaseTerisi}%)</span>
                       )}
                     </div>
                     <div
                       className="gap-progress-seg-kosong"
                       style={{ width: `${gapMetrics.persentaseGap}%` }}
-                      title={`Jabatan Kosong / Gap: ${gapMetrics.kosong} (${gapMetrics.persentaseGap}%)`}
+                      title={`Jabatan Kosong / Gap: ${gapMetrics.kosong.toLocaleString('id-ID')} (${gapMetrics.persentaseGap}%)`}
                     >
                       {Number(gapMetrics.persentaseGap) >= 4 && (
-                        <span>{gapMetrics.kosong} Kosong</span>
+                        <span>{gapMetrics.kosong.toLocaleString('id-ID')} Kosong</span>
                       )}
                     </div>
                   </div>
@@ -1276,7 +1279,7 @@ const Profil = () => {
                   <div className="gap-progress-legend">
                     <div className="gap-legend-item">
                       <span className="gap-legend-box" style={{ background: '#10b981' }} />
-                      <span>Formasi Terisi ({gapMetrics.bezetting})</span>
+                      <span>Formasi Terisi ({gapMetrics.bezetting.toLocaleString('id-ID')})</span>
                     </div>
                     <div className="gap-legend-item">
                       <span
@@ -1285,10 +1288,10 @@ const Profil = () => {
                           background: 'repeating-linear-gradient(-45deg, #ef4444, #ef4444 4px, #dc2626 4px, #dc2626 8px)'
                         }}
                       />
-                      <span>Gap Formasi Kosong ({gapMetrics.kosong})</span>
+                      <span>Gap Formasi Kosong ({gapMetrics.kosong.toLocaleString('id-ID')})</span>
                     </div>
                     <div className="gap-legend-item" style={{ color: '#1e293b' }}>
-                      <span>Total Target Formasi: <strong>{gapMetrics.kebutuhan}</strong></span>
+                      <span>Total Target Formasi: <strong>{gapMetrics.kebutuhan.toLocaleString('id-ID')}</strong></span>
                     </div>
                   </div>
                 </div>
@@ -1435,7 +1438,7 @@ const Profil = () => {
 
               {/* Count badge */}
               <div className="jabatan-kosong-count">
-                {jabatanKosongFiltered.length} jabatan kosong
+                {jabatanKosongFiltered.length.toLocaleString('id-ID')} jabatan kosong
               </div>
             </div>
 
@@ -1494,8 +1497,8 @@ const Profil = () => {
                         <td>
                           <span className={`sub-badge ${badgeClass}`}>{j.jenis_eselon}</span>
                         </td>
-                        <td className="text-center num-cell">{j.bezetting}</td>
-                        <td className="text-center num-cell">{j.kebutuhan}</td>
+                        <td className="text-center num-cell">{Number(j.bezetting).toLocaleString('id-ID')}</td>
+                        <td className="text-center num-cell">{Number(j.kebutuhan).toLocaleString('id-ID')}</td>
                         <td className="text-center">
                           <SelisihBadge value={j.selisih} />
                         </td>
@@ -1510,7 +1513,7 @@ const Profil = () => {
             {!manajerialLoading && jabatanKosongFiltered.length > 0 && (
               <div className="profil-pagination">
                 <span>
-                  Menampilkan {((pageKosong - 1) * itemsPerPageKosong) + 1}–{Math.min(pageKosong * itemsPerPageKosong, jabatanKosongFiltered.length)} dari {jabatanKosongFiltered.length} jabatan
+                  Menampilkan {((pageKosong - 1) * itemsPerPageKosong) + 1}–{Math.min(pageKosong * itemsPerPageKosong, jabatanKosongFiltered.length)} dari {jabatanKosongFiltered.length.toLocaleString('id-ID')} jabatan
                 </span>
                 <div className="profil-pagination-btns">
                   <button
@@ -1767,112 +1770,108 @@ const Profil = () => {
                           />
                           <span>Selisih Formasi Lowong ({gapMetricsNM.gap.toLocaleString('id-ID')})</span>
                         </div>
+                        <div className="gap-legend-item" style={{ color: '#1e293b' }}>
+                          <span>Total Target Formasi: <strong>{gapMetricsNM.kebutuhan.toLocaleString('id-ID')}</strong></span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Chart View Content */}
-                    <div className="gap-chart-body">
+                    <div className="gap-chart-canvas-area">
                       {gapChartViewNM === 'total' ? (
-                        <div style={{ width: '100%', height: 260 }}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={gapTotalChartDataNM}
-                              margin={{ top: 25, right: 30, left: 10, bottom: 20 }}
-                              barSize={44}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                              <XAxis
-                                dataKey="category"
-                                axisLine={{ stroke: '#cbd5e1' }}
-                                tickLine={false}
-                                tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }}
-                              />
-                              <YAxis
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#64748b', fontSize: 11 }}
-                                domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
-                                tickFormatter={(val) => val.toLocaleString('id-ID')}
-                              />
-                              <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
-                              <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                                <LabelList dataKey="value" content={renderCustomBarLabel} />
-                                {gapTotalChartDataNM.map((entry, idx) => (
-                                  <Cell key={`cell-nm-${idx}`} fill={entry.color} />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
+                        <ResponsiveContainer width="100%" height={320}>
+                          <BarChart
+                            data={gapTotalChartDataNM}
+                            margin={{ top: 35, right: 40, left: 15, bottom: 20 }}
+                            barSize={55}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                            <XAxis
+                              dataKey="category"
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                              tick={{ fill: '#334155', fontSize: 13, fontWeight: 700 }}
+                            />
+                            <YAxis
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                              tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                              domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
+                              tickFormatter={(val) => val.toLocaleString('id-ID')}
+                            />
+                            <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                            <Bar dataKey="value" name="Jumlah Formasi" radius={[8, 8, 0, 0]}>
+                              <LabelList dataKey="value" content={renderCustomBarLabel} />
+                              {gapTotalChartDataNM.map((entry, idx) => (
+                                <Cell key={`cell-nm-${idx}`} fill={entry.color} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
                       ) : (
-                        <div style={{ width: '100%', height: 260 }}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <ComposedChart
-                              data={gapJenjangChartDataNM}
-                              margin={{ top: 25, right: 30, left: 10, bottom: 20 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                              <XAxis
-                                dataKey="eselon"
-                                axisLine={{ stroke: '#cbd5e1' }}
-                                tickLine={false}
-                                tick={{ fill: '#334155', fontSize: 11, fontWeight: 700 }}
-                              />
-                              <YAxis
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#64748b', fontSize: 11 }}
-                                domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
-                                tickFormatter={(val) => val.toLocaleString('id-ID')}
-                              />
-                              <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
-                              <Legend
-                                verticalAlign="bottom"
-                                height={36}
-                                iconType="circle"
-                                wrapperStyle={{ paddingTop: 12, fontSize: '0.8rem', fontWeight: 600 }}
-                              />
-                              <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]}>
-                                <LabelList dataKey="Total Bezetting" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-                              </Bar>
-                              <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]}>
-                                <LabelList dataKey="Total Kebutuhan" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-                              </Bar>
-                              <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]}>
-                                <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-                              </Bar>
-                              
-                              <Line
-                                type="monotone"
-                                dataKey="Total Bezetting"
-                                stroke="#2563eb"
-                                strokeWidth={2}
-                                dot={{ r: 3, fill: '#2563eb' }}
-                                activeDot={{ r: 5 }}
-                                legendType="none"
-                              />
-                              <Line
-                                type="monotone"
-                                dataKey="Total Kebutuhan"
-                                stroke="#059669"
-                                strokeWidth={2}
-                                dot={{ r: 3, fill: '#059669' }}
-                                activeDot={{ r: 5 }}
-                                legendType="none"
-                              />
-                              <Line
-                                type="monotone"
-                                dataKey="Jabatan Kosong (Gap)"
-                                stroke="#dc2626"
-                                strokeWidth={2}
-                                strokeDasharray="4 4"
-                                dot={{ r: 3, fill: '#dc2626' }}
-                                activeDot={{ r: 5 }}
-                                legendType="none"
-                              />
-                            </ComposedChart>
-                          </ResponsiveContainer>
-                        </div>
+                        <ResponsiveContainer width="100%" height={340}>
+                          <ComposedChart
+                            data={gapJenjangChartDataNM}
+                            margin={{ top: 35, right: 30, left: 10, bottom: 25 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                            <XAxis
+                              dataKey="eselon"
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                              tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }}
+                            />
+                            <YAxis
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                              tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                              domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
+                              tickFormatter={(val) => val.toLocaleString('id-ID')}
+                            />
+                            <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                            <Legend
+                              wrapperStyle={{ paddingTop: 14, fontSize: 12, fontWeight: 600 }}
+                            />
+                            <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]}>
+                              <LabelList dataKey="Total Bezetting" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                            </Bar>
+                            <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]}>
+                              <LabelList dataKey="Total Kebutuhan" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                            </Bar>
+                            <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]}>
+                              <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                            </Bar>
+                            
+                            <Line
+                              type="monotone"
+                              dataKey="Total Bezetting"
+                              stroke="#2563eb"
+                              strokeWidth={2}
+                              dot={{ r: 3, fill: '#2563eb' }}
+                              activeDot={{ r: 5 }}
+                              legendType="none"
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="Total Kebutuhan"
+                              stroke="#059669"
+                              strokeWidth={2}
+                              dot={{ r: 3, fill: '#059669' }}
+                              activeDot={{ r: 5 }}
+                              legendType="none"
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="Jabatan Kosong (Gap)"
+                              stroke="#dc2626"
+                              strokeWidth={2}
+                              strokeDasharray="4 4"
+                              dot={{ r: 3, fill: '#dc2626' }}
+                              activeDot={{ r: 5 }}
+                              legendType="none"
+                            />
+                          </ComposedChart>
+                        </ResponsiveContainer>
                       )}
                     </div>
                   </div>

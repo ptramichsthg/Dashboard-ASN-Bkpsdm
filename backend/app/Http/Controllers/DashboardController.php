@@ -49,6 +49,17 @@ class DashboardController extends Controller
 
         $satuanKerjaList = DB::table('satuan_kerja')->pluck('satuan_kerja')->toArray();
 
+        $pegawaiAktifQuery = DB::table('data_pegawai_aktif');
+        if ($satker !== 'Semua Satuan Kerja') {
+            $pegawaiAktifQuery->where('satuan_kerja', $satker);
+        }
+        $pegawaiAktifSummary = [
+            'total' => (clone $pegawaiAktifQuery)->count(),
+            'pns'   => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PNS')->count(),
+            'pppk'  => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PPPK')->count(),
+            'cpns'  => (clone $pegawaiAktifQuery)->where('status_pegawai', 'CPNS')->count(),
+        ];
+
         return response()->json([
             'jenis_asn' => [
                 ['label' => 'CPNS',    'value' => $cpns,   'icon' => 'cpns'],
@@ -57,6 +68,7 @@ class DashboardController extends Controller
                 ['label' => 'PPPK PW', 'value' => $pppkPw, 'icon' => 'pppkpw'],
             ],
             'total_asn' => $total,
+            'pegawai_aktif_summary' => $pegawaiAktifSummary,
             'satuan_kerja_list' => $satuanKerjaList,
         ]);
     }
@@ -253,9 +265,21 @@ class DashboardController extends Controller
 
 
 
+        $pegawaiAktifQuery = DB::table('data_pegawai_aktif');
+        if ($satker !== 'Semua Satuan Kerja') {
+            $pegawaiAktifQuery->where('satuan_kerja', $satker);
+        }
+        $pegawaiAktifSummary = [
+            'total' => (clone $pegawaiAktifQuery)->count(),
+            'pns'   => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PNS')->count(),
+            'pppk'  => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PPPK')->count(),
+            'cpns'  => (clone $pegawaiAktifQuery)->where('status_pegawai', 'CPNS')->count(),
+        ];
+
         return response()->json([
             'summary' => ['total' => $total, 'laki' => $totalLaki, 'perempuan' => $totalPerempuan],
             'statusPegawai' => $statusPegawai,
+            'pegawai_aktif_summary' => $pegawaiAktifSummary,
             'jenisJabatan' => $jenisJabatan,
             'jenisJFT' => $jenisJFT,
             'golonganPNS' => $golonganPNS,

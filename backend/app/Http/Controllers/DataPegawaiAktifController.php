@@ -28,6 +28,11 @@ class DataPegawaiAktifController extends Controller
                 $query->where('unit_kerja', 'like', '%' . $request->unit_kerja . '%');
             }
 
+            // Filter status pegawai (PNS, PPPK, CPNS)
+            if ($request->filled('status_pegawai') && $request->status_pegawai !== 'Semua') {
+                $query->where('status_pegawai', $request->status_pegawai);
+            }
+
             // Filter golongan akhir
             if ($request->filled('golongan_akhir') && $request->golongan_akhir !== 'Semua') {
                 $query->where('golongan_akhir', $request->golongan_akhir);
@@ -49,7 +54,7 @@ class DataPegawaiAktifController extends Controller
                 $query->where('pendidikan', 'like', '%' . $request->pendidikan . '%');
             }
 
-            // Pencarian global (NIP, Nama Lengkap, Jabatan Utama, Unit Kerja)
+            // Pencarian global (NIP, Nama Lengkap, Jabatan Utama, Unit Kerja, Satker, Status Pegawai)
             if ($request->filled('search')) {
                 $search = trim($request->search);
                 $query->where(function ($q) use ($search) {
@@ -57,7 +62,8 @@ class DataPegawaiAktifController extends Controller
                       ->orWhere('nama_lengkap', 'like', '%' . $search . '%')
                       ->orWhere('jabatan_utama', 'like', '%' . $search . '%')
                       ->orWhere('unit_kerja', 'like', '%' . $search . '%')
-                      ->orWhere('satuan_kerja', 'like', '%' . $search . '%');
+                      ->orWhere('satuan_kerja', 'like', '%' . $search . '%')
+                      ->orWhere('status_pegawai', 'like', '%' . $search . '%');
                 });
             }
 
@@ -65,7 +71,7 @@ class DataPegawaiAktifController extends Controller
             $sortBy = $request->input('sort_by', 'nama_lengkap');
             $sortOrder = strtolower($request->input('sort_order', 'asc')) === 'desc' ? 'desc' : 'asc';
             
-            $allowedSorts = ['id', 'nip', 'nama_lengkap', 'golongan_akhir', 'pendidikan', 'eselon', 'jabatan_utama', 'unit_kerja', 'satuan_kerja'];
+            $allowedSorts = ['id', 'nip', 'nama_lengkap', 'status_pegawai', 'golongan_akhir', 'pendidikan', 'eselon', 'jabatan_utama', 'unit_kerja', 'satuan_kerja'];
             if (!in_array($sortBy, $allowedSorts)) {
                 $sortBy = 'nama_lengkap';
             }
@@ -93,7 +99,7 @@ class DataPegawaiAktifController extends Controller
     }
 
     /**
-     * Mengambil statistik ringkasan data pegawai (Tingkat Pendidikan, Golongan, Eselon, Satker).
+     * Mengambil statistik ringkasan data pegawai (Tingkat Pendidikan, Golongan, Eselon, Satker, Status Pegawai).
      */
     public function statistics(Request $request): JsonResponse
     {
@@ -109,6 +115,22 @@ class DataPegawaiAktifController extends Controller
                 }
 
                 $total = (clone $baseQuery)->count();
+
+                // Ringkasan Status Pegawai
+                $statusPegawaiChart = (clone $baseQuery)
+                    ->whereNotNull('status_pegawai')
+                    ->where('status_pegawai', '!=', '')
+                    ->select('status_pegawai as name', DB::raw('count(*) as value'))
+                    ->groupBy('status_pegawai')
+                    ->orderByDesc('value')
+                    ->get()
+                    ->toArray();
+
+                $statusCounts = [
+                    'pns' => (clone $baseQuery)->where('status_pegawai', 'PNS')->count(),
+                    'pppk' => (clone $baseQuery)->where('status_pegawai', 'PPPK')->count(),
+                    'cpns' => (clone $baseQuery)->where('status_pegawai', 'CPNS')->count(),
+                ];
 
                 // Ringkasan Jenjang Pendidikan
                 $jenjangCounts = [
@@ -188,6 +210,8 @@ class DataPegawaiAktifController extends Controller
 
                 return [
                     'total_pegawai' => $total,
+                    'status_counts' => $statusCounts,
+                    'sebaran_status_pegawai' => $statusPegawaiChart,
                     'jenjang_pendidikan' => $pendidikanChart,
                     'sebaran_golongan' => $golonganChart,
                     'sebaran_eselon' => $eselonChart,
@@ -235,12 +259,20 @@ class DataPegawaiAktifController extends Controller
                 ->sort()
                 ->values();
 
+            $statusPegawaiList = DataPegawaiAktif::whereNotNull('status_pegawai')
+                ->where('status_pegawai', '!=', '')
+                ->distinct()
+                ->pluck('status_pegawai')
+                ->sort()
+                ->values();
+
             return response()->json([
                 'success' => true,
                 'data' => [
                     'satuan_kerja' => $satkerList,
                     'golongan' => $golonganList,
                     'eselon' => $eselonList,
+                    'status_pegawai' => $statusPegawaiList,
                     'jenjang_pendidikan' => ['S3', 'S2', 'S1', 'D-IV', 'D-III', 'SMA', 'SMK'],
                 ],
             ]);
