@@ -451,7 +451,7 @@ const Profil = () => {
   const rekapFiltered = useMemo(() => {
     if (!manajerialData?.rekap || !Array.isArray(manajerialData.rekap)) return [];
     if (!activeFilter || activeFilter === 'Semua') return manajerialData.rekap;
-    return manajerialData.rekap.filter(r => 
+    return manajerialData.rekap.filter(r =>
       r.jenis_eselon === activeFilter || r.subklasifikasi === activeFilter
     );
   }, [manajerialData, activeFilter]);
@@ -481,7 +481,7 @@ const Profil = () => {
   const rekapFilteredNM = useMemo(() => {
     if (!nonManajerialData?.rekap || !Array.isArray(nonManajerialData.rekap)) return [];
     if (!activeFilterNM || activeFilterNM === 'Semua') return nonManajerialData.rekap;
-    return nonManajerialData.rekap.filter(r => 
+    return nonManajerialData.rekap.filter(r =>
       r.kategori === activeFilterNM || r.jenjang_jf === activeFilterNM || r.subklasifikasi === activeFilterNM
     );
   }, [nonManajerialData, activeFilterNM]);
@@ -558,7 +558,7 @@ const Profil = () => {
         j.jabatan?.toLowerCase().includes(searchKosongNM.toLowerCase()) ||
         j.perangkat_daerah?.toLowerCase().includes(searchKosongNM.toLowerCase()) ||
         (j.unit_kerja && j.unit_kerja.toLowerCase().includes(searchKosongNM.toLowerCase()));
-      
+
       const matchJenjang =
         filterJenjangNM === 'Semua' ||
         j.jenjang_jf === filterJenjangNM ||
@@ -598,10 +598,10 @@ const Profil = () => {
   // Filtered & Sorted jabatan untuk Pop-up Modal Selisih (+/-) Universal
   const modalJabatanFiltered = useMemo(() => {
     if (!selectedModalRow) return [];
-    const sourceData = activeTab === 'manajerial' 
-      ? manajerialData?.jabatan_kosong 
+    const sourceData = activeTab === 'manajerial'
+      ? manajerialData?.jabatan_kosong
       : nonManajerialData?.jabatan_kosong;
-      
+
     if (!Array.isArray(sourceData)) return [];
 
     return sourceData.filter((j) => {
@@ -940,6 +940,31 @@ const Profil = () => {
           </div>
 
           {/* ═══════════════════════════════════════════════
+              STATISTIK UMUM
+          ═══════════════════════════════════════════════ */}
+          <div
+            className="statistik-umum"
+            style={{
+              marginTop: '2rem',
+              marginBottom: '2rem',
+              padding: '2rem',
+              backgroundColor: '#f8fafc',
+              border: '2px dashed #cbd5e1',
+              borderRadius: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1rem',
+              color: '#64748b'
+            }}
+          >
+            <BarChart2 size={36} color="#94a3b8" />
+            <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>Statistik Umum (Segera Hadir)</span>
+            <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Area ini disiapkan untuk menampilkan chart atau metrik ringkasan umum.</span>
+          </div>
+
+          {/* ═══════════════════════════════════════════════
               SECTION 2 — JABATAN MANAJERIAL & NON-MANAJERIAL
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
@@ -987,117 +1012,420 @@ const Profil = () => {
               ) : (
                 <div className="manajerial-wrapper">
 
-              {/* Tabel Bezetting */}
-              <div className="bezetting-table-card">
-                <div className="bezetting-table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ background: '#fdf4ff', borderRadius: 8, padding: '0.35rem', display: 'flex' }}>
-                      <BarChart2 size={16} color="#7e22ce" />
+                  {/* Tabel Bezetting */}
+                  <div className="bezetting-table-card">
+                    <div className="bezetting-table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ background: '#fdf4ff', borderRadius: 8, padding: '0.35rem', display: 'flex' }}>
+                          <BarChart2 size={16} color="#7e22ce" />
+                        </div>
+                        <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Rekapitulasi Bezetting</span>
+                      </div>
+
+                      <div className="manajerial-filter-wrapper">
+                        <Filter size={16} color="#64748b" className="filter-icon" />
+                        <select
+                          className="manajerial-select"
+                          value={activeFilter}
+                          onChange={(e) => setActiveFilter(e.target.value)}
+                        >
+                          <option value="Semua">Semua Eselon / Subklasifikasi</option>
+                          <optgroup label="Tingkat Eselon">
+                            <option value="Eselon II.a">Eselon II.a</option>
+                            <option value="Eselon II.b">Eselon II.b</option>
+                            <option value="Eselon III.a">Eselon III.a</option>
+                            <option value="Eselon III.b">Eselon III.b</option>
+                            <option value="Eselon IV.a">Eselon IV.a</option>
+                            <option value="Eselon IV.b">Eselon IV.b</option>
+                          </optgroup>
+                          <optgroup label="Subklasifikasi">
+                            <option value="Administrator">Administrator</option>
+                            <option value="JPT Pratama">JPT Pratama</option>
+                            <option value="Jabatan Fungsional">Jabatan Fungsional</option>
+                            <option value="Jabatan Pelaksana">Jabatan Pelaksana</option>
+                            <option value="Pengawas">Pengawas</option>
+                          </optgroup>
+                        </select>
+                      </div>
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Rekapitulasi Bezetting</span>
+
+                    {/* KPI Summary */}
+                    {activeFilter === 'Semua' && summary && (
+                      <div className="bezetting-kpi-row">
+                        <div className="bezetting-kpi-item">
+                          <div className="bezetting-kpi-label">Total Bezetting</div>
+                          <div className="bezetting-kpi-value">{Number(summary.total_bezetting).toLocaleString('id-ID')}</div>
+                        </div>
+                        <div className="bezetting-kpi-item">
+                          <div className="bezetting-kpi-label">Total Kebutuhan</div>
+                          <div className="bezetting-kpi-value">{Number(summary.total_kebutuhan).toLocaleString('id-ID')}</div>
+                        </div>
+                        <div className="bezetting-kpi-item">
+                          <div className="bezetting-kpi-label">Jabatan Kosong</div>
+                          <div className="bezetting-kpi-value danger">{Number(summary.total_jabatan_kosong).toLocaleString('id-ID')}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    <table className="bezetting-table">
+                      <thead>
+                        <tr>
+                          <th>Subklasifikasi</th>
+                          <th>Eselon</th>
+                          <th onClick={() => handleSortRekap('total_bezetting')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                              <span>Bezetting</span>
+                              <SortIcon active={sortRekap.key === 'total_bezetting'} direction={sortRekap.direction} />
+                            </div>
+                          </th>
+                          <th onClick={() => handleSortRekap('total_kebutuhan')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                              <span>Kebutuhan</span>
+                              <SortIcon active={sortRekap.key === 'total_kebutuhan'} direction={sortRekap.direction} />
+                            </div>
+                          </th>
+                          <th onClick={() => handleSortRekap('total_selisih')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                              <span>+/-</span>
+                              <SortIcon active={sortRekap.key === 'total_selisih'} direction={sortRekap.direction} />
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedRekap.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="no-data-row">Tidak ada data</td>
+                          </tr>
+                        ) : (
+                          sortedRekap.map((row) => {
+                            const { badgeClass } = SUB_COLOR[row.subklasifikasi] || {};
+                            return (
+                              <tr key={`${row.subklasifikasi}-${row.jenis_eselon}`}>
+                                <td>
+                                  <span className={`sub-badge ${badgeClass}`}>{row.subklasifikasi}</span>
+                                </td>
+                                <td>
+                                  <button
+                                    type="button"
+                                    className="eselon-btn"
+                                    onClick={() => handleOpenEselonModal(row)}
+                                    title={`Klik untuk melihat seluruh daftar jabatan ${row.jenis_eselon}`}
+                                  >
+                                    {row.jenis_eselon}
+                                  </button>
+                                </td>
+                                <td className="text-center num-cell">{Number(row.total_bezetting).toLocaleString('id-ID')}</td>
+                                <td className="text-center num-cell">{Number(row.total_kebutuhan).toLocaleString('id-ID')}</td>
+                                <td className="text-center">
+                                  <SelisihBadge
+                                    value={Number(row.total_selisih)}
+                                    onClick={() => handleOpenModal(row)}
+                                    title={`Klik untuk melihat rincian jabatan ${row.jenis_eselon}`}
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
                   </div>
 
-                  <div className="manajerial-filter-wrapper">
-                    <Filter size={16} color="#64748b" className="filter-icon" />
+                  {/* ── GRAFIK PERBANDINGAN & ANALISIS GAP ── */}
+                  <div className="gap-chart-card">
+                    {/* Header */}
+                    <div className="gap-chart-header">
+                      <div className="gap-chart-title-area">
+                        <div className="gap-chart-icon-box">
+                          <BarChart2 size={20} color="#7e22ce" />
+                        </div>
+                        <div>
+                          <h3 className="gap-chart-title">Grafik Perbandingan & Analisis Gap Formasi</h3>
+                          <div className="gap-chart-subtitle">
+                            {gapMetrics.isFiltered
+                              ? `Menampilkan formasi terfilter: ${activeFilter}`
+                              : `Perbandingan Total Kebutuhan (${gapMetrics.kebutuhan.toLocaleString('id-ID')}), Bezetting Terisi (${gapMetrics.bezetting.toLocaleString('id-ID')}), dan Selisih Gap Jabatan Kosong (${gapMetrics.kosong.toLocaleString('id-ID')})`}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Toggle Mode */}
+                      <div className="gap-view-toggle">
+                        <button
+                          type="button"
+                          className={`gap-view-btn ${gapChartView === 'total' ? 'active' : ''}`}
+                          onClick={() => setGapChartView('total')}
+                        >
+                          Ringkasan Total & Gap
+                        </button>
+                        <button
+                          type="button"
+                          className={`gap-view-btn ${gapChartView === 'eselon' ? 'active' : ''}`}
+                          onClick={() => setGapChartView('eselon')}
+                        >
+                          Rincian per Eselon
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Visual Ratio Progress Track */}
+                    <div className="gap-progress-section">
+                      <div className="gap-progress-header">
+                        <span>
+                          <strong>Rasio Pemenuhan Formasi</strong>: {gapMetrics.bezetting.toLocaleString('id-ID')} dari {gapMetrics.kebutuhan.toLocaleString('id-ID')} formasi terpenuhi
+                        </span>
+                        <span style={{ color: '#dc2626', fontWeight: 700 }}>
+                          Gap Defisit: {gapMetrics.kosong.toLocaleString('id-ID')} Formasi ({gapMetrics.persentaseGap}%)
+                        </span>
+                      </div>
+
+                      <div className="gap-progress-track">
+                        <div
+                          className="gap-progress-seg-terisi"
+                          style={{ width: `${gapMetrics.persentaseTerisi}%` }}
+                          title={`Bezetting Terisi: ${gapMetrics.bezetting.toLocaleString('id-ID')} (${gapMetrics.persentaseTerisi}%)`}
+                        >
+                          {Number(gapMetrics.persentaseTerisi) >= 15 && (
+                            <span>✓ {gapMetrics.bezetting.toLocaleString('id-ID')} Terisi ({gapMetrics.persentaseTerisi}%)</span>
+                          )}
+                        </div>
+                        <div
+                          className="gap-progress-seg-kosong"
+                          style={{ width: `${gapMetrics.persentaseGap}%` }}
+                          title={`Jabatan Kosong / Gap: ${gapMetrics.kosong.toLocaleString('id-ID')} (${gapMetrics.persentaseGap}%)`}
+                        >
+                          {Number(gapMetrics.persentaseGap) >= 4 && (
+                            <span>{gapMetrics.kosong.toLocaleString('id-ID')} Kosong</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="gap-progress-legend">
+                        <div className="gap-legend-item">
+                          <span className="gap-legend-box" style={{ background: '#10b981' }} />
+                          <span>Formasi Terisi ({gapMetrics.bezetting.toLocaleString('id-ID')})</span>
+                        </div>
+                        <div className="gap-legend-item">
+                          <span
+                            className="gap-legend-box"
+                            style={{
+                              background: 'repeating-linear-gradient(-45deg, #ef4444, #ef4444 4px, #dc2626 4px, #dc2626 8px)'
+                            }}
+                          />
+                          <span>Gap Formasi Kosong ({gapMetrics.kosong.toLocaleString('id-ID')})</span>
+                        </div>
+                        <div className="gap-legend-item" style={{ color: '#1e293b' }}>
+                          <span>Total Target Formasi: <strong>{gapMetrics.kebutuhan.toLocaleString('id-ID')}</strong></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recharts Canvas */}
+                    <div className="gap-chart-canvas-area">
+                      {gapChartView === 'total' ? (
+                        <ResponsiveContainer width="100%" height={320}>
+                          <BarChart
+                            data={gapTotalChartData}
+                            margin={{ top: 35, right: 40, left: 15, bottom: 20 }}
+                            barSize={55}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                            <XAxis
+                              dataKey="category"
+                              tick={{ fill: '#334155', fontSize: 13, fontWeight: 700 }}
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                            />
+                            <YAxis
+                              tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                            />
+                            <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                            <Bar dataKey="value" name="Jumlah Formasi" radius={[8, 8, 0, 0]}>
+                              <LabelList dataKey="value" content={renderCustomBarLabel} />
+                              {gapTotalChartData.map((entry, idx) => (
+                                <Cell key={`cell-${idx}`} fill={entry.color || '#7e22ce'} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={340}>
+                          <ComposedChart
+                            data={gapEselonChartData}
+                            margin={{ top: 35, right: 30, left: 10, bottom: 25 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                            <XAxis
+                              dataKey="eselon"
+                              tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }}
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                            />
+                            <YAxis
+                              tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                            />
+                            <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                            <Legend
+                              wrapperStyle={{ paddingTop: 14, fontSize: 12, fontWeight: 600 }}
+                            />
+                            <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                              <LabelList dataKey="Total Bezetting" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                            </Bar>
+                            <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                              <LabelList dataKey="Total Kebutuhan" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                            </Bar>
+                            <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                              <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                            </Bar>
+
+                            <Line
+                              type="monotone"
+                              dataKey="Total Bezetting"
+                              stroke="#2563eb"
+                              strokeWidth={2}
+                              dot={{ r: 3, fill: '#2563eb' }}
+                              activeDot={{ r: 5 }}
+                              legendType="none"
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="Total Kebutuhan"
+                              stroke="#059669"
+                              strokeWidth={2}
+                              dot={{ r: 3, fill: '#059669' }}
+                              activeDot={{ r: 5 }}
+                              legendType="none"
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="Jabatan Kosong (Gap)"
+                              stroke="#dc2626"
+                              strokeWidth={2}
+                              strokeDasharray="4 4"
+                              dot={{ r: 3, fill: '#dc2626' }}
+                              activeDot={{ r: 5 }}
+                              legendType="none"
+                            />
+                          </ComposedChart>
+                        </ResponsiveContainer>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ═══════════════════════════════════════════════
+              SECTION 4 — DETAIL JABATAN KOSONG
+          ═══════════════════════════════════════════════ */}
+              <div className="profil-section-header">
+                <div className="profil-section-icon" style={{ background: '#d1fae5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+                  <AlertCircle size={22} color="#059669" />
+                </div>
+                <div className="profil-section-title-wrap">
+                  <h2 className="profil-section-title">Detail Jabatan Manajerial Kosong / Lowong</h2>
+                </div>
+                <div className="profil-section-line" />
+              </div>
+
+              <div className="jabatan-kosong-card">
+                <div className="jabatan-kosong-toolbar">
+                  {/* Search */}
+                  <div className="jabatan-kosong-search">
+                    <Search size={15} color="var(--text-muted)" />
+                    <input
+                      type="text"
+                      placeholder="Cari jabatan atau OPD..."
+                      value={searchKosong}
+                      onChange={(e) => setSearchKosong(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Filter eselon */}
+                  <div className="jabatan-kosong-filter">
                     <select
-                      className="manajerial-select"
-                      value={activeFilter}
-                      onChange={(e) => setActiveFilter(e.target.value)}
+                      value={filterEselon}
+                      onChange={(e) => setFilterEselon(e.target.value)}
                     >
-                      <option value="Semua">Semua Eselon / Subklasifikasi</option>
-                      <optgroup label="Tingkat Eselon">
-                        <option value="Eselon II.a">Eselon II.a</option>
-                        <option value="Eselon II.b">Eselon II.b</option>
-                        <option value="Eselon III.a">Eselon III.a</option>
-                        <option value="Eselon III.b">Eselon III.b</option>
-                        <option value="Eselon IV.a">Eselon IV.a</option>
-                        <option value="Eselon IV.b">Eselon IV.b</option>
-                      </optgroup>
-                      <optgroup label="Subklasifikasi">
-                        <option value="Administrator">Administrator</option>
-                        <option value="JPT Pratama">JPT Pratama</option>
-                        <option value="Jabatan Fungsional">Jabatan Fungsional</option>
-                        <option value="Jabatan Pelaksana">Jabatan Pelaksana</option>
-                        <option value="Pengawas">Pengawas</option>
-                      </optgroup>
+                      <option value="Semua">Semua Eselon</option>
+                      <option value="Eselon II.a">Eselon II.a</option>
+                      <option value="Eselon II.b">Eselon II.b</option>
+                      <option value="Eselon III.a">Eselon III.a</option>
+                      <option value="Eselon III.b">Eselon III.b</option>
+                      <option value="Eselon IV.a">Eselon IV.a</option>
+                      <option value="Eselon IV.b">Eselon IV.b</option>
                     </select>
+                  </div>
+
+                  {/* Count badge */}
+                  <div className="jabatan-kosong-count">
+                    {jabatanKosongFiltered.length.toLocaleString('id-ID')} jabatan kosong
                   </div>
                 </div>
 
-                {/* KPI Summary */}
-                {activeFilter === 'Semua' && summary && (
-                  <div className="bezetting-kpi-row">
-                    <div className="bezetting-kpi-item">
-                      <div className="bezetting-kpi-label">Total Bezetting</div>
-                      <div className="bezetting-kpi-value">{Number(summary.total_bezetting).toLocaleString('id-ID')}</div>
-                    </div>
-                    <div className="bezetting-kpi-item">
-                      <div className="bezetting-kpi-label">Total Kebutuhan</div>
-                      <div className="bezetting-kpi-value">{Number(summary.total_kebutuhan).toLocaleString('id-ID')}</div>
-                    </div>
-                    <div className="bezetting-kpi-item">
-                      <div className="bezetting-kpi-label">Jabatan Kosong</div>
-                      <div className="bezetting-kpi-value danger">{Number(summary.total_jabatan_kosong).toLocaleString('id-ID')}</div>
-                    </div>
-                  </div>
-                )}
-
-                <table className="bezetting-table">
+                <table className="jabatan-kosong-table">
                   <thead>
                     <tr>
-                      <th>Subklasifikasi</th>
+                      <th style={{ width: 45 }}>#</th>
+                      <th>Nama Jabatan</th>
+                      <th>OPD</th>
                       <th>Eselon</th>
-                      <th onClick={() => handleSortRekap('total_bezetting')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                      <th onClick={() => handleSortJabatanKosong('bezetting')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
                           <span>Bezetting</span>
-                          <SortIcon active={sortRekap.key === 'total_bezetting'} direction={sortRekap.direction} />
+                          <SortIcon active={sortJabatanKosong.key === 'bezetting'} direction={sortJabatanKosong.direction} />
                         </div>
                       </th>
-                      <th onClick={() => handleSortRekap('total_kebutuhan')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                      <th onClick={() => handleSortJabatanKosong('kebutuhan')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
                           <span>Kebutuhan</span>
-                          <SortIcon active={sortRekap.key === 'total_kebutuhan'} direction={sortRekap.direction} />
+                          <SortIcon active={sortJabatanKosong.key === 'kebutuhan'} direction={sortJabatanKosong.direction} />
                         </div>
                       </th>
-                      <th onClick={() => handleSortRekap('total_selisih')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                      <th onClick={() => handleSortJabatanKosong('selisih')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
-                          <span>+/-</span>
-                          <SortIcon active={sortRekap.key === 'total_selisih'} direction={sortRekap.direction} />
+                          <span>Selisih</span>
+                          <SortIcon active={sortJabatanKosong.key === 'selisih'} direction={sortJabatanKosong.direction} />
                         </div>
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedRekap.length === 0 ? (
+                    {manajerialLoading ? (
                       <tr>
-                        <td colSpan={5} className="no-data-row">Tidak ada data</td>
+                        <td colSpan={7} className="no-data-row">Memuat data...</td>
+                      </tr>
+                    ) : jabatanKosongFiltered.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="no-data-row">
+                          {searchKosong || filterEselon !== 'Semua'
+                            ? 'Tidak ada hasil pencarian'
+                            : 'Semua jabatan manajerial sudah terisi'}
+                        </td>
                       </tr>
                     ) : (
-                      sortedRekap.map((row) => {
-                        const { badgeClass } = SUB_COLOR[row.subklasifikasi] || {};
+                      pagedJabatanKosong.map((j, idx) => {
+                        const { badgeClass } = SUB_COLOR[j.subklasifikasi] || {};
+                        const absoluteIndex = (pageKosong - 1) * itemsPerPageKosong + idx + 1;
                         return (
-                          <tr key={`${row.subklasifikasi}-${row.jenis_eselon}`}>
+                          <tr key={j.id}>
+                            <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{absoluteIndex}</td>
                             <td>
-                              <span className={`sub-badge ${badgeClass}`}>{row.subklasifikasi}</span>
+                              <div className="jabatan-name">{j.jabatan}</div>
+                              <div className="jabatan-unit">{j.unit_kerja}</div>
                             </td>
+                            <td className="opd-text">{j.perangkat_daerah}</td>
                             <td>
-                              <button
-                                type="button"
-                                className="eselon-btn"
-                                onClick={() => handleOpenEselonModal(row)}
-                                title={`Klik untuk melihat seluruh daftar jabatan ${row.jenis_eselon}`}
-                              >
-                                {row.jenis_eselon}
-                              </button>
+                              <span className={`sub-badge ${badgeClass}`}>{j.jenis_eselon}</span>
                             </td>
-                            <td className="text-center num-cell">{Number(row.total_bezetting).toLocaleString('id-ID')}</td>
-                            <td className="text-center num-cell">{Number(row.total_kebutuhan).toLocaleString('id-ID')}</td>
+                            <td className="text-center num-cell">{Number(j.bezetting).toLocaleString('id-ID')}</td>
+                            <td className="text-center num-cell">{Number(j.kebutuhan).toLocaleString('id-ID')}</td>
                             <td className="text-center">
-                              <SelisihBadge
-                                value={Number(row.total_selisih)}
-                                onClick={() => handleOpenModal(row)}
-                                title={`Klik untuk melihat rincian jabatan ${row.jenis_eselon}`}
-                              />
+                              <SelisihBadge value={j.selisih} />
                             </td>
                           </tr>
                         );
@@ -1105,355 +1433,52 @@ const Profil = () => {
                     )}
                   </tbody>
                 </table>
-              </div>
 
-              {/* ── GRAFIK PERBANDINGAN & ANALISIS GAP ── */}
-              <div className="gap-chart-card">
-                {/* Header */}
-                <div className="gap-chart-header">
-                  <div className="gap-chart-title-area">
-                    <div className="gap-chart-icon-box">
-                      <BarChart2 size={20} color="#7e22ce" />
-                    </div>
-                    <div>
-                      <h3 className="gap-chart-title">Grafik Perbandingan & Analisis Gap Formasi</h3>
-                      <div className="gap-chart-subtitle">
-                        {gapMetrics.isFiltered
-                          ? `Menampilkan formasi terfilter: ${activeFilter}`
-                          : `Perbandingan Total Kebutuhan (${gapMetrics.kebutuhan.toLocaleString('id-ID')}), Bezetting Terisi (${gapMetrics.bezetting.toLocaleString('id-ID')}), dan Selisih Gap Jabatan Kosong (${gapMetrics.kosong.toLocaleString('id-ID')})`}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Toggle Mode */}
-                  <div className="gap-view-toggle">
-                    <button
-                      type="button"
-                      className={`gap-view-btn ${gapChartView === 'total' ? 'active' : ''}`}
-                      onClick={() => setGapChartView('total')}
-                    >
-                      Ringkasan Total & Gap
-                    </button>
-                    <button
-                      type="button"
-                      className={`gap-view-btn ${gapChartView === 'eselon' ? 'active' : ''}`}
-                      onClick={() => setGapChartView('eselon')}
-                    >
-                      Rincian per Eselon
-                    </button>
-                  </div>
-                </div>
-
-                {/* Visual Ratio Progress Track */}
-                <div className="gap-progress-section">
-                  <div className="gap-progress-header">
+                {/* Pagination Controls */}
+                {!manajerialLoading && jabatanKosongFiltered.length > 0 && (
+                  <div className="profil-pagination">
                     <span>
-                      <strong>Rasio Pemenuhan Formasi</strong>: {gapMetrics.bezetting.toLocaleString('id-ID')} dari {gapMetrics.kebutuhan.toLocaleString('id-ID')} formasi terpenuhi
+                      Menampilkan {((pageKosong - 1) * itemsPerPageKosong) + 1}–{Math.min(pageKosong * itemsPerPageKosong, jabatanKosongFiltered.length)} dari {jabatanKosongFiltered.length.toLocaleString('id-ID')} jabatan
                     </span>
-                    <span style={{ color: '#dc2626', fontWeight: 700 }}>
-                      Gap Defisit: {gapMetrics.kosong.toLocaleString('id-ID')} Formasi ({gapMetrics.persentaseGap}%)
-                    </span>
-                  </div>
-
-                  <div className="gap-progress-track">
-                    <div
-                      className="gap-progress-seg-terisi"
-                      style={{ width: `${gapMetrics.persentaseTerisi}%` }}
-                      title={`Bezetting Terisi: ${gapMetrics.bezetting.toLocaleString('id-ID')} (${gapMetrics.persentaseTerisi}%)`}
-                    >
-                      {Number(gapMetrics.persentaseTerisi) >= 15 && (
-                        <span>✓ {gapMetrics.bezetting.toLocaleString('id-ID')} Terisi ({gapMetrics.persentaseTerisi}%)</span>
-                      )}
-                    </div>
-                    <div
-                      className="gap-progress-seg-kosong"
-                      style={{ width: `${gapMetrics.persentaseGap}%` }}
-                      title={`Jabatan Kosong / Gap: ${gapMetrics.kosong.toLocaleString('id-ID')} (${gapMetrics.persentaseGap}%)`}
-                    >
-                      {Number(gapMetrics.persentaseGap) >= 4 && (
-                        <span>{gapMetrics.kosong.toLocaleString('id-ID')} Kosong</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="gap-progress-legend">
-                    <div className="gap-legend-item">
-                      <span className="gap-legend-box" style={{ background: '#10b981' }} />
-                      <span>Formasi Terisi ({gapMetrics.bezetting.toLocaleString('id-ID')})</span>
-                    </div>
-                    <div className="gap-legend-item">
-                      <span
-                        className="gap-legend-box"
-                        style={{
-                          background: 'repeating-linear-gradient(-45deg, #ef4444, #ef4444 4px, #dc2626 4px, #dc2626 8px)'
-                        }}
-                      />
-                      <span>Gap Formasi Kosong ({gapMetrics.kosong.toLocaleString('id-ID')})</span>
-                    </div>
-                    <div className="gap-legend-item" style={{ color: '#1e293b' }}>
-                      <span>Total Target Formasi: <strong>{gapMetrics.kebutuhan.toLocaleString('id-ID')}</strong></span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recharts Canvas */}
-                <div className="gap-chart-canvas-area">
-                  {gapChartView === 'total' ? (
-                    <ResponsiveContainer width="100%" height={320}>
-                      <BarChart
-                        data={gapTotalChartData}
-                        margin={{ top: 35, right: 40, left: 15, bottom: 20 }}
-                        barSize={55}
+                    <div className="profil-pagination-btns">
+                      <button
+                        className="profil-page-btn"
+                        onClick={() => setPageKosong((p) => Math.max(1, p - 1))}
+                        disabled={pageKosong === 1}
+                        title="Halaman sebelumnya"
                       >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis
-                          dataKey="category"
-                          tick={{ fill: '#334155', fontSize: 13, fontWeight: 700 }}
-                          axisLine={{ stroke: '#cbd5e1' }}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
-                          axisLine={{ stroke: '#cbd5e1' }}
-                          tickLine={false}
-                        />
-                        <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
-                        <Bar dataKey="value" name="Jumlah Formasi" radius={[8, 8, 0, 0]}>
-                          <LabelList dataKey="value" content={renderCustomBarLabel} />
-                          {gapTotalChartData.map((entry, idx) => (
-                            <Cell key={`cell-${idx}`} fill={entry.color || '#7e22ce'} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <ResponsiveContainer width="100%" height={340}>
-                      <ComposedChart
-                        data={gapEselonChartData}
-                        margin={{ top: 35, right: 30, left: 10, bottom: 25 }}
+                        <ChevronLeft size={16} />
+                      </button>
+
+                      {Array.from({ length: totalPagesKosong }, (_, i) => i + 1)
+                        .filter((p) => p === 1 || p === totalPagesKosong || Math.abs(p - pageKosong) <= 1)
+                        .map((p, idx, arr) => (
+                          <React.Fragment key={p}>
+                            {idx > 0 && arr[idx - 1] !== p - 1 && (
+                              <span className="profil-pagination-dots">…</span>
+                            )}
+                            <button
+                              className={`profil-page-btn ${pageKosong === p ? 'active' : ''}`}
+                              onClick={() => setPageKosong(p)}
+                            >
+                              {p}
+                            </button>
+                          </React.Fragment>
+                        ))}
+
+                      <button
+                        className="profil-page-btn"
+                        onClick={() => setPageKosong((p) => Math.min(totalPagesKosong, p + 1))}
+                        disabled={pageKosong === totalPagesKosong}
+                        title="Halaman berikutnya"
                       >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis
-                          dataKey="eselon"
-                          tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }}
-                          axisLine={{ stroke: '#cbd5e1' }}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
-                          axisLine={{ stroke: '#cbd5e1' }}
-                          tickLine={false}
-                        />
-                        <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
-                        <Legend
-                          wrapperStyle={{ paddingTop: 14, fontSize: 12, fontWeight: 600 }}
-                        />
-                        <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]}>
-                          <LabelList dataKey="Total Bezetting" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-                        </Bar>
-                        <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]}>
-                          <LabelList dataKey="Total Kebutuhan" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-                        </Bar>
-                        <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]}>
-                          <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-                        </Bar>
-                        
-                        <Line
-                          type="monotone"
-                          dataKey="Total Bezetting"
-                          stroke="#2563eb"
-                          strokeWidth={2}
-                          dot={{ r: 3, fill: '#2563eb' }}
-                          activeDot={{ r: 5 }}
-                          legendType="none"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Total Kebutuhan"
-                          stroke="#059669"
-                          strokeWidth={2}
-                          dot={{ r: 3, fill: '#059669' }}
-                          activeDot={{ r: 5 }}
-                          legendType="none"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Jabatan Kosong (Gap)"
-                          stroke="#dc2626"
-                          strokeWidth={2}
-                          strokeDasharray="4 4"
-                          dot={{ r: 3, fill: '#dc2626' }}
-                          activeDot={{ r: 5 }}
-                          legendType="none"
-                        />
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ═══════════════════════════════════════════════
-              SECTION 4 — DETAIL JABATAN KOSONG
-          ═══════════════════════════════════════════════ */}
-          <div className="profil-section-header">
-            <div className="profil-section-icon" style={{ background: '#d1fae5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
-              <AlertCircle size={22} color="#059669" />
-            </div>
-            <div className="profil-section-title-wrap">
-              <h2 className="profil-section-title">Detail Jabatan Manajerial Kosong / Lowong</h2>
-            </div>
-            <div className="profil-section-line" />
-          </div>
-
-          <div className="jabatan-kosong-card">
-            <div className="jabatan-kosong-toolbar">
-              {/* Search */}
-              <div className="jabatan-kosong-search">
-                <Search size={15} color="var(--text-muted)" />
-                <input
-                  type="text"
-                  placeholder="Cari jabatan atau OPD..."
-                  value={searchKosong}
-                  onChange={(e) => setSearchKosong(e.target.value)}
-                />
-              </div>
-
-              {/* Filter eselon */}
-              <div className="jabatan-kosong-filter">
-                <select
-                  value={filterEselon}
-                  onChange={(e) => setFilterEselon(e.target.value)}
-                >
-                  <option value="Semua">Semua Eselon</option>
-                  <option value="Eselon II.a">Eselon II.a</option>
-                  <option value="Eselon II.b">Eselon II.b</option>
-                  <option value="Eselon III.a">Eselon III.a</option>
-                  <option value="Eselon III.b">Eselon III.b</option>
-                  <option value="Eselon IV.a">Eselon IV.a</option>
-                  <option value="Eselon IV.b">Eselon IV.b</option>
-                </select>
-              </div>
-
-              {/* Count badge */}
-              <div className="jabatan-kosong-count">
-                {jabatanKosongFiltered.length.toLocaleString('id-ID')} jabatan kosong
-              </div>
-            </div>
-
-            <table className="jabatan-kosong-table">
-              <thead>
-                <tr>
-                  <th style={{ width: 45 }}>#</th>
-                  <th>Nama Jabatan</th>
-                  <th>OPD</th>
-                  <th>Eselon</th>
-                  <th onClick={() => handleSortJabatanKosong('bezetting')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
-                      <span>Bezetting</span>
-                      <SortIcon active={sortJabatanKosong.key === 'bezetting'} direction={sortJabatanKosong.direction} />
+                        <ChevronRight size={16} />
+                      </button>
                     </div>
-                  </th>
-                  <th onClick={() => handleSortJabatanKosong('kebutuhan')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
-                      <span>Kebutuhan</span>
-                      <SortIcon active={sortJabatanKosong.key === 'kebutuhan'} direction={sortJabatanKosong.direction} />
-                    </div>
-                  </th>
-                  <th onClick={() => handleSortJabatanKosong('selisih')} className="text-center" style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
-                      <span>Selisih</span>
-                      <SortIcon active={sortJabatanKosong.key === 'selisih'} direction={sortJabatanKosong.direction} />
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {manajerialLoading ? (
-                  <tr>
-                    <td colSpan={7} className="no-data-row">Memuat data...</td>
-                  </tr>
-                ) : jabatanKosongFiltered.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="no-data-row">
-                      {searchKosong || filterEselon !== 'Semua'
-                        ? 'Tidak ada hasil pencarian'
-                        : 'Semua jabatan manajerial sudah terisi'}
-                    </td>
-                  </tr>
-                ) : (
-                  pagedJabatanKosong.map((j, idx) => {
-                    const { badgeClass } = SUB_COLOR[j.subklasifikasi] || {};
-                    const absoluteIndex = (pageKosong - 1) * itemsPerPageKosong + idx + 1;
-                    return (
-                      <tr key={j.id}>
-                        <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{absoluteIndex}</td>
-                        <td>
-                          <div className="jabatan-name">{j.jabatan}</div>
-                          <div className="jabatan-unit">{j.unit_kerja}</div>
-                        </td>
-                        <td className="opd-text">{j.perangkat_daerah}</td>
-                        <td>
-                          <span className={`sub-badge ${badgeClass}`}>{j.jenis_eselon}</span>
-                        </td>
-                        <td className="text-center num-cell">{Number(j.bezetting).toLocaleString('id-ID')}</td>
-                        <td className="text-center num-cell">{Number(j.kebutuhan).toLocaleString('id-ID')}</td>
-                        <td className="text-center">
-                          <SelisihBadge value={j.selisih} />
-                        </td>
-                      </tr>
-                    );
-                  })
+                  </div>
                 )}
-              </tbody>
-            </table>
-
-            {/* Pagination Controls */}
-            {!manajerialLoading && jabatanKosongFiltered.length > 0 && (
-              <div className="profil-pagination">
-                <span>
-                  Menampilkan {((pageKosong - 1) * itemsPerPageKosong) + 1}–{Math.min(pageKosong * itemsPerPageKosong, jabatanKosongFiltered.length)} dari {jabatanKosongFiltered.length.toLocaleString('id-ID')} jabatan
-                </span>
-                <div className="profil-pagination-btns">
-                  <button
-                    className="profil-page-btn"
-                    onClick={() => setPageKosong((p) => Math.max(1, p - 1))}
-                    disabled={pageKosong === 1}
-                    title="Halaman sebelumnya"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-
-                  {Array.from({ length: totalPagesKosong }, (_, i) => i + 1)
-                    .filter((p) => p === 1 || p === totalPagesKosong || Math.abs(p - pageKosong) <= 1)
-                    .map((p, idx, arr) => (
-                      <React.Fragment key={p}>
-                        {idx > 0 && arr[idx - 1] !== p - 1 && (
-                          <span className="profil-pagination-dots">…</span>
-                        )}
-                        <button
-                          className={`profil-page-btn ${pageKosong === p ? 'active' : ''}`}
-                          onClick={() => setPageKosong(p)}
-                        >
-                          {p}
-                        </button>
-                      </React.Fragment>
-                    ))}
-
-                  <button
-                    className="profil-page-btn"
-                    onClick={() => setPageKosong((p) => Math.min(totalPagesKosong, p + 1))}
-                    disabled={pageKosong === totalPagesKosong}
-                    title="Halaman berikutnya"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
               </div>
-            )}
-          </div>
-          </>
+            </>
           ) : (
             <>
               {nonManajerialLoading ? (
@@ -1552,8 +1577,8 @@ const Profil = () => {
                             const badgeClass = row.kelompok_jf === 'Fungsional Ahli'
                               ? 'jf-ahli'
                               : row.kelompok_jf === 'Fungsional Terampil'
-                              ? 'jf-terampil'
-                              : 'pelaksana';
+                                ? 'jf-terampil'
+                                : 'pelaksana';
 
                             return (
                               <tr key={`${row.subklasifikasi}-${row.jenjang_label}`}>
@@ -1679,99 +1704,106 @@ const Profil = () => {
                     {/* Chart View Content */}
                     <div className="gap-chart-canvas-area">
                       {gapChartViewNM === 'total' ? (
-                        <ResponsiveContainer width="100%" height={320}>
-                          <BarChart
-                            data={gapTotalChartDataNM}
-                            margin={{ top: 35, right: 40, left: 15, bottom: 20 }}
-                            barSize={55}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis
-                              dataKey="category"
-                              axisLine={{ stroke: '#cbd5e1' }}
-                              tickLine={false}
-                              tick={{ fill: '#334155', fontSize: 13, fontWeight: 700 }}
-                            />
-                            <YAxis
-                              axisLine={{ stroke: '#cbd5e1' }}
-                              tickLine={false}
-                              tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
-                              domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
-                              tickFormatter={(val) => val.toLocaleString('id-ID')}
-                            />
-                            <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
-                            <Bar dataKey="value" name="Jumlah Formasi" radius={[8, 8, 0, 0]}>
-                              <LabelList dataKey="value" content={renderCustomBarLabel} />
-                              {gapTotalChartDataNM.map((entry, idx) => (
-                                <Cell key={`cell-nm-${idx}`} fill={entry.color} />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
+                        <div style={{ width: '100%', height: 260 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={gapTotalChartDataNM}
+                              margin={{ top: 25, right: 30, left: 10, bottom: 20 }}
+                              barSize={44}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                              <XAxis
+                                dataKey="category"
+                                axisLine={{ stroke: '#cbd5e1' }}
+                                tickLine={false}
+                                tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }}
+                              />
+                              <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#64748b', fontSize: 11 }}
+                                domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
+                                tickFormatter={(val) => val.toLocaleString('id-ID')}
+                              />
+                              <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                              <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                                <LabelList dataKey="value" content={renderCustomBarLabel} />
+                                {gapTotalChartDataNM.map((entry, idx) => (
+                                  <Cell key={`cell-nm-${idx}`} fill={entry.color} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
                       ) : (
-                        <ResponsiveContainer width="100%" height={340}>
-                          <ComposedChart
-                            data={gapJenjangChartDataNM}
-                            margin={{ top: 35, right: 30, left: 10, bottom: 25 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis
-                              dataKey="eselon"
-                              axisLine={{ stroke: '#cbd5e1' }}
-                              tickLine={false}
-                              tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }}
-                            />
-                            <YAxis
-                              axisLine={{ stroke: '#cbd5e1' }}
-                              tickLine={false}
-                              tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
-                              domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
-                              tickFormatter={(val) => val.toLocaleString('id-ID')}
-                            />
-                            <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
-                            <Legend
-                              wrapperStyle={{ paddingTop: 14, fontSize: 12, fontWeight: 600 }}
-                            />
-                            <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]}>
-                              <LabelList dataKey="Total Bezetting" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-                            </Bar>
-                            <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]}>
-                              <LabelList dataKey="Total Kebutuhan" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-                            </Bar>
-                            <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]}>
-                              <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-                            </Bar>
-                            
-                            <Line
-                              type="monotone"
-                              dataKey="Total Bezetting"
-                              stroke="#2563eb"
-                              strokeWidth={2}
-                              dot={{ r: 3, fill: '#2563eb' }}
-                              activeDot={{ r: 5 }}
-                              legendType="none"
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="Total Kebutuhan"
-                              stroke="#059669"
-                              strokeWidth={2}
-                              dot={{ r: 3, fill: '#059669' }}
-                              activeDot={{ r: 5 }}
-                              legendType="none"
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="Jabatan Kosong (Gap)"
-                              stroke="#dc2626"
-                              strokeWidth={2}
-                              strokeDasharray="4 4"
-                              dot={{ r: 3, fill: '#dc2626' }}
-                              activeDot={{ r: 5 }}
-                              legendType="none"
-                            />
-                          </ComposedChart>
-                        </ResponsiveContainer>
+                        <div style={{ width: '100%', height: 260 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart
+                              data={gapJenjangChartDataNM}
+                              margin={{ top: 25, right: 30, left: 10, bottom: 20 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                              <XAxis
+                                dataKey="eselon"
+                                axisLine={{ stroke: '#cbd5e1' }}
+                                tickLine={false}
+                                tick={{ fill: '#334155', fontSize: 11, fontWeight: 700 }}
+                              />
+                              <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#64748b', fontSize: 11 }}
+                                domain={[0, (dataMax) => Math.ceil(dataMax * 1.15)]}
+                                tickFormatter={(val) => val.toLocaleString('id-ID')}
+                              />
+                              <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                              <Legend
+                                verticalAlign="bottom"
+                                height={36}
+                                iconType="circle"
+                                wrapperStyle={{ paddingTop: 12, fontSize: '0.8rem', fontWeight: 600 }}
+                              />
+                              <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]}>
+                                <LabelList dataKey="Total Bezetting" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                              </Bar>
+                              <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]}>
+                                <LabelList dataKey="Total Kebutuhan" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                              </Bar>
+                              <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]}>
+                                <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#334155" fontSize={10} fontWeight={600} />
+                              </Bar>
+
+                              <Line
+                                type="monotone"
+                                dataKey="Total Bezetting"
+                                stroke="#2563eb"
+                                strokeWidth={2}
+                                dot={{ r: 3, fill: '#2563eb' }}
+                                activeDot={{ r: 5 }}
+                                legendType="none"
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="Total Kebutuhan"
+                                stroke="#059669"
+                                strokeWidth={2}
+                                dot={{ r: 3, fill: '#059669' }}
+                                activeDot={{ r: 5 }}
+                                legendType="none"
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="Jabatan Kosong (Gap)"
+                                stroke="#dc2626"
+                                strokeWidth={2}
+                                strokeDasharray="4 4"
+                                dot={{ r: 3, fill: '#dc2626' }}
+                                activeDot={{ r: 5 }}
+                                legendType="none"
+                              />
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1874,8 +1906,8 @@ const Profil = () => {
                         const badgeClass = j.subklasifikasi === 'Jabatan Pelaksana'
                           ? 'pelaksana'
                           : j.kelompok_jf === 'Fungsional Terampil'
-                          ? 'jf-terampil'
-                          : 'jf-ahli';
+                            ? 'jf-terampil'
+                            : 'jf-ahli';
                         const absoluteIndex = (pageKosongNM - 1) * itemsPerPageKosong + idx + 1;
                         return (
                           <tr key={j.id}>
@@ -1997,13 +2029,12 @@ const Profil = () => {
                 <div className="modal-summary-item">
                   <span className="modal-summary-label">Total Selisih</span>
                   <span
-                    className={`modal-summary-val ${
-                      Number(selectedModalRow.total_selisih) === 0
-                        ? 'success'
-                        : Number(selectedModalRow.total_selisih) < 0
+                    className={`modal-summary-val ${Number(selectedModalRow.total_selisih) === 0
+                      ? 'success'
+                      : Number(selectedModalRow.total_selisih) < 0
                         ? 'danger'
                         : ''
-                    }`}
+                      }`}
                   >
                     {Number(selectedModalRow.total_selisih) > 0
                       ? `+${Number(selectedModalRow.total_selisih).toLocaleString('id-ID')}`
@@ -2206,13 +2237,12 @@ const Profil = () => {
                 <div className="modal-summary-item">
                   <span className="modal-summary-label">Total Selisih</span>
                   <span
-                    className={`modal-summary-val ${
-                      Number(selectedEselonModalRow.total_selisih) === 0
-                        ? 'success'
-                        : Number(selectedEselonModalRow.total_selisih) < 0
+                    className={`modal-summary-val ${Number(selectedEselonModalRow.total_selisih) === 0
+                      ? 'success'
+                      : Number(selectedEselonModalRow.total_selisih) < 0
                         ? 'danger'
                         : ''
-                    }`}
+                      }`}
                   >
                     {Number(selectedEselonModalRow.total_selisih) > 0
                       ? `+${Number(selectedEselonModalRow.total_selisih).toLocaleString('id-ID')}`

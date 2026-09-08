@@ -21,9 +21,6 @@
                 "type": "default"
               }
             ],
-            "auth": {
-              "type": "noauth"
-            },
             "description": "",
             "url": {
               "raw": "{{url_dashboard}}/main/bezetting-jenis-kelamin",
@@ -34,6 +31,44 @@
               "path": [
                 "main",
                 "bezetting-jenis-kelamin"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bulan\": \"\", // 08\n  \"tahun\": \"\" // 2026\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Bezetting Status Pegawai",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "description": "",
+                "disabled": false,
+                "type": "default"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{url_dashboard}}/main/bezetting-status-pegawai",
+              "protocol": "",
+              "host": [
+                "{{url_dashboard}}"
+              ],
+              "path": [
+                "main",
+                "bezetting-status-pegawai"
               ],
               "query": [],
               "variable": []

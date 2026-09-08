@@ -19,21 +19,46 @@ class DashboardController extends Controller
         // Untuk filter semua satker, gunakan tabel status_pegawai (lebih akurat)
         // Untuk filter per satker, fallback ke satuan_kerja
         if ($satker === 'Semua Satuan Kerja') {
-            $spQuery = DB::table('status_pegawai')
-                ->selectRaw('status_pegawai, jumlah')
-                ->pluck('jumlah', 'status_pegawai');
+            $cpns = 0;
+            $pns = 0;
+            $pppk = 0;
+            $pppkPw = 0;
 
-            $cpns = (int) ($spQuery['CPNS'] ?? 0);
-            $pns  = (int) ($spQuery['PNS']  ?? 0);
+            try {
+                $response = \Illuminate\Support\Facades\Http::withoutVerifying()
+                    ->timeout(5)
+                    ->acceptJson()
+                    ->asJson()
+                    ->post('https://simpelbkpsdm.bandungkab.go.id/api/v1/dashboard/main/bezetting-status-pegawai', [
+                        'bulan' => '',
+                        'tahun' => ''
+                    ]);
 
-            // PPPK split: ambil pppk_l (full-time) dan pppk_p (PW) dari satuan_kerja
-            $pppkRow = DB::table('satuan_kerja')
-                ->selectRaw('SUM(pppk_l) as pppk_l, SUM(pppk_p) as pppk_p, SUM(total) as total_asn')
-                ->first();
+                if ($response->successful() && $response->json('data')) {
+                    $apiData = collect($response->json('data'));
+                    $cpns = (int) ($apiData->firstWhere('nama', 'CPNS')['jumlah'] ?? 0);
+                    $pns  = (int) ($apiData->firstWhere('nama', 'PNS')['jumlah'] ?? 0);
+                    $pppk = (int) ($apiData->firstWhere('nama', 'PPPK')['jumlah'] ?? 0);
+                    $pppkPw = (int) ($apiData->firstWhere('nama', 'PPPK Paruh Waktu')['jumlah'] ?? 0);
+                }
+            } catch (\Exception $e) {
+                // Fallback to local DB if API fails
+                $spQuery = DB::table('status_pegawai')
+                    ->selectRaw('status_pegawai, jumlah')
+                    ->pluck('jumlah', 'status_pegawai');
 
-            $pppk   = (int) $pppkRow->pppk_l;
-            $pppkPw = (int) $pppkRow->pppk_p;
-            $total  = $cpns + $pns + $pppk + $pppkPw;
+                $cpns = (int) ($spQuery['CPNS'] ?? 0);
+                $pns  = (int) ($spQuery['PNS']  ?? 0);
+
+                $pppkRow = DB::table('satuan_kerja')
+                    ->selectRaw('SUM(pppk_l) as pppk_l, SUM(pppk_p) as pppk_p')
+                    ->first();
+
+                $pppk   = (int) ($pppkRow->pppk_l ?? 0);
+                $pppkPw = (int) ($pppkRow->pppk_p ?? 0);
+            }
+            
+            $total = $cpns + $pns + $pppk + $pppkPw;
         } else {
             $row = DB::table('satuan_kerja')
                 ->where('satuan_kerja', $satker)

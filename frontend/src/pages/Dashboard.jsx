@@ -279,7 +279,7 @@ const Dashboard = () => {
       const apiTahun = tahun === 'Tahun' ? 'Semua' : tahun;
       const apiBulan = bulan === 'Bulan' ? 'Semua' : bulan;
       const apiSatker = satker === 'Satuan Kerja' ? 'Semua Satuan Kerja' : satker;
-      
+
       const [dashRes, satkerRes, hierarkiRes, profilRes] = await Promise.all([
         api.get('/dashboard', { params: { satker: apiSatker, tahun: apiTahun, bulan: apiBulan } }),
         api.get('/satuan-kerja'),
@@ -290,7 +290,6 @@ const Dashboard = () => {
       const data = dashRes.data;
       if (data) {
         setSummaryData(data.summary || INITIAL_SUMMARY);
-        setStatusPegawaiData(data.statusPegawai || []);
         setGolonganPNSData(data.golonganPNS || []);
         setGolonganPPPKData(data.golonganPPPK || []);
         setEselonData(data.eselonData || []);
@@ -301,7 +300,7 @@ const Dashboard = () => {
           const tahunList = data.tahunList.map(t => t === 'Semua' ? 'Tahun' : t);
           setTahunOptions(tahunList.includes('Tahun') ? tahunList : ['Tahun', ...tahunList]);
         }
-        
+
         if (data.bulanList) {
           const bulanList = data.bulanList.map(b => b === 'Semua' ? 'Bulan' : b);
           setBulanOptions(bulanList.includes('Bulan') ? bulanList : ['Bulan', ...bulanList]);
@@ -327,6 +326,7 @@ const Dashboard = () => {
       if (profilRes.data) {
         setProfilData(profilRes.data);
       }
+
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       setErrorMsg(error.response?.data?.message || 'Gagal mengambil data dari server. Silakan coba lagi.');
@@ -1078,7 +1078,7 @@ const Dashboard = () => {
                 </div>
                 <h2 className="hierarki-toolbar-title">Struktur Hierarki Satuan Kerja / OPD</h2>
               </div>
-              
+
               <div className="hierarki-toolbar-right">
                 {/* Search */}
                 <div className="hierarki-search">

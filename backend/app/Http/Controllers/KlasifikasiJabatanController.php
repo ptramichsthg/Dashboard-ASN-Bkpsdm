@@ -271,7 +271,7 @@ class KlasifikasiJabatanController extends Controller
 
                 // 1. Rekap Fungsional Keahlian & Keterampilan
                 $rekapJF = KlasifikasiJabatan::where('klasifikasi_utama', 'NON MANAJERIAL')
-                    ->where('subklasifikasi', 'Jabatan Fungsional')
+                    ->whereIn('kelompok_jf', ['Fungsional Ahli', 'Fungsional Terampil'])
                     ->selectRaw('
                         subklasifikasi,
                         kelompok_jf,
