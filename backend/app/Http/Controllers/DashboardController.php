@@ -7,6 +7,26 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    private function resolveSatkerName($satker_id)
+    {
+        if (!$satker_id || $satker_id === 'Semua Satuan Kerja') {
+            return 'Semua Satuan Kerja';
+        }
+
+        $staticMap = config('satker_map') ?? [];
+        if (isset($staticMap[$satker_id])) {
+            return $staticMap[$satker_id];
+        }
+
+        if (in_array($satker_id, $staticMap)) {
+            return $satker_id;
+        }
+
+        $local = \Illuminate\Support\Facades\DB::table('satuan_kerja')->where('id', $satker_id)->first();
+        if ($local) return $local->satuan_kerja;
+
+        return 'Semua Satuan Kerja';
+    }
     /**
      * Endpoint untuk halaman Profil ASN.
      * Mengembalikan data Jenis ASN: CPNS, PNS, PPPK, PPPK PW (pppk_p)
@@ -14,35 +34,48 @@ class DashboardController extends Controller
      */
     public function profil(Request $request)
     {
+        $satker_id = $request->query('satker_id');
         $satker = $request->query('satker', 'Semua Satuan Kerja');
+
+        if ($satker_id && $satker_id !== 'Semua Satuan Kerja') {
+            $satker = $this->resolveSatkerName($satker_id);
+        }
 
         // Untuk filter semua satker, gunakan tabel status_pegawai (lebih akurat)
         // Untuk filter per satker, fallback ke satuan_kerja
         if ($satker === 'Semua Satuan Kerja') {
-            $cpns = 0;
-            $pns = 0;
-            $pppk = 0;
-            $pppkPw = 0;
+            $cachedBezetting = \Illuminate\Support\Facades\Cache::remember('api_bezetting_status_v3', 1800, function () {
+                try {
+                    $response = \Illuminate\Support\Facades\Http::withoutVerifying()
+                        ->timeout(3)
+                        ->acceptJson()
+                        ->asJson()
+                        ->post('https://simpelbkpsdm.bandungkab.go.id/api/v1/dashboard/main/bezetting-status-pegawai', [
+                            'bulan' => '',
+                            'tahun' => ''
+                        ]);
 
-            try {
-                $response = \Illuminate\Support\Facades\Http::withoutVerifying()
-                    ->timeout(5)
-                    ->acceptJson()
-                    ->asJson()
-                    ->post('https://simpelbkpsdm.bandungkab.go.id/api/v1/dashboard/main/bezetting-status-pegawai', [
-                        'bulan' => '',
-                        'tahun' => ''
-                    ]);
-
-                if ($response->successful() && $response->json('data')) {
-                    $apiData = collect($response->json('data'));
-                    $cpns = (int) ($apiData->firstWhere('nama', 'CPNS')['jumlah'] ?? 0);
-                    $pns  = (int) ($apiData->firstWhere('nama', 'PNS')['jumlah'] ?? 0);
-                    $pppk = (int) ($apiData->firstWhere('nama', 'PPPK')['jumlah'] ?? 0);
-                    $pppkPw = (int) ($apiData->firstWhere('nama', 'PPPK Paruh Waktu')['jumlah'] ?? 0);
+                    if ($response->successful() && $response->json('data')) {
+                        $apiData = collect($response->json('data'));
+                        return [
+                            'cpns' => (int) ($apiData->firstWhere('nama', 'CPNS')['jumlah'] ?? 0),
+                            'pns'  => (int) ($apiData->firstWhere('nama', 'PNS')['jumlah'] ?? 0),
+                            'pppk' => (int) ($apiData->firstWhere('nama', 'PPPK')['jumlah'] ?? 0),
+                            'pppkPw' => (int) ($apiData->firstWhere('nama', 'PPPK Paruh Waktu')['jumlah'] ?? 0),
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    // fallback
                 }
-            } catch (\Exception $e) {
-                // Fallback to local DB if API fails
+                return null;
+            });
+
+            if ($cachedBezetting) {
+                $cpns = $cachedBezetting['cpns'];
+                $pns = $cachedBezetting['pns'];
+                $pppk = $cachedBezetting['pppk'];
+                $pppkPw = $cachedBezetting['pppkPw'];
+            } else {
                 $spQuery = DB::table('status_pegawai')
                     ->selectRaw('status_pegawai, jumlah')
                     ->pluck('jumlah', 'status_pegawai');
@@ -72,7 +105,7 @@ class DashboardController extends Controller
             $total  = (int) $row->total_asn;
         }
 
-        $satuanKerjaList = DB::table('satuan_kerja')->pluck('satuan_kerja')->toArray();
+        $satuanKerjaList = array_values(config('satker_map') ?? DB::table('satuan_kerja')->pluck('satuan_kerja')->toArray());
 
         $pegawaiAktifQuery = DB::table('data_pegawai_aktif');
         if ($satker !== 'Semua Satuan Kerja') {
@@ -110,7 +143,12 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
 
+        $satker_id = $request->query('satker_id');
         $satker = $request->query('satker', 'Semua Satuan Kerja');
+
+        if ($satker_id && $satker_id !== 'Semua Satuan Kerja') {
+            $satker = $this->resolveSatkerName($satker_id);
+        }
         $tahunReq = $request->query('tahun');
         $bulanReq = $request->query('bulan');
 

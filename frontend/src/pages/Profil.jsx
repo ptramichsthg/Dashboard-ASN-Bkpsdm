@@ -516,7 +516,7 @@ const Profil = () => {
         j.jabatan?.toLowerCase().includes(searchKosong.toLowerCase()) ||
         j.perangkat_daerah?.toLowerCase().includes(searchKosong.toLowerCase());
       const matchEselon =
-        filterEselon === 'Semua' || j.jenis_eselon === filterEselon;
+        filterEselon === 'Semua' || (j.jenis_eselon && j.jenis_eselon.includes(filterEselon));
       return matchSearch && matchEselon;
     });
   }, [manajerialData, searchKosong, filterEselon]);
@@ -1352,12 +1352,12 @@ const Profil = () => {
                       onChange={(e) => setFilterEselon(e.target.value)}
                     >
                       <option value="Semua">Semua Eselon</option>
-                      <option value="Eselon II.a">Eselon II.a</option>
-                      <option value="Eselon II.b">Eselon II.b</option>
-                      <option value="Eselon III.a">Eselon III.a</option>
-                      <option value="Eselon III.b">Eselon III.b</option>
-                      <option value="Eselon IV.a">Eselon IV.a</option>
-                      <option value="Eselon IV.b">Eselon IV.b</option>
+                      <option value="II.a">II.a</option>
+                      <option value="II.b">II.b</option>
+                      <option value="III.a">III.a</option>
+                      <option value="III.b">III.b</option>
+                      <option value="IV.a">IV.a</option>
+                      <option value="IV.b">IV.b</option>
                     </select>
                   </div>
 

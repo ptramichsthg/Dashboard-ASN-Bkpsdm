@@ -178,7 +178,7 @@ class KlasifikasiJabatanController extends Controller
                 'Eselon IV.b' => 6,
             ];
 
-            $data = Cache::remember('manajerial_full_v4', 1800, function () use ($eselonOrder) {
+            $data = Cache::remember('manajerial_full_v5_api', 1800, function () use ($eselonOrder) {
                 // Rekap per subklasifikasi + eselon
                 $rekap = KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
                     ->selectRaw('
@@ -207,25 +207,54 @@ class KlasifikasiJabatanController extends Controller
                     ')
                     ->first();
 
-                // List jabatan yang kosong/lowong (bezetting < kebutuhan)
-                $jabatanKosong = KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
-                    ->whereRaw('bezetting < kebutuhan')
-                    ->select(
-                        'id',
-                        'perangkat_daerah',
-                        'jabatan',
-                        'unit_kerja',
-                        'subklasifikasi',
-                        'jenis_eselon',
-                        'bezetting',
-                        'kebutuhan',
-                        'selisih'
-                    )
-                    ->orderByRaw('FIELD(jenis_eselon, "Eselon II.a", "Eselon II.b", "Eselon III.a", "Eselon III.b", "Eselon IV.a", "Eselon IV.b")')
-                    ->orderBy('perangkat_daerah')
-                    ->limit(200)
-                    ->get()
-                    ->toArray();
+                // List jabatan yang kosong/lowong dari API Eksternal
+                $jabatanKosong = [];
+                try {
+                    $response = \Illuminate\Support\Facades\Http::withoutVerifying()
+                        ->timeout(10)
+                        ->acceptJson()
+                        ->asJson()
+                        ->post('https://simpelbkpsdm.bandungkab.go.id/api/v1/dashboard/main/tabular-jabatan-manajerial-kosong', [
+                            'bulan' => '',
+                            'tahun' => ''
+                        ]);
+
+                    if ($response->successful() && $response->json('data')) {
+                        $jabatanKosong = collect($response->json('data'))->map(function($item, $index) {
+                            return [
+                                'id' => 'api_' . $index,
+                                'perangkat_daerah' => $item['satuan_kerja'] ?? '-',
+                                'jabatan' => $item['jabatan'] ?? '-',
+                                'unit_kerja' => $item['satuan_kerja'] ?? '-',
+                                'subklasifikasi' => 'Jabatan Manajerial',
+                                'jenis_eselon' => isset($item['eselon']) ? 'Eselon ' . $item['eselon'] : '-',
+                                'bezetting' => $item['bezetting'] ?? 0,
+                                'kebutuhan' => $item['kebutuhan'] ?? 0,
+                                'selisih' => $item['selisih'] ?? 0,
+                            ];
+                        })->toArray();
+                    }
+                } catch (\Exception $e) {
+                    // Fallback to local DB if API fails
+                    $jabatanKosong = KlasifikasiJabatan::where('klasifikasi_utama', 'MANAJERIAL')
+                        ->whereRaw('bezetting < kebutuhan')
+                        ->select(
+                            'id',
+                            'perangkat_daerah',
+                            'jabatan',
+                            'unit_kerja',
+                            'subklasifikasi',
+                            'jenis_eselon',
+                            'bezetting',
+                            'kebutuhan',
+                            'selisih'
+                        )
+                        ->orderByRaw('FIELD(jenis_eselon, "Eselon II.a", "Eselon II.b", "Eselon III.a", "Eselon III.b", "Eselon IV.a", "Eselon IV.b")')
+                        ->orderBy('perangkat_daerah')
+                        ->limit(200)
+                        ->get()
+                        ->toArray();
+                }
 
                 return [
                     'rekap' => $rekap,

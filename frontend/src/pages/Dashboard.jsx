@@ -217,7 +217,7 @@ const Dashboard = () => {
   // Filters
   const [tahun, setTahun] = useState('Tahun');
   const [bulan, setBulan] = useState('Bulan');
-  const [satker, setSatker] = useState('Satuan Kerja');
+  const [satkerId, setSatkerId] = useState('');
   const [golonganPNSFilter, setGolonganPNSFilter] = useState('Semua');
   const [golonganPPPKFilter, setGolonganPPPKFilter] = useState('Semua');
   const [eselonFilter, setEselonFilter] = useState('Semua');
@@ -236,6 +236,12 @@ const Dashboard = () => {
 
   // Satker Data State (from /satuan-kerja)
   const [satkerRawData, setSatkerRawData] = useState([]);
+
+  const satker = useMemo(() => {
+    if (!satkerId) return 'Satuan Kerja';
+    const found = satkerRawData.find(s => s.id && s.id.toString() === satkerId.toString());
+    return found ? found.satuan_kerja : 'Satuan Kerja';
+  }, [satkerId, satkerRawData]);
 
   // Data Profil (Jenis ASN)
   const [profilData, setProfilData] = useState(null);
@@ -278,17 +284,17 @@ const Dashboard = () => {
       // Convert 'Tahun' to 'Semua' and 'Bulan' to 'Semua' for backend compatibility
       const apiTahun = tahun === 'Tahun' ? 'Semua' : tahun;
       const apiBulan = bulan === 'Bulan' ? 'Semua' : bulan;
-      const apiSatker = satker === 'Satuan Kerja' ? 'Semua Satuan Kerja' : satker;
+      const apiSatkerId = satkerId ? satkerId : 'Semua Satuan Kerja';
 
-      const [dashRes, satkerRes, hierarkiRes, profilRes] = await Promise.all([
-        api.get('/dashboard', { params: { satker: apiSatker, tahun: apiTahun, bulan: apiBulan } }),
+      const [dashResult, satkerResult, hierarkiResult, profilResult] = await Promise.allSettled([
+        api.get('/dashboard', { params: { satker_id: apiSatkerId, tahun: apiTahun, bulan: apiBulan } }),
         api.get('/satuan-kerja'),
         api.get('/struktur-hierarki-opd'),
-        api.get('/profil', { params: { satker: apiSatker } })
+        api.get('/profil', { params: { satker_id: apiSatkerId } })
       ]);
 
-      const data = dashRes.data;
-      if (data) {
+      if (dashResult.status === 'fulfilled' && dashResult.value?.data) {
+        const data = dashResult.value.data;
         setSummaryData(data.summary || INITIAL_SUMMARY);
         setGolonganPNSData(data.golonganPNS || []);
         setGolonganPPPKData(data.golonganPPPK || []);
@@ -297,13 +303,13 @@ const Dashboard = () => {
         setSebaranOPDData(data.sebaranOPD || []);
 
         if (data.tahunList) {
-          const tahunList = data.tahunList.map(t => t === 'Semua' ? 'Tahun' : t);
-          setTahunOptions(tahunList.includes('Tahun') ? tahunList : ['Tahun', ...tahunList]);
+          const tList = data.tahunList.map(t => t === 'Semua' ? 'Tahun' : t);
+          setTahunOptions(tList.includes('Tahun') ? tList : ['Tahun', ...tList]);
         }
 
         if (data.bulanList) {
-          const bulanList = data.bulanList.map(b => b === 'Semua' ? 'Bulan' : b);
-          setBulanOptions(bulanList.includes('Bulan') ? bulanList : ['Bulan', ...bulanList]);
+          const bList = data.bulanList.map(b => b === 'Semua' ? 'Bulan' : b);
+          setBulanOptions(bList.includes('Bulan') ? bList : ['Bulan', ...bList]);
         }
 
         if (data.satuanKerjaList) {
@@ -314,27 +320,30 @@ const Dashboard = () => {
         }
       }
 
-      if (satkerRes.data && Array.isArray(satkerRes.data)) {
-        const validData = satkerRes.data.filter(d => Boolean(d.satuan_kerja));
+      if (satkerResult.status === 'fulfilled' && satkerResult.value?.data && Array.isArray(satkerResult.value.data)) {
+        const validData = satkerResult.value.data.filter(d => Boolean(d.satuan_kerja));
         setSatkerRawData(validData);
       }
 
-      if (hierarkiRes.data && Array.isArray(hierarkiRes.data)) {
-        setHierarkiRawData(hierarkiRes.data);
+      if (hierarkiResult.status === 'fulfilled' && hierarkiResult.value?.data && Array.isArray(hierarkiResult.value.data)) {
+        setHierarkiRawData(hierarkiResult.value.data);
       }
 
-      if (profilRes.data) {
-        setProfilData(profilRes.data);
+      if (profilResult.status === 'fulfilled' && profilResult.value?.data) {
+        setProfilData(profilResult.value.data);
+      }
+
+      if (dashResult.status === 'rejected') {
+        console.warn("Dashboard endpoint notice:", dashResult.reason);
       }
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      setErrorMsg(error.response?.data?.message || 'Gagal mengambil data dari server. Silakan coba lagi.');
     } finally {
       setIsRefreshing(false);
       setProfilLoading(false);
     }
-  }, [satker, tahun, bulan]);
+  }, [satkerId, tahun, bulan]);
 
   useEffect(() => {
     loadData();
@@ -349,14 +358,14 @@ const Dashboard = () => {
   const filteredSatkerData = useMemo(() => {
     let result = satkerRawData;
 
-    if (satker !== 'Satuan Kerja') {
+    if (satkerId) {
       result = result.filter(d =>
-        d.satuan_kerja && d.satuan_kerja.toUpperCase() === satker.toUpperCase()
+        d.id && d.id.toString() === satkerId.toString()
       );
     }
 
     return result;
-  }, [satkerRawData, satker]);
+  }, [satkerRawData, satkerId]);
 
   // Reset pagination saat satker berubah
   useEffect(() => {
@@ -423,14 +432,20 @@ const Dashboard = () => {
 
   // Stacked OPD Chart Data
   const stackedOpdDistributionData = useMemo(() => {
-    return filteredSatkerData.map(d => ({
-      name: formatOPDName(d.satuan_kerja),
-      rawName: d.satuan_kerja,
-      total: parseInt(d.total, 10) || 0,
-      PNS: (parseInt(d.pns_l, 10) || 0) + (parseInt(d.pns_p, 10) || 0),
-      CPNS: parseInt(d.cpns_p, 10) || 0,
-      PPPK: (parseInt(d.pppk_l, 10) || 0) + (parseInt(d.pppk_p, 10) || 0),
-    })).sort((a, b) => b.total - a.total);
+    return filteredSatkerData.map(d => {
+      const pns = (parseInt(d.pns_l, 10) || 0) + (parseInt(d.pns_p, 10) || 0);
+      const cpns = (parseInt(d.cpns_l, 10) || 0) + (parseInt(d.cpns_p, 10) || 0);
+      const pppk = (parseInt(d.pppk_l, 10) || 0) + (parseInt(d.pppk_p, 10) || 0);
+      const total = parseInt(d.total, 10) || (pns + cpns + pppk);
+      return {
+        name: formatOPDName(d.satuan_kerja),
+        rawName: d.satuan_kerja,
+        total,
+        PNS: pns,
+        CPNS: cpns,
+        PPPK: pppk,
+      };
+    }).sort((a, b) => b.total - a.total);
   }, [filteredSatkerData]);
 
   const totalStackedOpdPages = Math.max(1, Math.ceil(stackedOpdDistributionData.length / ITEMS_PER_CHART_PAGE));
@@ -742,10 +757,10 @@ const Dashboard = () => {
               {/* BARIS 1: Satuan Kerja (Full Width) */}
               <div className="dashboard-filter-item">
                 <div className="dashboard-select-wrapper">
-                  <select className="dashboard-filter-select" value={satker} onChange={(e) => setSatker(e.target.value)}>
-                    <option value="Satuan Kerja">Satuan Kerja</option>
-                    {satkerOptions.map(s => s !== 'Satuan Kerja' && (
-                      <option key={s} value={s}>{s}</option>
+                  <select className="dashboard-filter-select" value={satkerId} onChange={(e) => setSatkerId(e.target.value)}>
+                    <option value="">Satuan Kerja</option>
+                    {satkerRawData.map(s => (
+                      <option key={s.id} value={s.id}>{s.satuan_kerja}</option>
                     ))}
                   </select>
                 </div>
@@ -951,7 +966,10 @@ const Dashboard = () => {
                 </div>
                 <span className="chart-card-title">Sebaran Komposisi ASN (PNS, CPNS, PPPK) pada Organisasi Perangkat Daerah</span>
               </div>
-              <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginRight: '0.25rem' }}>
+                  {stackedOpdPage + 1} / {totalStackedOpdPages}
+                </span>
                 <button
                   onClick={() => setStackedOpdPage(p => Math.max(0, p - 1))}
                   disabled={stackedOpdPage === 0}
@@ -987,7 +1005,12 @@ const Dashboard = () => {
                 <CartesianGrid vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#000000', fontWeight: 600 }} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} angle={-45} textAnchor="end" interval={0} dx={-5} dy={5} />
                 <YAxis tick={{ fontSize: 13, fill: '#000000', fontWeight: 500 }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ fontSize: 13, borderRadius: 8, border: '1px solid #e5e7eb', fontWeight: 600 }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                <Tooltip
+                  formatter={(val, name) => [`${Number(val).toLocaleString('id-ID')} orang`, name]}
+                  labelFormatter={(label, payload) => payload?.[0]?.payload?.rawName || label}
+                  contentStyle={{ fontSize: 13, borderRadius: 8, border: '1px solid #e5e7eb', fontWeight: 600 }}
+                  cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                />
                 <Legend verticalAlign="top" align="center" wrapperStyle={{ fontSize: '12px', paddingBottom: '20px', fontWeight: 600 }} />
                 <Bar dataKey="PNS" stackId="a" fill="#3b82f6" animationDuration={500} />
                 <Bar dataKey="CPNS" stackId="a" fill="#f59e0b" animationDuration={500} />
