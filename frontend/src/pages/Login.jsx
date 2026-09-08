@@ -17,11 +17,24 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Jika sudah memiliki token aktif, otomatis alihkan ke /profil
+  // Jika sudah memiliki token aktif, alihkan berdasarkan role
   React.useEffect(() => {
     const token = localStorage.getItem('auth_token');
     if (token) {
-      navigate('/profil', { replace: true });
+      const userStr = localStorage.getItem('user');
+      let role = 'admin';
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          role = user.role;
+        } catch (e) {}
+      }
+      
+      if (role === 'super admin' || role === 'user') {
+        navigate('/under-development', { replace: true });
+      } else {
+        navigate('/profil', { replace: true });
+      }
     }
   }, [navigate]);
 
@@ -54,7 +67,11 @@ const Login = () => {
         }
 
         setIsLoading(false);
-        navigate('/profil', { replace: true });
+        if (response.data.user && (response.data.user.role === 'super admin' || response.data.user.role === 'user')) {
+          navigate('/under-development', { replace: true });
+        } else {
+          navigate('/profil', { replace: true });
+        }
       }
     } catch (err) {
       // Hitung waktu yang sudah berlalu

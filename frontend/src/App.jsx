@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import './index.css';
 
@@ -13,18 +13,51 @@ const Perencanaan = lazy(() => import('./pages/Perencanaan'));
 const Pemberhentian = lazy(() => import('./pages/Pemberhentian'));
 const Tracking = lazy(() => import('./pages/Tracking'));
 const Perpustakaan = lazy(() => import('./pages/Perpustakaan'));
+const UnderDevelopment = lazy(() => import('./pages/UnderDevelopment'));
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
+  const userStr = localStorage.getItem('user');
+  const location = useLocation();
+  
   if (!token) {
     return <Navigate to="/" replace />;
   }
+
+  let role = 'admin';
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      role = user.role;
+    } catch (e) {}
+  }
+
+  if ((role === 'super admin' || role === 'user') && location.pathname !== '/under-development') {
+    return <Navigate to="/under-development" replace />;
+  }
+
+  if (role === 'admin' && location.pathname === '/under-development') {
+    return <Navigate to="/profil" replace />;
+  }
+
   return children;
 };
 
 const GuestRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
+    const userStr = localStorage.getItem('user');
+    let role = 'admin';
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        role = user.role;
+      } catch (e) {}
+    }
+    
+    if (role === 'super admin' || role === 'user') {
+      return <Navigate to="/under-development" replace />;
+    }
     return <Navigate to="/profil" replace />;
   }
   return children;
@@ -92,6 +125,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profil />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/under-development"
+            element={
+              <ProtectedRoute>
+                <UnderDevelopment />
               </ProtectedRoute>
             }
           />
