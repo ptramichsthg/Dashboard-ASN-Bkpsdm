@@ -1,0 +1,219 @@
+/* ── BezettingTable.css ────────────────────────────────────────── */
+.bezetting-table-card {
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+  margin-bottom: 2rem;
+}
+
+.bezetting-table-card:hover {
+  box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
+}
+
+.bezetting-table-header {
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1.5px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.manajerial-filter-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.45rem 0.85rem;
+}
+
+.manajerial-select {
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  cursor: pointer;
+}
+
+.bezetting-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-bottom: 1.5px solid #000000;
+  background: #f8fafc;
+}
+
+.bezetting-kpi-item {
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+  border-right: 1.5px solid #000000;
+  background: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bezetting-kpi-item:last-child {
+  border-right: none;
+}
+
+.bezetting-kpi-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.06);
+  z-index: 1;
+}
+
+.bezetting-kpi-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.35rem;
+}
+
+.bezetting-kpi-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+
+.bezetting-kpi-value.danger {
+  color: #dc2626;
+}
+
+table.bezetting-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+}
+
+table.bezetting-table thead tr {
+  background: #f8fafc;
+}
+
+table.bezetting-table thead th {
+  padding: 1rem 1.75rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1.5px solid #000000;
+}
+
+table.bezetting-table thead th.text-center {
+  text-align: center;
+}
+
+table.bezetting-table tbody tr {
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+table.bezetting-table tbody tr td {
+  border-bottom: 1px solid #cbd5e1;
+  padding: 1.25rem 1.75rem;
+  color: #334155;
+  vertical-align: middle;
+}
+
+table.bezetting-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+table.bezetting-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+table.bezetting-table tbody tr:hover td {
+  color: #0f172a;
+}
+
+table.bezetting-table tbody td.text-center {
+  text-align: center;
+}
+
+.sub-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-right: 0.4rem;
+}
+
+.sub-badge.jpt {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.sub-badge.admin {
+  background: #fdf4ff;
+  color: #7e22ce;
+}
+
+.sub-badge.pengawas {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.sub-badge.jf-ahli {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.sub-badge.jf-terampil {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.sub-badge.pelaksana {
+  background: #fdf4ff;
+  color: #7e22ce;
+}
+
+.eselon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.32rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.eselon-btn:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.18);
+}
+
+.eselon-btn:active {
+  transform: translateY(0);
+}
+
+.num-cell {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+}

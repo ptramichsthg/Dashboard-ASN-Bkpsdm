@@ -1,0 +1,67 @@
+/* ── SelisihBadge.css ────────────────────────────────────────── */
+.selisih-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.selisih-badge.clickable {
+  cursor: pointer;
+  outline: none;
+}
+
+.selisih-badge.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.selisih-badge.clickable:active {
+  transform: translateY(0);
+}
+
+/* Nol / Sesuai Formasi */
+.selisih-badge.zero {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.selisih-badge.clickable.zero:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+/* Negatif / Kurang Formasi */
+.selisih-badge.minus {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.selisih-badge.clickable.minus:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+/* Positif / Kelebihan Formasi */
+.selisih-badge.plus {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.selisih-badge.clickable.plus:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
