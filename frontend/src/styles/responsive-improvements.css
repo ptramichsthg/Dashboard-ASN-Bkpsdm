@@ -13,12 +13,47 @@
 html, body {
   overflow-x: hidden;
   width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+}
+
+#root, .app-container {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Responsive images */
 img {
   max-width: 100%;
   height: auto;
+}
+
+/* Global Table Responsive Wrapper */
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+  /* hide scrollbar but allow scroll */
+  scrollbar-width: thin;
+}
+
+/* Modal Content Responsive */
+.responsive-modal-content {
+  width: 100% !important;
+  max-width: 95vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 0 auto;
+}
+
+/* Chart Responsive */
+.responsive-chart-wrapper {
+  width: 100% !important;
+  min-height: 300px;
+  overflow-x: hidden;
 }
 
 /* ===== RESPONSIVE BREAKPOINTS ===== */
@@ -471,6 +506,54 @@ img {
   /* Top stat cards */
   .top-stat-card {
     min-height: auto;
+  }
+}
+
+/* ===== SPECIFIC SMALLER MOBILE BREAKPOINTS ===== */
+@media (max-width: 430px) {
+  html, body, #root, .app-container {
+    max-width: 100vw;
+  }
+  .content-area {
+    padding: 0.5rem;
+  }
+  .modal-content, .pk-modal-content, .tr-modal-content, .pr-modal-content {
+    margin: 0.5rem;
+    padding: 1rem;
+    width: calc(100% - 1rem);
+  }
+  .table-responsive-wrapper {
+    margin-right: -0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero-banner-content h1 {
+    font-size: 1.1rem;
+  }
+  .kpi-card__value {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .btn-action {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.5rem;
+  }
+  .chart-card {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .hero-badges {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .brand-text h2 {
+    font-size: 0.9rem;
   }
 }
 

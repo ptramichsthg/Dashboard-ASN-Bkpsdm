@@ -199,3 +199,11 @@ table.jabatan-kosong-table tbody td.text-center {
   color: #64748b;
   font-weight: 600;
 }
+
+/* ===== RESPONSIVE TABLE FIX ===== */
+@media (max-width: 768px) {
+  table.jabatan-kosong-table th,
+  table.jabatan-kosong-table td {
+    white-space: nowrap;
+  }
+}

@@ -63,3 +63,12 @@
   background: #ecfdf5;
   border-color: #a7f3d0;
 }
+
+/* ===== RESPONSIVE MODAL ===== */
+@media (max-width: 768px) {
+  .eselon-modal-container {
+    max-width: 95vw;
+    height: 90vh;
+    max-height: 90vh;
+  }
+}

@@ -143,6 +143,14 @@ table.bezetting-table tbody td.text-center {
   text-align: center;
 }
 
+/* ===== RESPONSIVE TABLE FIX ===== */
+@media (max-width: 768px) {
+  table.bezetting-table th,
+  table.bezetting-table td {
+    white-space: nowrap;
+  }
+}
+
 .sub-badge {
   display: inline-block;
   padding: 0.2rem 0.6rem;

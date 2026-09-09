@@ -221,3 +221,20 @@
   color: #64748b;
   margin-top: 0.25rem;
 }
+
+/* ===== RESPONSIVE CHART WRAPPER ===== */
+@media (max-width: 480px) {
+  .gap-chart-canvas-area {
+    padding: 1rem;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
+  .gap-chart-header {
+    padding: 1rem;
+  }
+  
+  .gap-progress-section {
+    padding: 1rem;
+  }
+}

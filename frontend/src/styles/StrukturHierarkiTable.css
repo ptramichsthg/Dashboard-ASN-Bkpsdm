@@ -261,3 +261,11 @@ table.hierarki-table tbody td.text-center {
   color: #64748b;
   font-weight: 600;
 }
+
+/* ===== RESPONSIVE TABLE FIX ===== */
+@media (max-width: 768px) {
+  table.hierarki-table th,
+  table.hierarki-table td {
+    white-space: nowrap;
+  }
+}

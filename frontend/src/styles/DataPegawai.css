@@ -881,3 +881,37 @@
   background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
 }
+
+@media (max-width: 480px) {
+  .pegawai-table-header {
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .pegawai-table-title {
+    font-size: 1rem;
+  }
+  
+  .pegawai-filter-card {
+    padding: 1rem;
+  }
+  
+  .pegawai-search-input {
+    font-size: 0.85rem;
+    padding: 0.6rem 2rem 0.6rem 2.2rem;
+  }
+  
+  .pegawai-stat-card {
+    padding: 1rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .pegawai-stat-info {
+    align-items: center;
+  }
+  
+  .pegawai-stat-value {
+    font-size: 1.4rem;
+  }
+}

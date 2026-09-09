@@ -105,3 +105,18 @@
     gap: 1.5rem;
   }
 }
+
+/* ===== RESPONSIVE CHART WRAPPER ===== */
+.chart-wrapper,
+.responsive-chart-wrapper,
+.chart-card-content {
+  width: 100% !important;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.recharts-wrapper,
+.recharts-responsive-container,
+.apexcharts-canvas {
+  width: 100% !important;
+}

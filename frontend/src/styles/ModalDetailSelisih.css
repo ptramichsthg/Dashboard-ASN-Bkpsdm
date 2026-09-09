@@ -304,3 +304,12 @@ table.bezetting-modal-table tbody td {
   flex-wrap: wrap;
   gap: 0.75rem;
 }
+
+/* ===== RESPONSIVE MODAL ===== */
+@media (max-width: 768px) {
+  .bezetting-modal-container {
+    max-width: 95vw;
+    height: 90vh;
+    max-height: 90vh;
+  }
+}

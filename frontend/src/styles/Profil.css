@@ -1949,3 +1949,66 @@ table.bezetting-modal-table tbody td {
   border-radius: 50%;
 }
 
+/* ===== RESPONSIVE PROFIL ===== */
+@media (max-width: 768px) {
+  .manajerial-wrapper {
+    flex-direction: column;
+  }
+  
+  .bezetting-kpi-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .bezetting-kpi-item {
+    border-right: none;
+    border-bottom: 1.5px solid #000000;
+  }
+  
+  .bezetting-kpi-item:last-child {
+    border-bottom: none;
+  }
+  
+  .jenis-asn-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .jenis-asn-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .status-pegawai-cards-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .status-legend-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .status-legend-items {
+    flex-wrap: wrap;
+  }
+  
+  .selisih-badge {
+    min-width: unset;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+  }
+  
+  .eselon-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .profil-section-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .profil-section-line {
+    display: none;
+  }
+}

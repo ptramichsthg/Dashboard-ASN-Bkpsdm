@@ -314,3 +314,12 @@ table.unit-modal-table tbody td {
   background: #1d4ed8;
   color: #ffffff;
 }
+
+/* ===== RESPONSIVE MODAL ===== */
+@media (max-width: 768px) {
+  .unit-modal-container {
+    max-width: 95vw;
+    height: 90vh;
+    max-height: 90vh;
+  }
+}
