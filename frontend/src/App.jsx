@@ -32,11 +32,11 @@ const ProtectedRoute = ({ children }) => {
     } catch (e) {}
   }
 
-  if ((role === 'super admin' || role === 'user') && location.pathname !== '/under-development') {
+  if ((role === 'admin' || role === 'user') && location.pathname !== '/under-development') {
     return <Navigate to="/under-development" replace />;
   }
 
-  if (role === 'admin' && location.pathname === '/under-development') {
+  if (role === 'super admin' && location.pathname === '/under-development') {
     return <Navigate to="/profil" replace />;
   }
 
@@ -55,7 +55,7 @@ const GuestRoute = ({ children }) => {
       } catch (e) {}
     }
     
-    if (role === 'super admin' || role === 'user') {
+    if (role === 'admin' || role === 'user') {
       return <Navigate to="/under-development" replace />;
     }
     return <Navigate to="/profil" replace />;

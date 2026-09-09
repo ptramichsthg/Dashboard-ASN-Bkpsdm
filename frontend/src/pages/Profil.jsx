@@ -944,6 +944,16 @@ const Profil = () => {
           {/* ═══════════════════════════════════════════════
               STATISTIK UMUM
           ═══════════════════════════════════════════════ */}
+          <div className="profil-section-header">
+            <div className="profil-section-icon" style={{ background: '#eff6ff', border: '1px solid #bfdbfe', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)' }}>
+              <BarChart2 size={22} color="#2563eb" />
+            </div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Statistik Umum</h2>
+            </div>
+            <div className="profil-section-line" />
+          </div>
+
           <div
             className="statistik-umum"
             style={{

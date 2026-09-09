@@ -30,7 +30,7 @@ const Login = () => {
         } catch (e) {}
       }
       
-      if (role === 'super admin' || role === 'user') {
+      if (role === 'admin' || role === 'user') {
         navigate('/under-development', { replace: true });
       } else {
         navigate('/profil', { replace: true });
@@ -67,7 +67,7 @@ const Login = () => {
         }
 
         setIsLoading(false);
-        if (response.data.user && (response.data.user.role === 'super admin' || response.data.user.role === 'user')) {
+        if (response.data.user && (response.data.user.role === 'admin' || response.data.user.role === 'user')) {
           navigate('/under-development', { replace: true });
         } else {
           navigate('/profil', { replace: true });
