@@ -23,6 +23,7 @@ class AuthController extends Controller
         // Cek apakah identifier adalah NIP atau Username
         $user = User::where('nip', $identifier)
                     ->orWhere('username', $identifier)
+                    ->orWhere('email', $identifier)
                     ->first();
 
         if (!$user || !Hash::check($password, $user->password)) {

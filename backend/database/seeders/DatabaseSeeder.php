@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Admin BKPSDM',
                 'email' => 'admin@bkpsdm.com',
                 'nip' => '198001012010011001',
-                'password' => bcrypt('password123'),
+                'password' => 'password123',
                 'role' => 'admin',
             ]
         );
@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Super Admin BKPSDM',
                 'email' => 'superadmin@bkpsdm.com',
                 'nip' => '198001012010011002',
-                'password' => bcrypt('password123'),
+                'password' => 'password123',
                 'role' => 'super admin',
             ]
         );
@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'User BKPSDM',
                 'email' => 'user@bkpsdm.com',
                 'nip' => '198001012010011003',
-                'password' => bcrypt('password123'),
+                'password' => 'password123',
                 'role' => 'user',
             ]
         );

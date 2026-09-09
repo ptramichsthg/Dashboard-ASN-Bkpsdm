@@ -608,7 +608,9 @@ const Profil = () => {
       let matchGroup = false;
       if (activeTab === 'manajerial') {
         const matchEselon = j.jenis_eselon === selectedModalRow.jenis_eselon;
-        const matchSub = !selectedModalRow.subklasifikasi || j.subklasifikasi === selectedModalRow.subklasifikasi;
+        const matchSub = !selectedModalRow.subklasifikasi || 
+                         j.subklasifikasi === selectedModalRow.subklasifikasi || 
+                         j.subklasifikasi === 'Jabatan Manajerial';
         matchGroup = matchEselon && matchSub;
       } else {
         if (selectedModalRow.subklasifikasi === 'Jabatan Pelaksana') {

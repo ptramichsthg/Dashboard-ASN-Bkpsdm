@@ -22,7 +22,7 @@ class DashboardController extends Controller
             return $satker_id;
         }
 
-        $local = \Illuminate\Support\Facades\DB::table('satuan_kerja')->where('id', $satker_id)->first();
+        $local = DB::table('satuan_kerja')->where('id', $satker_id)->first();
         if ($local) return $local->satuan_kerja;
 
         return 'Semua Satuan Kerja';
@@ -140,6 +140,10 @@ class DashboardController extends Controller
         ]);
     }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index(Request $request)
     {
 
