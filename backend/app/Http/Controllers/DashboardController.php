@@ -347,9 +347,10 @@ class DashboardController extends Controller
         }
         $pegawaiAktifSummary = [
             'total' => (clone $pegawaiAktifQuery)->count(),
-            'pns'   => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PNS')->count(),
-            'pppk'  => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PPPK')->count(),
-            'cpns'  => (clone $pegawaiAktifQuery)->where('status_pegawai', 'CPNS')->count(),
+            'pns'     => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PNS')->count(),
+            'pppk'    => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PPPK')->count(),
+            'pppk_pw' => (clone $pegawaiAktifQuery)->where('status_pegawai', 'PPPK PW')->count(),
+            'cpns'    => (clone $pegawaiAktifQuery)->where('status_pegawai', 'CPNS')->count(),
         ];
 
         return response()->json([

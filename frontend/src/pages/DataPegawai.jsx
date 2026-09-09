@@ -19,6 +19,10 @@ import {
   Eye,
   Copy,
   Check,
+  Clock,
+  UserCheck,
+  Calendar,
+  Sparkles,
 } from 'lucide-react';
 
 export default function DataPegawai() {
@@ -46,7 +50,9 @@ export default function DataPegawai() {
     total_pegawai: 0,
     status_pns: 0,
     status_pppk: 0,
+    status_pppk_pw: 0,
     status_cpns: 0,
+    rata_rata_usia: 0,
     s1_count: 0,
     s2_s3_count: 0,
     top_golongan: '-',
@@ -57,6 +63,9 @@ export default function DataPegawai() {
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [filterSatker, setFilterSatker] = useState(initialSatker);
   const [filterStatusPegawai, setFilterStatusPegawai] = useState(initialStatus);
+  const [filterJenisKelamin, setFilterJenisKelamin] = useState('Semua');
+  const [filterGenerasi, setFilterGenerasi] = useState('Semua');
+  const [filterRentangUsia, setFilterRentangUsia] = useState('Semua');
   const [filterPendidikan, setFilterPendidikan] = useState('Semua');
   const [filterGolongan, setFilterGolongan] = useState('Semua');
   const [filterEselon, setFilterEselon] = useState('Semua');
@@ -70,6 +79,9 @@ export default function DataPegawai() {
     eselon: [],
     status_pegawai: [],
     jenjang_pendidikan: [],
+    jenis_kelamin: [],
+    generasi: [],
+    rentang_usia: [],
   });
 
   // Modal Detail Pegawai
@@ -124,19 +136,21 @@ export default function DataPegawai() {
       const res = await api.get('/pegawai/statistics', { params });
       if (res.data?.success && res.data?.data) {
         const d = res.data.data;
-        const pend = d.sebaran_pendidikan || [];
-        const s1 = pend.find(p => p.pendidikan?.toUpperCase().includes('S-1') || p.pendidikan?.toUpperCase().includes('SARJANA'))?.jumlah || 0;
-        const s2 = pend.find(p => p.pendidikan?.toUpperCase().includes('S-2') || p.pendidikan?.toUpperCase().includes('MAGISTER'))?.jumlah || 0;
-        const s3 = pend.find(p => p.pendidikan?.toUpperCase().includes('S-3') || p.pendidikan?.toUpperCase().includes('DOKTOR'))?.jumlah || 0;
+        const pend = d.jenjang_pendidikan || [];
+        const s1 = pend.find(p => p.name?.toUpperCase().includes('S1'))?.value || 0;
+        const s2 = pend.find(p => p.name?.toUpperCase().includes('S2'))?.value || 0;
+        const s3 = pend.find(p => p.name?.toUpperCase().includes('S3'))?.value || 0;
 
         const gol = d.sebaran_golongan || [];
-        const topGol = gol.length > 0 ? gol[0].golongan_akhir : '-';
+        const topGol = gol.length > 0 ? gol[0].name : '-';
 
         setStats({
           total_pegawai: d.total_pegawai || 0,
           status_pns: d.status_counts?.pns || 0,
           status_pppk: d.status_counts?.pppk || 0,
+          status_pppk_pw: d.status_counts?.pppk_pw || 0,
           status_cpns: d.status_counts?.cpns || 0,
+          rata_rata_usia: d.rata_rata_usia || 0,
           s1_count: s1,
           s2_s3_count: s2 + s3,
           top_golongan: topGol,
@@ -159,6 +173,9 @@ export default function DataPegawai() {
       if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
       if (filterSatker !== 'Semua') params.satuan_kerja = filterSatker;
       if (filterStatusPegawai !== 'Semua') params.status_pegawai = filterStatusPegawai;
+      if (filterJenisKelamin !== 'Semua') params.jenis_kelamin = filterJenisKelamin;
+      if (filterGenerasi !== 'Semua') params.generasi = filterGenerasi;
+      if (filterRentangUsia !== 'Semua') params.rentang_usia = filterRentangUsia;
       if (filterPendidikan !== 'Semua') params.pendidikan = filterPendidikan;
       if (filterGolongan !== 'Semua') params.golongan_akhir = filterGolongan;
       if (filterEselon !== 'Semua') params.eselon = filterEselon;
@@ -180,7 +197,7 @@ export default function DataPegawai() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [page, perPage, debouncedSearch, filterSatker, filterStatusPegawai, filterPendidikan, filterGolongan, filterEselon]);
+  }, [page, perPage, debouncedSearch, filterSatker, filterStatusPegawai, filterJenisKelamin, filterGenerasi, filterRentangUsia, filterPendidikan, filterGolongan, filterEselon]);
 
   useEffect(() => {
     loadFilterOptions();
@@ -205,6 +222,9 @@ export default function DataPegawai() {
     setDebouncedSearch('');
     setFilterSatker('Semua');
     setFilterStatusPegawai('Semua');
+    setFilterJenisKelamin('Semua');
+    setFilterGenerasi('Semua');
+    setFilterRentangUsia('Semua');
     setFilterPendidikan('Semua');
     setFilterGolongan('Semua');
     setFilterEselon('Semua');
@@ -374,22 +394,40 @@ export default function DataPegawai() {
                   <Briefcase size={26} />
                 </div>
                 <div className="pegawai-stat-info">
-                  <span className="pegawai-stat-label">Pegawai Pemerintah dg PK (PPPK)</span>
+                  <span className="pegawai-stat-label">PPPK (Penuh Waktu)</span>
                   <span className="pegawai-stat-value">{stats.status_pppk.toLocaleString('id-ID')}</span>
                   <span className="pegawai-stat-sub">
-                    {stats.total_pegawai > 0 ? `${((stats.status_pppk / stats.total_pegawai) * 100).toFixed(1)}% dari Total` : 'PPPK Aktif'}
+                    {stats.total_pegawai > 0 ? `${((stats.status_pppk / stats.total_pegawai) * 100).toFixed(1)}% dari Total` : 'PPPK Reguler'}
                   </span>
                 </div>
               </div>
 
-              <div className="pegawai-stat-card" style={{ '--stat-color': '#8b5cf6', '--stat-bg': '#f5f3ff' }}>
-                <div className="pegawai-stat-icon">
-                  <GraduationCap size={26} />
+              <div
+                className="pegawai-stat-card"
+                style={{ '--stat-color': '#6366f1', '--stat-bg': '#eef2ff', cursor: 'pointer' }}
+                onClick={() => { setFilterStatusPegawai('PPPK PW'); setPage(1); }}
+                title="Klik untuk filter hanya PPPK Paruh Waktu"
+              >
+                <div className="pegawai-stat-icon" style={{ background: '#e0e7ff', color: '#4f46e5' }}>
+                  <UserCheck size={26} />
                 </div>
                 <div className="pegawai-stat-info">
-                  <span className="pegawai-stat-label">Pendidikan S1 / D-IV</span>
-                  <span className="pegawai-stat-value">{stats.s1_count.toLocaleString('id-ID')}</span>
-                  <span className="pegawai-stat-sub">Jenjang Kualifikasi Utama</span>
+                  <span className="pegawai-stat-label">PPPK Paruh Waktu (PW)</span>
+                  <span className="pegawai-stat-value" style={{ color: '#4338ca' }}>{stats.status_pppk_pw.toLocaleString('id-ID')}</span>
+                  <span className="pegawai-stat-sub">
+                    {stats.total_pegawai > 0 ? `${((stats.status_pppk_pw / stats.total_pegawai) * 100).toFixed(1)}% dari Total` : 'Status Baru'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pegawai-stat-card" style={{ '--stat-color': '#f59e0b', '--stat-bg': '#fffbeb' }}>
+                <div className="pegawai-stat-icon" style={{ background: '#fef3c7', color: '#d97706' }}>
+                  <Clock size={26} />
+                </div>
+                <div className="pegawai-stat-info">
+                  <span className="pegawai-stat-label">Rata-rata Usia</span>
+                  <span className="pegawai-stat-value" style={{ color: '#b45309' }}>{stats.rata_rata_usia || '-'} <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Thn</span></span>
+                  <span className="pegawai-stat-sub">Rentang Usia 21 - 63 Thn</span>
                 </div>
               </div>
             </div>
@@ -417,6 +455,12 @@ export default function DataPegawai() {
                   PPPK <span className="tab-badge">{stats.status_pppk.toLocaleString('id-ID')}</span>
                 </button>
                 <button
+                  className={`status-tab pppk-pw ${filterStatusPegawai === 'PPPK PW' ? 'active' : ''}`}
+                  onClick={() => { setFilterStatusPegawai('PPPK PW'); setPage(1); }}
+                >
+                  PPPK PW <span className="tab-badge">{stats.status_pppk_pw.toLocaleString('id-ID')}</span>
+                </button>
+                <button
                   className={`status-tab cpns ${filterStatusPegawai === 'CPNS' ? 'active' : ''}`}
                   onClick={() => { setFilterStatusPegawai('CPNS'); setPage(1); }}
                 >
@@ -430,7 +474,7 @@ export default function DataPegawai() {
                   <input
                     type="text"
                     className="pegawai-search-input"
-                    placeholder="Cari NIP, Nama Lengkap, Status, Jabatan, atau Unit Kerja..."
+                    placeholder="Cari NIP, Nama Lengkap, Status, Jabatan, Unit Kerja, Generasi, atau Usia..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -454,7 +498,7 @@ export default function DataPegawai() {
                   style={{ minWidth: '150px' }}
                 >
                   <option value="Semua">Semua Status</option>
-                  {(options.status_pegawai?.length ? options.status_pegawai : ['PNS', 'PPPK', 'CPNS']).map((st) => (
+                  {(options.status_pegawai?.length ? options.status_pegawai : ['PNS', 'PPPK', 'PPPK PW', 'CPNS']).map((st) => (
                     <option key={st} value={st}>Status: {st}</option>
                   ))}
                 </select>
@@ -467,11 +511,59 @@ export default function DataPegawai() {
                     setFilterSatker(e.target.value);
                     setPage(1);
                   }}
-                  style={{ maxWidth: '280px' }}
+                  style={{ maxWidth: '260px' }}
                 >
                   <option value="Semua">Semua Satuan Kerja</option>
                   {options.satuan_kerja?.map((s) => (
                     <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+
+                {/* Jenis Kelamin */}
+                <select
+                  className="pegawai-filter-select"
+                  value={filterJenisKelamin}
+                  onChange={(e) => {
+                    setFilterJenisKelamin(e.target.value);
+                    setPage(1);
+                  }}
+                  style={{ minWidth: '140px' }}
+                >
+                  <option value="Semua">Semua Gender</option>
+                  {options.jenis_kelamin?.map((jk) => (
+                    <option key={jk} value={jk}>{jk === 'LAKI-LAKI' ? 'Laki-Laki' : 'Perempuan'}</option>
+                  ))}
+                </select>
+
+                {/* Generasi */}
+                <select
+                  className="pegawai-filter-select"
+                  value={filterGenerasi}
+                  onChange={(e) => {
+                    setFilterGenerasi(e.target.value);
+                    setPage(1);
+                  }}
+                  style={{ minWidth: '150px' }}
+                >
+                  <option value="Semua">Semua Generasi</option>
+                  {options.generasi?.map((gen) => (
+                    <option key={gen} value={gen}>{gen}</option>
+                  ))}
+                </select>
+
+                {/* Rentang Usia */}
+                <select
+                  className="pegawai-filter-select"
+                  value={filterRentangUsia}
+                  onChange={(e) => {
+                    setFilterRentangUsia(e.target.value);
+                    setPage(1);
+                  }}
+                  style={{ minWidth: '140px' }}
+                >
+                  <option value="Semua">Semua Usia</option>
+                  {options.rentang_usia?.map((ru) => (
+                    <option key={ru} value={ru}>{ru}</option>
                   ))}
                 </select>
 
@@ -522,7 +614,7 @@ export default function DataPegawai() {
                 </select>
 
                 {/* Reset Filters */}
-                {(search || filterSatker !== 'Semua' || filterStatusPegawai !== 'Semua' || filterPendidikan !== 'Semua' || filterGolongan !== 'Semua' || filterEselon !== 'Semua') && (
+                {(search || filterSatker !== 'Semua' || filterStatusPegawai !== 'Semua' || filterJenisKelamin !== 'Semua' || filterGenerasi !== 'Semua' || filterRentangUsia !== 'Semua' || filterPendidikan !== 'Semua' || filterGolongan !== 'Semua' || filterEselon !== 'Semua') && (
                   <button className="pegawai-reset-btn" onClick={handleResetFilters}>
                     <RotateCcw size={14} /> Reset Filter
                   </button>
@@ -538,7 +630,7 @@ export default function DataPegawai() {
                   Daftar Nominatif Pegawai
                   <span className="pegawai-badge-count">{pagination.total.toLocaleString('id-ID')} ASN</span>
                   {filterStatusPegawai !== 'Semua' && (
-                    <span className={`badge-status badge-status-${filterStatusPegawai.toLowerCase()}`} style={{ marginLeft: '0.25rem' }}>
+                    <span className={`badge-status badge-status-${filterStatusPegawai.toLowerCase().replace(/\s+/g, '-')}`} style={{ marginLeft: '0.25rem' }}>
                       {filterStatusPegawai}
                     </span>
                   )}
@@ -568,7 +660,8 @@ export default function DataPegawai() {
                     <tr>
                       <th style={{ width: '45px', textAlign: 'center' }}>No</th>
                       <th>Nama & NIP</th>
-                      <th style={{ width: '105px', textAlign: 'center' }}>Status</th>
+                      <th style={{ width: '115px', textAlign: 'center' }}>Status</th>
+                      <th style={{ width: '130px', textAlign: 'center' }}>Usia & Generasi</th>
                       <th>Jabatan Utama</th>
                       <th>Unit Kerja & Satker</th>
                       <th style={{ width: '75px', textAlign: 'center' }}>Gol</th>
@@ -580,7 +673,7 @@ export default function DataPegawai() {
                   <tbody>
                     {loading ? (
                       <tr>
-                        <td colSpan={9} style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
+                        <td colSpan={10} style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', color: '#64748b' }}>
                             <div className="spinner" style={{ width: '32px', height: '32px', border: '3px solid #e2e8f0', borderTopColor: '#10b981', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                             <span>Memuat data pegawai...</span>
@@ -589,7 +682,7 @@ export default function DataPegawai() {
                       </tr>
                     ) : pegawaiList.length === 0 ? (
                       <tr>
-                        <td colSpan={9} style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
+                        <td colSpan={10} style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', color: '#94a3b8' }}>
                             <Users size={48} strokeWidth={1.5} />
                             <span style={{ fontSize: '1rem', fontWeight: 600, color: '#475569' }}>Tidak ada data pegawai yang cocok</span>
@@ -600,6 +693,9 @@ export default function DataPegawai() {
                     ) : (
                       pegawaiList.map((p, index) => {
                         const rowNumber = (pagination.current_page - 1) * pagination.per_page + index + 1;
+                        const isMale = (p.jenis_kelamin || '').toUpperCase() === 'LAKI-LAKI';
+                        const statusKey = (p.status_pegawai || 'pns').toLowerCase().replace(/\s+/g, '-');
+
                         return (
                           <tr key={p.id || p.nip}>
                             <td style={{ textAlign: 'center', fontWeight: 600, color: '#94a3b8' }}>
@@ -607,12 +703,12 @@ export default function DataPegawai() {
                             </td>
                             <td>
                               <div className="pegawai-user-cell">
-                                <div className="pegawai-avatar">
+                                <div className="pegawai-avatar" style={{ background: isMale ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)' }}>
                                   {getInitials(p.nama_lengkap)}
                                 </div>
                                 <div className="pegawai-name-block">
                                   <span className="pegawai-name">{p.nama_lengkap}</span>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                                     <span className="pegawai-nip">{p.nip}</span>
                                     <button
                                       onClick={() => copyToClipboard(p.nip)}
@@ -621,14 +717,33 @@ export default function DataPegawai() {
                                     >
                                       {copiedNip === p.nip ? <Check size={12} /> : <Copy size={12} />}
                                     </button>
+                                    {p.jenis_kelamin && (
+                                      <span className={`badge-gender ${isMale ? 'badge-gender-l' : 'badge-gender-p'}`} title={`Jenis Kelamin: ${p.jenis_kelamin}`}>
+                                        {isMale ? 'L' : 'P'}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               </div>
                             </td>
                             <td style={{ textAlign: 'center' }}>
-                              <span className={`badge-status badge-status-${(p.status_pegawai || 'pns').toLowerCase()}`}>
+                              <span className={`badge-status badge-status-${statusKey}`}>
                                 {p.status_pegawai || '-'}
                               </span>
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <div className="pegawai-usia-cell">
+                                <span className="pegawai-usia-val">
+                                  {p.usia !== null && p.usia !== undefined ? (
+                                    <><strong>{p.usia}</strong> <span className="pegawai-usia-unit">thn</span></>
+                                  ) : '-'}
+                                </span>
+                                {p.generasi && (
+                                  <span className={`badge-generasi badge-gen-${p.generasi.toLowerCase().replace(/[^a-z0-9]/g, '')}`}>
+                                    {p.generasi}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td>
                               <div className="pegawai-jabatan-cell">
@@ -647,7 +762,7 @@ export default function DataPegawai() {
                               </span>
                             </td>
                             <td>
-                              {(() => {
+                              {p.pendidikan ? (() => {
                                 const pend = parsePendidikan(p.pendidikan);
                                 return (
                                   <div className="pegawai-pendidikan-cell" title={p.pendidikan}>
@@ -657,7 +772,9 @@ export default function DataPegawai() {
                                     )}
                                   </div>
                                 );
-                              })()}
+                              })() : (
+                                <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>-</span>
+                              )}
                             </td>
                             <td style={{ textAlign: 'center' }}>
                               {p.eselon ? (
@@ -728,12 +845,26 @@ export default function DataPegawai() {
           <div className="pegawai-modal" onClick={(e) => e.stopPropagation()}>
             <div className="pegawai-modal-header">
               <div className="pegawai-modal-profile">
-                <div className="pegawai-modal-avatar">
+                <div
+                  className="pegawai-modal-avatar"
+                  style={{
+                    background: (selectedPegawai.jenis_kelamin || '').toUpperCase() === 'LAKI-LAKI'
+                      ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
+                      : 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                  }}
+                >
                   {getInitials(selectedPegawai.nama_lengkap)}
                 </div>
                 <div className="pegawai-modal-title">
                   <h3>{selectedPegawai.nama_lengkap}</h3>
-                  <span>NIP: {selectedPegawai.nip}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}>
+                    <span>NIP: {selectedPegawai.nip}</span>
+                    {selectedPegawai.jenis_kelamin && (
+                      <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.25)', padding: '0.1rem 0.45rem', borderRadius: '4px', fontWeight: 600 }}>
+                        {selectedPegawai.jenis_kelamin}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <button className="pegawai-modal-close" onClick={() => setSelectedPegawai(null)}>
@@ -744,16 +875,42 @@ export default function DataPegawai() {
             <div className="pegawai-modal-body">
               <div className="pegawai-detail-item">
                 <span className="pegawai-detail-label">Status Kepegawaian</span>
-                <span className="pegawai-detail-val">
-                  <span className={`badge-status badge-status-${(selectedPegawai.status_pegawai || 'pns').toLowerCase()}`}>
+                <span className="pegawai-detail-val" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span className={`badge-status badge-status-${(selectedPegawai.status_pegawai || 'pns').toLowerCase().replace(/\s+/g, '-')}`}>
                     {selectedPegawai.status_pegawai || '-'}
                   </span>
+                  {selectedPegawai.status_pegawai === 'PPPK PW' && (
+                    <span style={{ fontSize: '0.82rem', color: '#4f46e5', fontWeight: 600 }}>
+                      (PPPK Paruh Waktu)
+                    </span>
+                  )}
                 </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="pegawai-detail-item">
+                  <span className="pegawai-detail-label">Usia & Generasi</span>
+                  <span className="pegawai-detail-val" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontWeight: 800, color: '#0f172a' }}>{selectedPegawai.usia} Tahun</span>
+                    {selectedPegawai.generasi && (
+                      <span className={`badge-generasi badge-gen-${selectedPegawai.generasi.toLowerCase().replace(/[^a-z0-9]/g, '')}`}>
+                        {selectedPegawai.generasi}
+                      </span>
+                    )}
+                  </span>
+                </div>
+
+                <div className="pegawai-detail-item">
+                  <span className="pegawai-detail-label">Jenis Kelamin</span>
+                  <span className="pegawai-detail-val">
+                    {selectedPegawai.jenis_kelamin || '-'}
+                  </span>
+                </div>
               </div>
 
               <div className="pegawai-detail-item">
                 <span className="pegawai-detail-label">Jabatan Utama</span>
-                <span className="pegawai-detail-val" style={{ color: '#047857' }}>
+                <span className="pegawai-detail-val" style={{ color: '#047857', fontWeight: 700 }}>
                   {selectedPegawai.jabatan_utama || '-'}
                 </span>
               </div>
@@ -772,7 +929,11 @@ export default function DataPegawai() {
                 <div className="pegawai-detail-item">
                   <span className="pegawai-detail-label">Golongan Akhir</span>
                   <span className="pegawai-detail-val">
-                    <span className="badge-golongan">{selectedPegawai.golongan_akhir || '-'}</span>
+                    {selectedPegawai.golongan_akhir ? (
+                      <span className="badge-golongan">{selectedPegawai.golongan_akhir}</span>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>- (Non-Golongan)</span>
+                    )}
                   </span>
                 </div>
 
@@ -782,7 +943,7 @@ export default function DataPegawai() {
                     {selectedPegawai.eselon ? (
                       <span className="badge-eselon">{selectedPegawai.eselon}</span>
                     ) : (
-                      'Non-Eselon'
+                      <span style={{ color: '#94a3b8' }}>Non-Eselon</span>
                     )}
                   </span>
                 </div>
@@ -791,7 +952,7 @@ export default function DataPegawai() {
               <div className="pegawai-detail-item">
                 <span className="pegawai-detail-label">Riwayat Pendidikan</span>
                 <span className="pegawai-detail-val">
-                  {(() => {
+                  {selectedPegawai.pendidikan ? (() => {
                     const pend = parsePendidikan(selectedPegawai.pendidikan);
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -801,7 +962,9 @@ export default function DataPegawai() {
                         )}
                       </div>
                     );
-                  })()}
+                  })() : (
+                    <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Tidak tercatat / Sesuai kualifikasi formasi</span>
+                  )}
                 </span>
               </div>
             </div>

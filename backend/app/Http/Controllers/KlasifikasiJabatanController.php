@@ -65,8 +65,13 @@ class KlasifikasiJabatanController extends Controller
                 });
             }
 
+            // Filter hanya jabatan kosong (bezetting < kebutuhan)
+            if ($request->boolean('hanya_kosong') || $request->input('status') === 'kosong') {
+                $query->whereRaw('bezetting < kebutuhan');
+            }
+
             // Search
-            if ($request->has('search')) {
+            if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->where('jabatan', 'like', '%' . $search . '%')
@@ -76,12 +81,19 @@ class KlasifikasiJabatanController extends Controller
             }
 
             // Sorting
-            $sortBy = $request->input('sort_by', 'no_urut');
-            $sortOrder = $request->input('sort_order', 'asc');
+            $sortBy = $request->input('sort_by', 'perangkat_daerah');
+            $sortOrder = strtolower($request->input('sort_order', 'asc')) === 'desc' ? 'desc' : 'asc';
+            $allowedSorts = ['id', 'no_urut', 'jabatan', 'perangkat_daerah', 'unit_kerja', 'bezetting', 'kebutuhan', 'selisih', 'jenjang_jf', 'subklasifikasi'];
+            if (!in_array($sortBy, $allowedSorts)) {
+                $sortBy = 'perangkat_daerah';
+            }
             $query->orderBy($sortBy, $sortOrder);
 
             // Pagination
-            $perPage = $request->input('per_page', 15);
+            $perPage = (int) $request->input('per_page', 15);
+            if ($perPage <= 0 || $perPage > 200) {
+                $perPage = 15;
+            }
             $data = $query->paginate($perPage);
 
             return response()->json([

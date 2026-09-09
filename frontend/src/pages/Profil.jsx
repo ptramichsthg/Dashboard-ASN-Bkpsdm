@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import apiCache from '../utils/apiCache';
@@ -8,6 +8,7 @@ import bgCard from '../assets/bg-card.png';
 import '../styles/Profil.css';
 
 import TopBar from '../components/shared/TopBar';
+import StatistikUmumPegawai from '../components/profil/StatistikUmumPegawai';
 
 import {
   Search,
@@ -253,6 +254,7 @@ const Profil = () => {
   const [filterEselon, setFilterEselon] = useState('Semua');
 
   const [searchKosongNM, setSearchKosongNM] = useState('');
+  const [debouncedSearchNM, setDebouncedSearchNM] = useState('');
   const [filterJenjangNM, setFilterJenjangNM] = useState('Semua');
 
   // Pagination jabatan kosong (15 per halaman)
@@ -260,8 +262,15 @@ const Profil = () => {
   const [pageKosongNM, setPageKosongNM] = useState(1);
   const itemsPerPageKosong = 15;
 
+  // Server-side State Non-Manajerial Kosong (2.967 Data)
+  const [jabatanKosongListNM, setJabatanKosongListNM] = useState([]);
+  const [paginationNM, setPaginationNM] = useState({ current_page: 1, last_page: 1, total: 0, per_page: 15 });
+  const [loadingKosongNM, setLoadingKosongNM] = useState(false);
+
   // State Modal Detail Selisih Bezetting (Tombol +/-)
   const [selectedModalRow, setSelectedModalRow] = useState(null);
+  const [modalJabatanServerList, setModalJabatanServerList] = useState(null);
+  const [modalJabatanLoading, setModalJabatanLoading] = useState(false);
   const [searchModal, setSearchModal] = useState('');
   const [pageModal, setPageModal] = useState(1);
   const itemsPerPageModal = 10;
@@ -274,14 +283,47 @@ const Profil = () => {
   const [pageEselonModal, setPageEselonModal] = useState(1);
   const itemsPerPageEselonModal = 10;
 
-  const handleOpenModal = (row) => {
+  const handleOpenModal = async (row) => {
     setSelectedModalRow(row);
     setSearchModal('');
     setPageModal(1);
+    if (activeTab === 'non-manajerial') {
+      setModalJabatanLoading(true);
+      try {
+        const params = {
+          klasifikasi_utama: 'NON MANAJERIAL',
+          hanya_kosong: 1,
+          per_page: 1000,
+        };
+        if (row.subklasifikasi === 'Jabatan Pelaksana' || row.kategori_label === 'Jabatan Pelaksana') {
+          params.subklasifikasi = 'Jabatan Pelaksana';
+        } else {
+          params.subklasifikasi = 'Jabatan Fungsional';
+          const jenjang = row.jenjang_jf || row.jenjang_label;
+          if (jenjang && jenjang !== 'Semua') {
+            params.jenjang_jf = jenjang;
+          }
+        }
+        const res = await api.get('/klasifikasi-jabatan', { params });
+        if (res.data?.success && res.data?.data?.data) {
+          setModalJabatanServerList(res.data.data.data);
+        } else {
+          setModalJabatanServerList([]);
+        }
+      } catch (err) {
+        console.error('Gagal mengambil detail modal jabatan kosong:', err);
+        setModalJabatanServerList([]);
+      } finally {
+        setModalJabatanLoading(false);
+      }
+    } else {
+      setModalJabatanServerList(null);
+    }
   };
 
   const handleCloseModal = () => {
     setSelectedModalRow(null);
+    setModalJabatanServerList(null);
     setSearchModal('');
     setPageModal(1);
   };
@@ -382,6 +424,9 @@ const Profil = () => {
     setIsRefreshing(true);
     apiCache.clear();
     await Promise.all([fetchProfil(), refetch(), refetchNM()]);
+    if (activeTab === 'non-manajerial') {
+      await fetchJabatanKosongNM();
+    }
     setIsRefreshing(false);
   };
 
@@ -393,6 +438,76 @@ const Profil = () => {
   // Sorting State Non-Manajerial
   const [sortRekapNM, setSortRekapNM] = useState({ key: null, direction: 'asc' });
   const [sortKosongNM, setSortKosongNM] = useState({ key: null, direction: 'asc' });
+
+  // Debounce search input untuk Non-Manajerial Kosong
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchNM(searchKosongNM);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchKosongNM]);
+
+  // Reset ke halaman 1 jika filter atau pencarian berubah
+  useEffect(() => {
+    setPageKosongNM(1);
+  }, [debouncedSearchNM, filterJenjangNM]);
+
+  // Fetch data jabatan kosong server-side untuk Non-Manajerial (2.967 Data)
+  const fetchJabatanKosongNM = useCallback(async () => {
+    if (activeTab !== 'non-manajerial') return;
+    setLoadingKosongNM(true);
+    try {
+      const params = {
+        klasifikasi_utama: 'NON MANAJERIAL',
+        hanya_kosong: 1,
+        page: pageKosongNM,
+        per_page: itemsPerPageKosong,
+      };
+
+      if (debouncedSearchNM.trim()) {
+        params.search = debouncedSearchNM.trim();
+      }
+
+      if (filterJenjangNM !== 'Semua') {
+        if (filterJenjangNM === 'Pelaksana') {
+          params.subklasifikasi = 'Jabatan Pelaksana';
+        } else {
+          params.jenjang_jf = filterJenjangNM;
+        }
+      }
+
+      if (sortKosongNM.key) {
+        params.sort_by = sortKosongNM.key;
+        params.sort_order = sortKosongNM.direction;
+      }
+
+      const res = await api.get('/klasifikasi-jabatan', { params });
+      if (res.data?.success && res.data?.data) {
+        const pData = res.data.data;
+        setJabatanKosongListNM(pData.data || []);
+        setPaginationNM({
+          total: pData.total || 0,
+          current_page: pData.current_page || 1,
+          last_page: pData.last_page || 1,
+          per_page: pData.per_page || itemsPerPageKosong,
+        });
+      } else {
+        setJabatanKosongListNM([]);
+        setPaginationNM({ total: 0, current_page: 1, last_page: 1, per_page: itemsPerPageKosong });
+      }
+    } catch (err) {
+      console.error('Gagal memuat jabatan kosong non-manajerial:', err);
+      setJabatanKosongListNM([]);
+    } finally {
+      setLoadingKosongNM(false);
+    }
+  }, [activeTab, pageKosongNM, debouncedSearchNM, filterJenjangNM, sortKosongNM, itemsPerPageKosong]);
+
+  useEffect(() => {
+    if (activeTab === 'non-manajerial') {
+      fetchJabatanKosongNM();
+    }
+  }, [fetchJabatanKosongNM, activeTab]);
 
   const handleSortRekap = (key) => {
     if (sortRekap.key !== key) {
@@ -598,6 +713,18 @@ const Profil = () => {
   // Filtered & Sorted jabatan untuk Pop-up Modal Selisih (+/-) Universal
   const modalJabatanFiltered = useMemo(() => {
     if (!selectedModalRow) return [];
+
+    // Jika Non-Manajerial dan data dari server sudah di-fetch
+    if (activeTab === 'non-manajerial' && modalJabatanServerList !== null) {
+      if (!searchModal) return modalJabatanServerList;
+      const q = searchModal.toLowerCase();
+      return modalJabatanServerList.filter((j) =>
+        j.jabatan?.toLowerCase().includes(q) ||
+        j.perangkat_daerah?.toLowerCase().includes(q) ||
+        j.unit_kerja?.toLowerCase().includes(q)
+      );
+    }
+
     const sourceData = activeTab === 'manajerial'
       ? manajerialData?.jabatan_kosong
       : nonManajerialData?.jabatan_kosong;
@@ -629,7 +756,7 @@ const Profil = () => {
         j.unit_kerja?.toLowerCase().includes(q)
       );
     });
-  }, [selectedModalRow, activeTab, manajerialData, nonManajerialData, searchModal]);
+  }, [selectedModalRow, activeTab, modalJabatanServerList, manajerialData, nonManajerialData, searchModal]);
 
   const sortedModalJabatan = useMemo(() => {
     let items = [...modalJabatanFiltered];
@@ -954,27 +1081,8 @@ const Profil = () => {
             <div className="profil-section-line" />
           </div>
 
-          <div
-            className="statistik-umum"
-            style={{
-              marginTop: '2rem',
-              marginBottom: '2rem',
-              padding: '2rem',
-              backgroundColor: '#f8fafc',
-              border: '2px dashed #cbd5e1',
-              borderRadius: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1rem',
-              color: '#64748b'
-            }}
-          >
-            <BarChart2 size={36} color="#94a3b8" />
-            <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>Statistik Umum (Segera Hadir)</span>
-            <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Area ini disiapkan untuk menampilkan chart atau metrik ringkasan umum.</span>
-          </div>
+          {/* ── STATISTIK UMUM DATA PEGAWAI AKTIF (TABEL & FILTER) ── */}
+          <StatistikUmumPegawai />
 
           {/* ═══════════════════════════════════════════════
               SECTION 2 — JABATAN MANAJERIAL & NON-MANAJERIAL
@@ -1869,7 +1977,7 @@ const Profil = () => {
 
                   {/* Count badge */}
                   <div className="jabatan-kosong-count">
-                    {jabatanKosongFilteredNM.length.toLocaleString('id-ID')} jabatan kosong
+                    {paginationNM.total.toLocaleString('id-ID')} jabatan kosong
                   </div>
                 </div>
 
@@ -1901,26 +2009,26 @@ const Profil = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {nonManajerialLoading ? (
+                    {loadingKosongNM ? (
                       <tr>
-                        <td colSpan={7} className="no-data-row">Memuat data...</td>
+                        <td colSpan={7} className="no-data-row">Memuat data jabatan kosong...</td>
                       </tr>
-                    ) : jabatanKosongFilteredNM.length === 0 ? (
+                    ) : jabatanKosongListNM.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="no-data-row">
-                          {searchKosongNM || filterJenjangNM !== 'Semua'
+                          {debouncedSearchNM || filterJenjangNM !== 'Semua'
                             ? 'Tidak ada hasil pencarian'
                             : 'Semua jabatan non-manajerial sudah terisi'}
                         </td>
                       </tr>
                     ) : (
-                      pagedJabatanKosongNM.map((j, idx) => {
+                      jabatanKosongListNM.map((j, idx) => {
                         const badgeClass = j.subklasifikasi === 'Jabatan Pelaksana'
                           ? 'pelaksana'
                           : j.kelompok_jf === 'Fungsional Terampil'
                             ? 'jf-terampil'
                             : 'jf-ahli';
-                        const absoluteIndex = (pageKosongNM - 1) * itemsPerPageKosong + idx + 1;
+                        const absoluteIndex = (paginationNM.current_page - 1) * paginationNM.per_page + idx + 1;
                         return (
                           <tr key={j.id}>
                             <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{absoluteIndex}</td>
@@ -1946,31 +2054,31 @@ const Profil = () => {
                   </tbody>
                 </table>
 
-                {/* Pagination Controls NM */}
-                {!nonManajerialLoading && jabatanKosongFilteredNM.length > 0 && (
+                {/* Pagination Controls NM (Server-Side) */}
+                {!loadingKosongNM && paginationNM.total > 0 && (
                   <div className="profil-pagination">
                     <span>
-                      Menampilkan {((pageKosongNM - 1) * itemsPerPageKosong) + 1}–{Math.min(pageKosongNM * itemsPerPageKosong, jabatanKosongFilteredNM.length)} dari {jabatanKosongFilteredNM.length.toLocaleString('id-ID')} jabatan
+                      Menampilkan {((paginationNM.current_page - 1) * paginationNM.per_page) + 1}–{Math.min(paginationNM.current_page * paginationNM.per_page, paginationNM.total)} dari {paginationNM.total.toLocaleString('id-ID')} jabatan
                     </span>
                     <div className="profil-pagination-btns">
                       <button
                         className="profil-page-btn"
                         onClick={() => setPageKosongNM((p) => Math.max(1, p - 1))}
-                        disabled={pageKosongNM === 1}
+                        disabled={paginationNM.current_page === 1}
                         title="Halaman sebelumnya"
                       >
                         <ChevronLeft size={16} />
                       </button>
 
-                      {Array.from({ length: totalPagesKosongNM }, (_, i) => i + 1)
-                        .filter((p) => p === 1 || p === totalPagesKosongNM || Math.abs(p - pageKosongNM) <= 1)
+                      {Array.from({ length: paginationNM.last_page }, (_, i) => i + 1)
+                        .filter((p) => p === 1 || p === paginationNM.last_page || Math.abs(p - paginationNM.current_page) <= 1)
                         .map((p, idx, arr) => (
                           <React.Fragment key={p}>
                             {idx > 0 && arr[idx - 1] !== p - 1 && (
                               <span className="profil-pagination-dots">…</span>
                             )}
                             <button
-                              className={`profil-page-btn ${pageKosongNM === p ? 'active' : ''}`}
+                              className={`profil-page-btn ${paginationNM.current_page === p ? 'active' : ''}`}
                               onClick={() => setPageKosongNM(p)}
                             >
                               {p}
@@ -1980,8 +2088,8 @@ const Profil = () => {
 
                       <button
                         className="profil-page-btn"
-                        onClick={() => setPageKosongNM((p) => Math.min(totalPagesKosongNM, p + 1))}
-                        disabled={pageKosongNM === totalPagesKosongNM}
+                        onClick={() => setPageKosongNM((p) => Math.min(paginationNM.last_page, p + 1))}
+                        disabled={paginationNM.current_page === paginationNM.last_page}
                         title="Halaman berikutnya"
                       >
                         <ChevronRight size={16} />
@@ -2097,7 +2205,11 @@ const Profil = () => {
                   </div>
 
                   <div className="bezetting-modal-body">
-                    {modalJabatanFiltered.length === 0 ? (
+                    {modalJabatanLoading ? (
+                      <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#64748b' }}>
+                        Memuat data jabatan kosong...
+                      </div>
+                    ) : modalJabatanFiltered.length === 0 ? (
                       <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#64748b' }}>
                         {searchModal ? 'Tidak ada jabatan yang sesuai dengan pencarian.' : 'Tidak ada data rincian jabatan.'}
                       </div>
