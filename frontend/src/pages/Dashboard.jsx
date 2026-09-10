@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import bgCard from '../assets/bg-card.png';
 import '../styles/Dashboard.css';
 import TopBar from '../components/shared/TopBar';
+import HeroBanner from '../components/shared/HeroBanner';
 import JenisAsnCard from '../components/shared/JenisAsnCard';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
 import StatusPegawaiCards from '../components/dashboard/StatusPegawaiCards';
@@ -19,8 +19,6 @@ import { formatOPDName } from '../utils/formatters';
 import {
   Users,
   X,
-  Database,
-  Filter,
 } from 'lucide-react';
 
 const INITIAL_SUMMARY = { total: 0, laki: 0, perempuan: 0 };
@@ -279,37 +277,16 @@ export default function Dashboard() {
           )}
 
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
-            <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/profil')}>Profil ASN</span>
-            <span>/</span>
-            <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/lainnya')}>Lainnya</span>
-            <span>/</span>
-            <span style={{ color: '#0f172a' }}>Dashboard</span>
+          <div className="app-breadcrumb">
+            <span className="app-breadcrumb-current">Dashboard</span>
           </div>
 
           {/* ── HERO BANNER ── */}
-          <div className="hero-banner">
-            <div className="hero-banner-content">
-              <h1>Dashboard Data ASN Kabupaten Bandung</h1>
-              <p>
-                Dashboard analitik real-time untuk memantau komposisi, status, sebaran OPD, dan statistik kepegawaian<br />
-                ASN di lingkungan Pemerintah Kabupaten Bandung.
-              </p>
-              <div className="hero-badges">
-                <div className="hero-badge-container static-badge">
-                  <Database size={14} className="badge-icon-svg" />
-                  <span className="badge-prefix">Sumber: SIMPEL BKPSDM Kab. Bandung</span>
-                </div>
-                <div className="hero-badge-container static-badge">
-                  <Filter size={14} className="badge-icon-svg" />
-                  <span className="badge-prefix">Filter: {satker}</span>
-                </div>
-              </div>
-            </div>
-            <div className="hero-banner-decor">
-              <img src={bgCard} alt="Logo Kabupaten Bandung" className="hero-banner-logo" />
-            </div>
-          </div>
+          <HeroBanner
+            title="Dashboard Data ASN Kabupaten Bandung"
+            description="Komposisi, status, sebaran OPD, dan statistik kepegawaian ASN<br />di lingkungan Pemerintah Kabupaten Bandung."
+            badgeText="Sumber: SIMPEL BKPSDM Kab. Bandung"
+          />
 
           {/* ── FILTER SATKER, BULAN, TAHUN ── */}
           <div className="admin-kpi-filter-wrapper">
@@ -359,10 +336,6 @@ export default function Dashboard() {
                   key={item.label}
                   label={item.label}
                   value={item.value}
-                  onClick={() => {
-                    const statusParam = item.label === 'PPPK PW' ? 'PPPK' : item.label;
-                    navigate(`/sebaran-pegawai?status=${encodeURIComponent(statusParam)}`);
-                  }}
                 />
               ))}
             </div>

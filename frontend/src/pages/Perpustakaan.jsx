@@ -5,7 +5,7 @@ import TopBar from '../components/shared/TopBar';
 import {
   BookOpen, FileText, Download,
   Search, Eye, Sparkles, Folder, Calendar, Layers, CheckCircle,
-  X, RefreshCw, Bookmark, Award
+  X, RefreshCw, Bookmark, Award, Menu
 } from 'lucide-react';
 import '../index.css';
 import '../styles/Perpustakaan.css';
@@ -55,12 +55,12 @@ export default function Perpustakaan() {
         {/* ── Content Area ── */}
         <div className="content-area">
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '0.75rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, paddingLeft: '0.2rem' }}>
-            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/profil')}>Profil ASN</span>
-            <span>/</span>
-            <span style={{ cursor: 'pointer', color: '#3b82f6', transition: 'color 0.2s' }} onClick={() => navigate('/lainnya')}>Lainnya</span>
-            <span>/</span>
-            <span style={{ color: '#0f172a' }}>Perpustakaan BKN & BKPSDM</span>
+          <div className="app-breadcrumb">
+            <span className="app-breadcrumb-link" onClick={() => navigate('/dashboard')}>Dashboard</span>
+            <span className="app-breadcrumb-separator">/</span>
+            <span className="app-breadcrumb-link" onClick={() => navigate('/lainnya')}>Lainnya</span>
+            <span className="app-breadcrumb-separator">/</span>
+            <span className="app-breadcrumb-current">Perpustakaan BKN & BKPSDM</span>
           </div>
 
           {/* Alert Notification if any */}
@@ -100,6 +100,28 @@ export default function Perpustakaan() {
                 <div className="hero-badge-container interactive" onClick={refresh} title="Perbarui Data">
                   <RefreshCw size={14} className={loading ? 'spin' : ''} />
                   <span>Refresh Data</span>
+                </div>
+                <div
+                  className="hero-badge-container static-badge"
+                  onClick={() => navigate('/lainnya')}
+                  style={{
+                    cursor: 'pointer',
+                    background: 'rgba(255, 255, 255, 0.18)',
+                    border: '1px solid rgba(255, 255, 255, 0.35)',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                  title="Buka Menu Layanan Lainnya"
+                >
+                  <Menu size={14} className="badge-icon-svg" />
+                  <span className="badge-prefix" style={{ fontWeight: 600 }}>Menu Lainnya</span>
                 </div>
               </div>
             </div>

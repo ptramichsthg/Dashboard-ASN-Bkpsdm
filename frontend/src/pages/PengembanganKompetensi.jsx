@@ -7,7 +7,8 @@ import TopBar from '../components/shared/TopBar';
 import {
   Database, Activity,
   Users, CheckCircle2, Clock, Trophy, Search, ChevronLeft,
-  ChevronRight, BarChart2, GraduationCap, ArrowUpDown, ArrowUp, ArrowDown
+  ChevronRight, BarChart2, GraduationCap, ArrowUpDown, ArrowUp, ArrowDown,
+  Menu
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -190,12 +191,12 @@ export default function PengembanganKompetensi() {
           {/* ── Content Area ── */}
           <div className="content-area">
             {/* Breadcrumb */}
-            <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000000', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
-              <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/profil')}>Profil ASN</span>
-              <span>/</span>
-              <span style={{ cursor: 'pointer', color: '#3b82f6' }} onClick={() => navigate('/lainnya')}>Lainnya</span>
-              <span>/</span>
-              <span style={{ color: '#0f172a' }}>Pengembangan Kompetensi</span>
+            <div className="app-breadcrumb">
+              <span className="app-breadcrumb-link" onClick={() => navigate('/dashboard')}>Dashboard</span>
+              <span className="app-breadcrumb-separator">/</span>
+              <span className="app-breadcrumb-link" onClick={() => navigate('/lainnya')}>Lainnya</span>
+              <span className="app-breadcrumb-separator">/</span>
+              <span className="app-breadcrumb-current">Pengembangan Kompetensi</span>
             </div>
 
             {/* Hero Banner */}
@@ -208,6 +209,28 @@ export default function PengembanganKompetensi() {
                   <div className="hero-badge-container static-badge">
                     <Database size={14} className="badge-icon-svg" />
                     <span className="badge-prefix">Sumber: SIMPEL BKPSDM Kab. Bandung</span>
+                  </div>
+                  <div
+                    className="hero-badge-container static-badge"
+                    onClick={() => navigate('/lainnya')}
+                    style={{
+                      cursor: 'pointer',
+                      background: 'rgba(255, 255, 255, 0.18)',
+                      border: '1px solid rgba(255, 255, 255, 0.35)',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                    title="Buka Menu Layanan Lainnya"
+                  >
+                    <Menu size={14} className="badge-icon-svg" />
+                    <span className="badge-prefix" style={{ fontWeight: 600 }}>Menu Lainnya</span>
                   </div>
                 </div>
               </div>

@@ -577,8 +577,12 @@ export default function Profil() {
         {/* Content Area */}
         <div className="content-area">
           {/* Breadcrumb */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', paddingLeft: '0.2rem' }}>
-            <span>Profil ASN</span>
+          <div className="app-breadcrumb">
+            <span className="app-breadcrumb-link" onClick={() => navigate('/dashboard')}>Dashboard</span>
+            <span className="app-breadcrumb-separator">/</span>
+            <span className="app-breadcrumb-link" onClick={() => navigate('/lainnya')}>Lainnya</span>
+            <span className="app-breadcrumb-separator">/</span>
+            <span className="app-breadcrumb-current">Profil ASN</span>
           </div>
 
           {/* ── HERO BANNER ── */}
@@ -601,10 +605,24 @@ export default function Profil() {
                 <div
                   className="hero-badge-container static-badge"
                   onClick={() => navigate('/lainnya')}
-                  style={{ cursor: 'pointer', background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.35)' }}
+                  style={{
+                    cursor: 'pointer',
+                    background: 'rgba(255, 255, 255, 0.18)',
+                    border: '1px solid rgba(255, 255, 255, 0.35)',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                  title="Buka Menu Layanan Lainnya"
                 >
                   <Menu size={14} className="badge-icon-svg" />
-                  <span className="badge-prefix">Menu Lainnya</span>
+                  <span className="badge-prefix" style={{ fontWeight: 600 }}>Menu Lainnya</span>
                 </div>
               </div>
             </div>

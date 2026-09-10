@@ -31,7 +31,7 @@ const Login = () => {
       }
       
       if (role === 'admin' || role === 'user') {
-        navigate('/under-development', { replace: true });
+        navigate('/dashboard', { replace: true });
       } else {
         navigate('/profil', { replace: true });
       }
@@ -68,7 +68,7 @@ const Login = () => {
 
         setIsLoading(false);
         if (response.data.user && (response.data.user.role === 'admin' || response.data.user.role === 'user')) {
-          navigate('/under-development', { replace: true });
+          navigate('/dashboard', { replace: true });
         } else {
           navigate('/profil', { replace: true });
         }

@@ -499,11 +499,11 @@ body {
 .hero-banner-content {
   position: relative;
   z-index: 2;
-  max-width: 65%;
+  max-width: 78%;
 }
 
 .hero-banner-content h1 {
-  font-size: 2.35rem;
+  font-size: clamp(1.85rem, 2.1vw, 2.25rem);
   font-weight: 800;
   color: white;
   margin: 0 0 0.75rem 0;
@@ -512,9 +512,9 @@ body {
 
 .hero-banner-content p {
   color: rgba(255, 255, 255, 0.95);
-  font-size: 1.15rem;
-  line-height: 1.6;
-  margin: 0 0 1.5rem 0;
+  font-size: 1.1rem;
+  line-height: 1.55;
+  margin: 0 0 1.25rem 0;
 }
 
 .hero-badges {
@@ -1451,3 +1451,45 @@ html.modal-open,
 body.modal-open {
   overflow: hidden !important;
 }
+
+/* Global App Breadcrumb */
+.app-breadcrumb {
+  margin-top: -1rem;
+  margin-bottom: -0.5rem;
+  font-size: 0.9rem;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  padding-left: 0.2rem;
+}
+
+.app-breadcrumb-link {
+  cursor: pointer;
+  color: var(--primary);
+  transition: color 0.2s ease, transform 0.2s ease;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.app-breadcrumb-link:hover {
+  color: var(--primary-hover);
+}
+
+.app-breadcrumb-separator {
+  color: #94a3b8;
+  user-select: none;
+}
+
+.app-breadcrumb-current {
+  color: #0f172a;
+}
+

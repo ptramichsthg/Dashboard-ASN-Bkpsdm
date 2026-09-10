@@ -31,7 +31,7 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const isProfilePage = location.pathname === '/profil';
+  const isDashboardPage = location.pathname === '/dashboard';
 
   return (
     <header className="topbar">
@@ -39,8 +39,8 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
         <div className="topbar-left">
           <div
             className="topbar-brand"
-            onClick={() => !isProfilePage && navigate('/profil')}
-            style={{ cursor: isProfilePage ? 'default' : 'pointer' }}
+            onClick={() => !isDashboardPage && navigate('/dashboard')}
+            style={{ cursor: isDashboardPage ? 'default' : 'pointer' }}
           >
             <Activity size={28} className="brand-icon" />
             <div className="brand-text">

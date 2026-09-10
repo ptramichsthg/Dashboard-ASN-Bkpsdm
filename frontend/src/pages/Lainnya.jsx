@@ -6,7 +6,7 @@ import HeroBanner from '../components/shared/HeroBanner';
 import {
   Users,
   ClipboardList,
-  LayoutDashboard,
+  UserCheck,
   Award,
   BookOpen,
   BarChart2,
@@ -14,13 +14,13 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
-// Konfigurasi 8 menu lama + dashboard
+// Konfigurasi 8 menu lama + profil
 const MENU_ITEMS = [
   {
-    label: 'Dashboard Analytics',
-    description: 'Grafik, distribusi gender & sebaran OPD',
-    icon: <LayoutDashboard size={36} />,
-    path: '/dashboard',
+    label: 'Profil ASN',
+    description: 'Statistik jabatan, eselon, data umum & selisih formasi',
+    icon: <UserCheck size={36} />,
+    path: '/profil',
     color: '#059669',
     bg: '#ecfdf5',
     border: '#10b981',
@@ -102,15 +102,15 @@ export default function Lainnya() {
         {/* ── CONTENT ── */}
         <div className="content-area">
           {/* Breadcrumb + back */}
-          <div style={{ marginTop: '-1rem', marginBottom: '-0.5rem', fontSize: '0.9rem', color: '#000', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', paddingLeft: '0.2rem' }}>
+          <div className="app-breadcrumb">
             <button
-              onClick={() => navigate('/profil')}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontWeight: 700, fontSize: '0.9rem', padding: 0 }}
+              onClick={() => navigate('/dashboard')}
+              className="app-breadcrumb-link"
             >
-              <ArrowLeft size={15} /> Profil ASN
+              <ArrowLeft size={15} /> Dashboard
             </button>
-            <ChevronRight size={13} color="#94a3b8" />
-            <span style={{ color: '#0f172a' }}>Lainnya</span>
+            <ChevronRight size={13} className="app-breadcrumb-separator" />
+            <span className="app-breadcrumb-current">Lainnya</span>
           </div>
 
           {/* ── HERO BANNER ── */}
@@ -118,6 +118,7 @@ export default function Lainnya() {
             title="Menu Layanan BKPSDM"
             description="Akses cepat ke seluruh modul dan fitur<br />Sistem Informasi Kepegawaian Kabupaten Bandung."
             badgeText="BKPSDM Kab. Bandung"
+            showMenuLainnya={false}
           />
 
           {/* ── MENU GRID ── */}

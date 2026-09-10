@@ -17,27 +17,9 @@ const UnderDevelopment = lazy(() => import('./pages/UnderDevelopment'));
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
-  const userStr = localStorage.getItem('user');
-  const location = useLocation();
   
   if (!token) {
     return <Navigate to="/" replace />;
-  }
-
-  let role = 'admin';
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      role = user.role;
-    } catch (e) {}
-  }
-
-  if ((role === 'admin' || role === 'user') && location.pathname !== '/under-development') {
-    return <Navigate to="/under-development" replace />;
-  }
-
-  if (role === 'super admin' && location.pathname === '/under-development') {
-    return <Navigate to="/profil" replace />;
   }
 
   return children;
@@ -56,7 +38,7 @@ const GuestRoute = ({ children }) => {
     }
     
     if (role === 'admin' || role === 'user') {
-      return <Navigate to="/under-development" replace />;
+      return <Navigate to="/dashboard" replace />;
     }
     return <Navigate to="/profil" replace />;
   }
