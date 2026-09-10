@@ -118,7 +118,7 @@ export default function BezettingTable({
       )}
 
       {/* Table */}
-      <div style={{ overflowX: 'auto' }}>
+      <div className="bezetting-table-area">
         <table className="bezetting-table">
           <thead>
             <tr>

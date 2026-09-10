@@ -227,7 +227,8 @@
   .gap-chart-canvas-area {
     padding: 1rem;
     width: 100%;
-    overflow-x: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   .gap-chart-header {

@@ -1734,12 +1734,13 @@ table.bezetting-modal-table tbody td {
 /* ── Tab Switcher for Jabatan (Manajerial vs Non-Manajerial) ── */
 .profil-tab-container {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   background: #f1f5f9;
   padding: 0.35rem;
   border-radius: 14px;
-  width: fit-content;
+  width: 100%;
   margin-bottom: 1.5rem;
   border: 1.5px solid #e2e8f0;
 }
@@ -1970,6 +1971,16 @@ table.bezetting-modal-table tbody td {
   
   .jenis-asn-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .profil-tab-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .profil-tab-container {
+    flex-direction: column;
+    padding: 0.5rem;
   }
 }
 

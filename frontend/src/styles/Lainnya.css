@@ -1,0 +1,292 @@
+/* ==========================================================================
+   Lainnya Page / Menu Layanan BKPSDM Styles
+   Responsive 2-column mobile layout ("per 2 menu")
+   ========================================================================== */
+
+/* ── Menu Grid ── */
+.menu-layanan-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* ── Menu Card ── */
+.menu-layanan-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.6rem 1.4rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.22s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 220px;
+}
+
+.menu-layanan-card:hover {
+  transform: translateY(-4px);
+}
+
+.menu-layanan-card:active {
+  transform: scale(0.98);
+}
+
+/* ── Accent Line at Top of Card ── */
+.menu-card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 16px 16px 0 0;
+}
+
+/* ── Icon Box ── */
+.menu-card-icon-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.22s ease;
+}
+
+.menu-layanan-card:hover .menu-card-icon-box {
+  transform: scale(1.06);
+}
+
+.menu-card-icon-box svg {
+  width: 30px !important;
+  height: 30px !important;
+  stroke-width: 2.2;
+}
+
+/* ── Card Content ── */
+.menu-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-card-title {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.menu-card-desc {
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Footer Link ── */
+.menu-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  transition: gap 0.2s ease;
+}
+
+.menu-layanan-card:hover .menu-card-footer {
+  gap: 0.5rem;
+}
+
+.menu-card-footer svg {
+  width: 15px !important;
+  height: 15px !important;
+  transition: transform 0.2s ease;
+}
+
+.menu-layanan-card:hover .menu-card-footer svg {
+  transform: translateX(2px);
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
+/* Tablet (Large) */
+@media (max-width: 1200px) {
+  .menu-layanan-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+/* Tablet (Medium) */
+@media (max-width: 900px) {
+  .menu-layanan-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.15rem;
+  }
+
+  .menu-layanan-card {
+    padding: 1.35rem 1.2rem;
+    min-height: 200px;
+  }
+
+  .menu-card-title {
+    font-size: 1.08rem;
+  }
+
+  .menu-card-desc {
+    font-size: 0.84rem;
+  }
+}
+
+/* Mobile: PER 2 MENU (2 COLUMNS) */
+@media (max-width: 640px) {
+  .menu-layanan-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .menu-layanan-card {
+    padding: 0.95rem 0.8rem !important;
+    border-radius: 14px !important;
+    gap: 0.6rem !important;
+    min-height: 175px !important;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05) !important;
+  }
+
+  .menu-card-accent {
+    height: 3px !important;
+    border-radius: 14px 14px 0 0 !important;
+  }
+
+  .menu-card-icon-box {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 10px !important;
+  }
+
+  .menu-card-icon-box svg {
+    width: 22px !important;
+    height: 22px !important;
+    stroke-width: 2;
+  }
+
+  .menu-card-title {
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.2rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .menu-card-desc {
+    font-size: 0.72rem !important;
+    line-height: 1.35 !important;
+    -webkit-line-clamp: 2 !important;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+
+  .menu-card-footer {
+    font-size: 0.74rem !important;
+    gap: 0.2rem !important;
+    padding-top: 0.25rem !important;
+  }
+
+  .menu-card-footer svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
+/* Small Mobile (<= 390px, e.g. iPhone SE, 375px) */
+@media (max-width: 390px) {
+  .menu-layanan-grid {
+    gap: 0.6rem !important;
+  }
+
+  .menu-layanan-card {
+    padding: 0.85rem 0.7rem !important;
+    border-radius: 12px !important;
+    gap: 0.5rem !important;
+    min-height: 165px !important;
+  }
+
+  .menu-card-icon-box {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+  }
+
+  .menu-card-icon-box svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+
+  .menu-card-title {
+    font-size: 0.82rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  .menu-card-desc {
+    font-size: 0.68rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .menu-card-footer {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Extra Small Mobile (<= 340px) */
+@media (max-width: 340px) {
+  .menu-layanan-grid {
+    gap: 0.45rem !important;
+  }
+
+  .menu-layanan-card {
+    padding: 0.75rem 0.6rem !important;
+    min-height: 155px !important;
+  }
+
+  .menu-card-icon-box {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .menu-card-icon-box svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+
+  .menu-card-title {
+    font-size: 0.76rem !important;
+  }
+
+  .menu-card-desc {
+    font-size: 0.64rem !important;
+  }
+
+  .menu-card-footer {
+    font-size: 0.66rem !important;
+  }
+}

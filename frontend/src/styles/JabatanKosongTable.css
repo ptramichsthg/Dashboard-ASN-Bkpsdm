@@ -5,7 +5,18 @@
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   margin-bottom: 2rem;
-  overflow: hidden;
+  /* PENTING: overflow:hidden dihapus agar tabel bisa di-scroll horizontal.
+     border-radius tetap terlihat karena card sendiri punya border-radius */
+  overflow: visible;
+}
+
+/* Scrollable area khusus untuk tabel — override overflow dari card parent */
+.jabatan-kosong-table-area {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
 }
 
 .jabatan-kosong-toolbar {
@@ -15,6 +26,8 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  /* Sudut atas card tetap terbentuk dari border card itu sendiri */
+  background: #ffffff;
 }
 
 .jabatan-kosong-search {
@@ -68,6 +81,8 @@ table.jabatan-kosong-table {
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.875rem;
+  /* min-width agar tabel bisa di-scroll saat layar sempit */
+  min-width: 600px;
 }
 
 table.jabatan-kosong-table thead tr {
@@ -205,5 +220,31 @@ table.jabatan-kosong-table tbody td.text-center {
   table.jabatan-kosong-table th,
   table.jabatan-kosong-table td {
     white-space: nowrap;
+  }
+  
+  .jabatan-kosong-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .jabatan-kosong-search,
+  .jabatan-kosong-filter select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .profil-pagination {
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .profil-pagination-btns {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }
