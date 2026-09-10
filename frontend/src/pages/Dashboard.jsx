@@ -9,7 +9,6 @@ import DashboardFilters from '../components/dashboard/DashboardFilters';
 import StatusPegawaiCards from '../components/dashboard/StatusPegawaiCards';
 import {
   GenderDonutChart,
-  OpdBarChart,
   OpdStackedBarChart,
   GolonganEselonSection,
 } from '../components/dashboard/DashboardCharts';
@@ -25,7 +24,6 @@ import {
 } from 'lucide-react';
 
 const INITIAL_SUMMARY = { total: 0, laki: 0, perempuan: 0 };
-const ITEMS_PER_CHART_PAGE = 5;
 const ITEMS_PER_STACKED_PAGE = 5;
 
 export default function Dashboard() {
@@ -48,7 +46,6 @@ export default function Dashboard() {
   const [golonganPNSData, setGolonganPNSData] = useState([]);
   const [golonganPPPKData, setGolonganPPPKData] = useState([]);
   const [eselonData, setEselonData] = useState([]);
-  const [sebaranOPDData, setSebaranOPDData] = useState([]);
   const [satkerRawData, setSatkerRawData] = useState([]);
   const [profilData, setProfilData] = useState(null);
   const [profilLoading, setProfilLoading] = useState(true);
@@ -58,7 +55,6 @@ export default function Dashboard() {
   const [selectedUnitModal, setSelectedUnitModal] = useState(null);
 
   // Pagination for Charts
-  const [opdPage, setOpdPage] = useState(0);
   const [stackedOpdPage, setStackedOpdPage] = useState(0);
 
   // Filter options from API
@@ -95,7 +91,6 @@ export default function Dashboard() {
         setGolonganPNSData(data.golonganPNS || []);
         setGolonganPPPKData(data.golonganPPPK || []);
         setEselonData(data.eselonData || []);
-        setSebaranOPDData(data.sebaranOPD || []);
 
         if (data.tahunList) {
           const tList = data.tahunList.map((t) => (t === 'Semua' ? 'Tahun' : t));
@@ -140,7 +135,6 @@ export default function Dashboard() {
   // Reset pagination saat filter satker berubah
   useEffect(() => {
     setStackedOpdPage(0);
-    setOpdPage(0);
   }, [satkerId]);
 
   // Filter data satuan kerja untuk grafik & fallback kalkulasi
@@ -212,13 +206,6 @@ export default function Dashboard() {
     { name: 'Laki-laki', value: summaryData.laki },
     { name: 'Perempuan', value: summaryData.perempuan },
   ], [summaryData]);
-
-  // Single OPD Bar Chart Data & Pagination
-  const totalOpdPages = Math.ceil(sebaranOPDData.length / ITEMS_PER_CHART_PAGE) || 1;
-  const paginatedOpdData = useMemo(() => {
-    const start = opdPage * ITEMS_PER_CHART_PAGE;
-    return sebaranOPDData.slice(start, start + ITEMS_PER_CHART_PAGE);
-  }, [sebaranOPDData, opdPage]);
 
   // Stacked OPD Bar Chart Data & Pagination
   const stackedOpdDistributionData = useMemo(() => {
@@ -400,27 +387,19 @@ export default function Dashboard() {
             }}
           />
 
-          {/* ── CHARTS ROW 1: GENDER DONUT + OPD BAR ── */}
+          {/* ── CHARTS ROW: GENDER DONUT + SEBARAN KOMPOSISI OPD (HORIZONTAL) ── */}
           <div className="charts-grid-row-1">
             <GenderDonutChart
               summaryData={summaryData}
               genderChartData={genderChartData}
             />
-            <OpdBarChart
-              paginatedOpdData={paginatedOpdData}
-              opdPage={opdPage}
-              setOpdPage={setOpdPage}
-              totalOpdPages={totalOpdPages}
+            <OpdStackedBarChart
+              paginatedStackedOpdData={paginatedStackedOpdData}
+              stackedOpdPage={stackedOpdPage}
+              setStackedOpdPage={setStackedOpdPage}
+              totalStackedOpdPages={totalStackedOpdPages}
             />
           </div>
-
-          {/* ── CHARTS ROW 2: OPD STACKED BAR ── */}
-          <OpdStackedBarChart
-            paginatedStackedOpdData={paginatedStackedOpdData}
-            stackedOpdPage={stackedOpdPage}
-            setStackedOpdPage={setStackedOpdPage}
-            totalStackedOpdPages={totalStackedOpdPages}
-          />
 
           {/* ── CHARTS ROW 3: GOLONGAN & ESELONERING ── */}
           <GolonganEselonSection

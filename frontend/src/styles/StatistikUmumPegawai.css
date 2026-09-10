@@ -568,6 +568,210 @@
   transition: width 0.3s ease;
 }
 
+/* ── 3. MODE GRAFIK PIE / DONUT (6 KARTU) ── */
+.stat-pie-body {
+  padding: 1.1rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.25rem;
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .stat-pie-body {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+}
+
+.stat-pie-chart-wrap {
+  position: relative;
+  width: 190px;
+  height: 210px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-pie-center-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.stat-pie-center-num {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-pie-center-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-pie-legend-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 210px;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  width: 100%;
+}
+
+.stat-pie-legend-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.stat-pie-legend-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.stat-pie-legend-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.stat-pie-legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.stat-pie-legend-item:hover {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.stat-pie-legend-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.stat-pie-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.stat-pie-legend-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-pie-legend-right {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.stat-pie-legend-count {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-pie-legend-pct {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  min-width: 44px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tooltip Khusus Donut Chart */
+.stat-donut-tooltip {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+  font-size: 0.82rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+}
+
+.stat-donut-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.stat-donut-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stat-donut-tooltip-name {
+  font-size: 0.84rem;
+}
+
+.stat-donut-tooltip-body {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.stat-donut-tooltip-count {
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.stat-donut-tooltip-pct {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.stat-pie-empty {
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
 /* Spinner Animation */
 @keyframes spin {
   to { transform: rotate(360deg); }

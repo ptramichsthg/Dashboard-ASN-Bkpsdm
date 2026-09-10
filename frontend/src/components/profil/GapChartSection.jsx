@@ -195,7 +195,7 @@ export default function GapChartSection({
       </div>
 
       {/* Recharts Canvas */}
-      <div className="gap-chart-canvas-area">
+      <div className="gap-chart-canvas-area" style={{ width: '100%', minHeight: 340, position: 'relative' }}>
         {gapChartView === 'total' ? (
           <ResponsiveContainer width="100%" height={320}>
             <BarChart

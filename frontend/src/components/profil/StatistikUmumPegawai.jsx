@@ -6,6 +6,7 @@ import {
   RotateCcw,
   LayoutGrid,
   Table as TableIcon,
+  PieChart as PieChartIcon,
   Calendar,
   Users,
   UserCheck,
@@ -13,11 +14,56 @@ import {
   Award,
   GraduationCap,
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  Tooltip,
+} from 'recharts';
 import '../../styles/StatistikUmumPegawai.css';
 
+// 7 Warna konsisten terpadu untuk label & irisan chart di semua kategori
+const CONSISTENT_7_COLORS = [
+  '#2563eb', // 1. Biru Utama (Royal Blue)
+  '#10b981', // 2. Hijau Emerald
+  '#f59e0b', // 3. Kuning Amber
+  '#8b5cf6', // 4. Ungu Violet
+  '#ec4899', // 5. Pink / Rose
+  '#06b6d4', // 6. Cyan / Sky Blue
+  '#64748b', // 7. Abu-abu Slate
+];
+
+// Tooltip Interaktif untuk Donut Chart
+function CustomDonutTooltip({ active, payload }) {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    return (
+      <div className="stat-donut-tooltip">
+        <div className="stat-donut-tooltip-header">
+          <span
+            className="stat-donut-tooltip-dot"
+            style={{ backgroundColor: item.color || payload[0].fill }}
+          />
+          <span className="stat-donut-tooltip-name">{item.name}</span>
+        </div>
+        <div className="stat-donut-tooltip-body">
+          <span className="stat-donut-tooltip-count">
+            {item.count.toLocaleString('id-ID')} Orang
+          </span>
+          <span className="stat-donut-tooltip-pct">
+            ({item.percent.toFixed(1)}%)
+          </span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 export default function StatistikUmumPegawai() {
-  // Mode Tampilan: 'grid' (Kartu Grid 6 Kategori) atau 'table' (Tabel Terpadu)
-  const [viewMode, setViewMode] = useState('grid');
+  // Mode Tampilan: 'table' (Tabel Terpadu), 'grid' (Kartu Grid 6 Kategori), atau 'pie' (Grafik Pie 6 Kartu)
+  const [viewMode, setViewMode] = useState('table');
 
   // Filter Status Pegawai (Semua ASN, PNS, PPPK, PPPK PW, CPNS)
   const [filterStatusPegawai, setFilterStatusPegawai] = useState('Semua');
@@ -72,18 +118,19 @@ export default function StatistikUmumPegawai() {
 
     // 1. Usia
     const rawUsia = statsData.sebaran_kelompok_usia || [];
-    const usiaItems = rawUsia.map((u) => ({
+    const usiaItems = rawUsia.map((u, idx) => ({
       name: u.name,
       badge: 'Usia',
       badgeClass: 'badge-usia-tag',
       count: u.value,
       percent: totalFiltered > 0 ? (u.value / totalFiltered) * 100 : 0,
+      color: CONSISTENT_7_COLORS[idx % CONSISTENT_7_COLORS.length],
     }));
 
     // 2. Generasi (Badge 'Gen' seragam agar label teks sejajar sempurna)
     const rawGenerasi = statsData.sebaran_generasi || [];
     const orderedGenerasi = ['Gen Z', 'Millennials (Gen Y)', 'Gen X', 'Baby Boomers'];
-    const generasiItems = orderedGenerasi.map((genName) => {
+    const generasiItems = orderedGenerasi.map((genName, idx) => {
       const found = rawGenerasi.find((g) => g.name === genName);
       const count = found ? found.value : 0;
       const genSlug = genName.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -93,52 +140,58 @@ export default function StatistikUmumPegawai() {
         badgeClass: `badge-gen-${genSlug}`,
         count,
         percent: totalFiltered > 0 ? (count / totalFiltered) * 100 : 0,
+        color: CONSISTENT_7_COLORS[idx % CONSISTENT_7_COLORS.length],
       };
     });
 
     // 3. Jenis Kelamin (Badge 'Gender' seragam agar sejajar)
     const rawGender = statsData.sebaran_jenis_kelamin || [];
     const genderMap = { 'LAKI-LAKI': 'Laki-Laki', 'PEREMPUAN': 'Perempuan' };
-    const genderItems = ['LAKI-LAKI', 'PEREMPUAN'].map((gKey) => {
+    const genderItems = ['LAKI-LAKI', 'PEREMPUAN'].map((gKey, idx) => {
       const found = rawGender.find((g) => g.name?.toUpperCase() === gKey);
       const count = found ? found.value : 0;
+      const mappedName = genderMap[gKey] || gKey;
       return {
-        name: genderMap[gKey] || gKey,
+        name: mappedName,
         badge: 'Gender',
         badgeClass: gKey === 'LAKI-LAKI' ? 'badge-gender-l' : 'badge-gender-p',
         count,
         percent: totalFiltered > 0 ? (count / totalFiltered) * 100 : 0,
+        color: CONSISTENT_7_COLORS[idx % CONSISTENT_7_COLORS.length],
       };
     });
 
     // 4. Eselon (Badge 'Eselon' seragam agar sejajar)
     const rawEselon = statsData.sebaran_eselon_grouped || [];
-    const eselonItems = rawEselon.map((es) => ({
+    const eselonItems = rawEselon.map((es, idx) => ({
       name: es.name,
       badge: 'Eselon',
       badgeClass: 'badge-eselon-tag',
       count: es.value,
       percent: totalFiltered > 0 ? (es.value / totalFiltered) * 100 : 0,
+      color: CONSISTENT_7_COLORS[idx % CONSISTENT_7_COLORS.length],
     }));
 
     // 5. Golongan (Badge 'Gol' seragam agar sejajar)
     const rawGolongan = statsData.sebaran_golongan_grouped || [];
-    const golonganItems = rawGolongan.map((gol) => ({
+    const golonganItems = rawGolongan.map((gol, idx) => ({
       name: gol.name,
       badge: 'Gol',
       badgeClass: 'badge-gol-tag',
       count: gol.value,
       percent: totalFiltered > 0 ? (gol.value / totalFiltered) * 100 : 0,
+      color: CONSISTENT_7_COLORS[idx % CONSISTENT_7_COLORS.length],
     }));
 
     // 6. Pendidikan (Badge 'Pend' seragam agar sejajar)
     const rawPend = statsData.jenjang_pendidikan || [];
-    const pendidikanItems = rawPend.map((p) => ({
+    const pendidikanItems = rawPend.map((p, idx) => ({
       name: p.name,
       badge: 'Pend',
       badgeClass: 'badge-pend-tag',
       count: p.value,
       percent: totalFiltered > 0 ? (p.value / totalFiltered) * 100 : 0,
+      color: CONSISTENT_7_COLORS[idx % CONSISTENT_7_COLORS.length],
     }));
 
     return [
@@ -282,8 +335,16 @@ export default function StatistikUmumPegawai() {
           )}
         </div>
 
-        {/* Tombol Pengganti Tampilan (Grid Kartu vs Tabel Terpadu) */}
+        {/* Tombol Pengganti Tampilan (Tabel Terpadu vs Grid Kartu vs Grafik Pie) */}
         <div className="statistik-view-switcher" role="tablist">
+          <button
+            type="button"
+            className={`statistik-view-btn ${viewMode === 'table' ? 'active' : ''}`}
+            onClick={() => setViewMode('table')}
+            title="Tampilkan dalam format tabel terpadu dengan pengelompokan rapi"
+          >
+            <TableIcon size={15} /> Tabel Terpadu
+          </button>
           <button
             type="button"
             className={`statistik-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
@@ -294,11 +355,11 @@ export default function StatistikUmumPegawai() {
           </button>
           <button
             type="button"
-            className={`statistik-view-btn ${viewMode === 'table' ? 'active' : ''}`}
-            onClick={() => setViewMode('table')}
-            title="Tampilkan dalam format tabel terpadu dengan pengelompokan rapi"
+            className={`statistik-view-btn ${viewMode === 'pie' ? 'active' : ''}`}
+            onClick={() => setViewMode('pie')}
+            title="Tampilkan dalam 6 kartu diagram lingkaran (Donut Chart)"
           >
-            <TableIcon size={15} /> Tabel Terpadu
+            <PieChartIcon size={15} /> Grafik Pie
           </button>
         </div>
       </div>
@@ -380,6 +441,103 @@ export default function StatistikUmumPegawai() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            );
+          })}
+        </div>
+      ) : viewMode === 'pie' ? (
+        /* ── 2. TAMPILAN 6 KARTU DIAGRAM DONUT (PIE CHART) ── */
+        <div className="statistik-grid-container">
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            const catTotal = cat.items.reduce((acc, cur) => acc + cur.count, 0);
+            const activeItems = cat.items.filter((it) => it.count > 0);
+
+            return (
+              <div key={cat.id} className="stat-category-card">
+                {/* Header Kartu Kategori */}
+                <div className="stat-card-header">
+                  <div className="stat-card-header-left">
+                    <div className="stat-card-icon-wrap" style={{ background: cat.iconBg, color: cat.iconColor }}>
+                      <Icon size={20} />
+                    </div>
+                    <div>
+                      <div className="stat-card-title">{cat.number}. {cat.title}</div>
+                      <div className="stat-card-sub">{cat.subtitle}</div>
+                    </div>
+                  </div>
+                  <span className="stat-card-badge">
+                    {catTotal.toLocaleString('id-ID')} Orang
+                  </span>
+                </div>
+
+                {/* Donut Chart & Legenda */}
+                {catTotal === 0 ? (
+                  <div className="stat-pie-empty">
+                    <span>Tidak ada data pegawai untuk kategori ini.</span>
+                  </div>
+                ) : (
+                  <div className="stat-pie-body">
+                    <div className="stat-pie-chart-wrap">
+                      <ResponsiveContainer width="100%" height={210}>
+                        <RechartsPie>
+                          <Pie
+                            data={activeItems}
+                            dataKey="count"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={78}
+                            paddingAngle={2}
+                          >
+                            {activeItems.map((entry, idx) => (
+                              <Cell
+                                key={`slice-${cat.id}-${idx}`}
+                                fill={entry.color}
+                                stroke="#ffffff"
+                                strokeWidth={2}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<CustomDonutTooltip />} />
+                        </RechartsPie>
+                      </ResponsiveContainer>
+                      {/* Nilai Total di Tengah Lingkaran */}
+                      <div className="stat-pie-center-label">
+                        <span className="stat-pie-center-num">
+                          {catTotal.toLocaleString('id-ID')}
+                        </span>
+                        <span className="stat-pie-center-text">Total</span>
+                      </div>
+                    </div>
+
+                    {/* Legenda: Warna, Label, Jumlah & Persentase */}
+                    <div className="stat-pie-legend-list">
+                      {cat.items.map((item) => (
+                        <div key={item.name} className="stat-pie-legend-item">
+                          <div className="stat-pie-legend-left">
+                            <span
+                              className="stat-pie-legend-dot"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span className="stat-pie-legend-label" title={item.name}>
+                              {item.name}
+                            </span>
+                          </div>
+                          <div className="stat-pie-legend-right">
+                            <span className="stat-pie-legend-count">
+                              {item.count.toLocaleString('id-ID')}
+                            </span>
+                            <span className="stat-pie-legend-pct">
+                              ({item.percent.toFixed(1)}%)
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
