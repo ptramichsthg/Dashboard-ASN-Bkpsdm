@@ -6,6 +6,11 @@
   margin-bottom: 1.5rem;
 }
 
+/* Full-width override: Ketika Gender Card dihapus, Sebaran Komposisi mengisi penuh */
+.charts-grid-row-1.charts-grid-full {
+  grid-template-columns: 1fr;
+}
+
 .chart-card-gender {
   display: flex;
   flex-direction: column;

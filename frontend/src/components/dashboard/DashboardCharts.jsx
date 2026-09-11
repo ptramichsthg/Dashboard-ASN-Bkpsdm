@@ -229,8 +229,8 @@ export function OpdStackedBarChart({
           </button>
         </div>
       </div>
-      <div style={{ width: '100%', height: 260, position: 'relative' }}>
-        <ResponsiveContainer width="100%" height={260}>
+      <div style={{ width: '100%', height: 320, position: 'relative' }}>
+        <ResponsiveContainer width="100%" height={320}>
           <BarChart
             data={paginatedStackedOpdData}
             layout="vertical"
@@ -247,11 +247,11 @@ export function OpdStackedBarChart({
             <YAxis
               type="category"
               dataKey="name"
-              width={165}
+              width={200}
               tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 700 }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => (v.length > 22 ? v.slice(0, 20) + '…' : v)}
+              tickFormatter={(v) => (v.length > 28 ? v.slice(0, 26) + '…' : v)}
             />
             <Tooltip
               formatter={(val, name) => [`${Number(val).toLocaleString('id-ID')} orang`, name]}

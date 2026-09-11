@@ -142,7 +142,7 @@ export default function StrukturHierarkiTable({
         </div>
       </div>
 
-      <div style={{ overflowX: 'auto' }}>
+      <div className="hierarki-table-area">
         <table className="hierarki-table">
           <thead>
             <tr>

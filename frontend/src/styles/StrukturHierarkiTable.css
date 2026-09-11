@@ -8,6 +8,38 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Area scroll khusus tabel Hierarki OPD */
+.hierarki-table-area {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.hierarki-table-area::-webkit-scrollbar {
+  height: 6px;
+}
+
+.hierarki-table-area::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.hierarki-table-area::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.hierarki-table-area::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .hierarki-opd-toolbar {
@@ -101,6 +133,7 @@
 
 table.hierarki-table {
   width: 100%;
+  min-width: 680px;
   border-collapse: collapse;
   font-size: 0.875rem;
 }
@@ -262,10 +295,60 @@ table.hierarki-table tbody td.text-center {
   font-weight: 600;
 }
 
-/* ===== RESPONSIVE TABLE FIX ===== */
+/* ===== RESPONSIVE TABLE & TOOLBAR FIX ===== */
 @media (max-width: 768px) {
+  .hierarki-opd-toolbar {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .hierarki-toolbar-left {
+    width: 100%;
+  }
+
+  .hierarki-toolbar-right {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .hierarki-search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .hierarki-filter {
+    width: 100%;
+  }
+
+  .hierarki-filter select {
+    width: 100%;
+  }
+
+  .hierarki-count {
+    align-self: flex-start;
+  }
+
   table.hierarki-table th,
   table.hierarki-table td {
     white-space: nowrap;
+    padding: 0.8rem 1rem;
+  }
+
+  .hierarki-pagination {
+    padding: 0.85rem 1rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .hierarki-pagination-btns {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }

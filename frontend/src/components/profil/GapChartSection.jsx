@@ -16,36 +16,76 @@ import {
 import { BarChart2 } from 'lucide-react';
 import '../../styles/GapChartSection.css';
 
-// Custom Bar Label di atas 2 batang bar chart (Total Kebutuhan & Total Bezetting)
+// Custom Bar Label di atas batang bar chart (Total Kebutuhan, Total Bezetting, Jabatan Kosong)
 const renderCustomBarLabel = (props) => {
   const { x, y, width, value, index } = props;
   if (value === undefined || value === null) return null;
-  const isKebutuhan = index === 0;
+  
+  let title = 'Target Formasi';
+  let color = '#1d4ed8';
+
+  if (index === 1) {
+    title = 'Sudah Terisi';
+    color = '#047857';
+  } else if (index === 2) {
+    title = 'Selisih Lowong';
+    color = '#dc2626';
+  }
+
   return (
     <g>
       <text
         x={x + width / 2}
-        y={y - 12}
-        fill={isKebutuhan ? '#1d4ed8' : '#047857'}
+        y={y - 8}
+        fill={color}
         stroke="#ffffff"
         strokeWidth={3}
         paintOrder="stroke fill"
         textAnchor="middle"
-        fontSize={14}
+        fontSize={13}
         fontWeight={800}
       >
         {Number(value).toLocaleString('id-ID')}
       </text>
       <text
         x={x + width / 2}
-        y={y - 28}
+        y={y - 23}
         fill="#64748b"
         textAnchor="middle"
-        fontSize={11}
+        fontSize={10}
         fontWeight={700}
       >
-        {isKebutuhan ? 'Target Formasi' : 'Sudah Terisi'}
+        {title}
       </text>
+    </g>
+  );
+};
+
+// Custom 2-baris X-Axis Tick untuk Ringkasan Total agar tidak bertumpukan di layar kecil
+const renderCustomTotalTick = ({ x, y, payload }) => {
+  let line1 = payload.value;
+  let line2 = '';
+  if (payload.value === 'Total Kebutuhan') {
+    line1 = 'Target';
+    line2 = 'Kebutuhan';
+  } else if (payload.value === 'Total Bezetting') {
+    line1 = 'Bezetting';
+    line2 = 'Terisi';
+  } else if (payload.value === 'Jabatan Kosong (Gap)') {
+    line1 = 'Selisih';
+    line2 = 'Lowong (Gap)';
+  }
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={12} textAnchor="middle" fill="#1e293b" fontSize={11} fontWeight={700}>
+        {line1}
+      </text>
+      {line2 && (
+        <text x={0} y={24} textAnchor="middle" fill="#64748b" fontSize={10} fontWeight={600}>
+          {line2}
+        </text>
+      )}
     </g>
   );
 };
@@ -195,95 +235,118 @@ export default function GapChartSection({
       </div>
 
       {/* Recharts Canvas */}
-      <div className="gap-chart-canvas-area" style={{ width: '100%', minHeight: 340, position: 'relative' }}>
-        {gapChartView === 'total' ? (
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart
-              data={gapTotalChartData}
-              margin={{ top: 35, right: 40, left: 15, bottom: 20 }}
-              barSize={isManajerial ? 55 : 44}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis
-                dataKey="category"
-                tick={{ fill: '#334155', fontSize: 13, fontWeight: 700 }}
-                axisLine={{ stroke: '#cbd5e1' }}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
-                axisLine={{ stroke: '#cbd5e1' }}
-                tickLine={false}
-              />
-              <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
-              <Bar dataKey="value" name="Jumlah Formasi" radius={[8, 8, 0, 0]}>
-                <LabelList dataKey="value" content={renderCustomBarLabel} />
-                {gapTotalChartData.map((entry, idx) => (
-                  <Cell key={`cell-${idx}`} fill={entry.color || (isManajerial ? '#7e22ce' : '#2563eb')} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <ResponsiveContainer width="100%" height={340}>
-            <ComposedChart
-              data={gapDetailChartData}
-              margin={{ top: 35, right: 30, left: 10, bottom: 25 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis
-                dataKey="eselon"
-                tick={{ fill: '#334155', fontSize: 12, fontWeight: 700 }}
-                axisLine={{ stroke: '#cbd5e1' }}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
-                axisLine={{ stroke: '#cbd5e1' }}
-                tickLine={false}
-              />
-              <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
-              <Legend wrapperStyle={{ paddingTop: 14, fontSize: 12, fontWeight: 600 }} />
-              <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                <LabelList dataKey="Total Bezetting" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-              </Bar>
-              <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                <LabelList dataKey="Total Kebutuhan" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-              </Bar>
-              <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#334155" fontSize={10} fontWeight={600} />
-              </Bar>
+      <div className="gap-chart-canvas-area">
+        {gapChartView !== 'total' && (
+          <div className="gap-chart-scroll-hint">
+            <span>← Geser grafik secara horizontal untuk melihat semua {isManajerial ? 'eselon' : 'jenjang'} →</span>
+          </div>
+        )}
 
-              <Line
-                type="monotone"
-                dataKey="Total Bezetting"
-                stroke="#2563eb"
-                strokeWidth={2}
-                dot={{ r: 3, fill: '#2563eb' }}
-                activeDot={{ r: 5 }}
-                legendType="none"
-              />
-              <Line
-                type="monotone"
-                dataKey="Total Kebutuhan"
-                stroke="#059669"
-                strokeWidth={2}
-                dot={{ r: 3, fill: '#059669' }}
-                activeDot={{ r: 5 }}
-                legendType="none"
-              />
-              <Line
-                type="monotone"
-                dataKey="Jabatan Kosong (Gap)"
-                stroke="#dc2626"
-                strokeWidth={2}
-                strokeDasharray="4 4"
-                dot={{ r: 3, fill: '#dc2626' }}
-                activeDot={{ r: 5 }}
-                legendType="none"
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+        {gapChartView === 'total' ? (
+          <div className="gap-total-chart-wrap" style={{ width: '100%', minHeight: 320 }}>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart
+                data={gapTotalChartData}
+                margin={{ top: 35, right: 20, left: -5, bottom: 25 }}
+                barSize={isManajerial ? 52 : 44}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis
+                  dataKey="category"
+                  interval={0}
+                  tick={renderCustomTotalTick}
+                  axisLine={{ stroke: '#cbd5e1' }}
+                  tickLine={false}
+                  height={42}
+                />
+                <YAxis
+                  tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                  axisLine={{ stroke: '#cbd5e1' }}
+                  tickLine={false}
+                  width={38}
+                />
+                <Tooltip content={<CustomGapTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                <Bar dataKey="value" name="Jumlah Formasi" radius={[8, 8, 0, 0]}>
+                  <LabelList dataKey="value" content={renderCustomBarLabel} />
+                  {gapTotalChartData.map((entry, idx) => (
+                    <Cell key={`cell-${idx}`} fill={entry.color || (isManajerial ? '#7e22ce' : '#2563eb')} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="gap-detail-chart-scroll">
+            <div
+              className="gap-detail-chart-inner"
+              style={{
+                minWidth: `${Math.max(540, (gapDetailChartData?.length || 0) * 85)}px`,
+                height: 340,
+              }}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={gapDetailChartData}
+                  margin={{ top: 35, right: 25, left: -5, bottom: 25 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="eselon"
+                    interval={0}
+                    tick={{ fill: '#334155', fontSize: 11, fontWeight: 700 }}
+                    axisLine={{ stroke: '#cbd5e1' }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                    axisLine={{ stroke: '#cbd5e1' }}
+                    tickLine={false}
+                    width={38}
+                  />
+                  <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
+                  <Legend wrapperStyle={{ paddingTop: 14, fontSize: 12, fontWeight: 600 }} />
+                  <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={28}>
+                    <LabelList dataKey="Total Bezetting" position="top" fill="#1d4ed8" fontSize={10} fontWeight={700} />
+                  </Bar>
+                  <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]} maxBarSize={28}>
+                    <LabelList dataKey="Total Kebutuhan" position="top" fill="#047857" fontSize={10} fontWeight={700} />
+                  </Bar>
+                  <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]} maxBarSize={28}>
+                    <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#dc2626" fontSize={10} fontWeight={700} />
+                  </Bar>
+
+                  <Line
+                    type="monotone"
+                    dataKey="Total Bezetting"
+                    stroke="#2563eb"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#2563eb' }}
+                    activeDot={{ r: 5 }}
+                    legendType="none"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Total Kebutuhan"
+                    stroke="#059669"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#059669' }}
+                    activeDot={{ r: 5 }}
+                    legendType="none"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Jabatan Kosong (Gap)"
+                    stroke="#dc2626"
+                    strokeWidth={2}
+                    strokeDasharray="4 4"
+                    dot={{ r: 3, fill: '#dc2626' }}
+                    activeDot={{ r: 5 }}
+                    legendType="none"
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -619,6 +619,38 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Area scroll khusus tabel Hierarki OPD */
+.hierarki-table-area {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.hierarki-table-area::-webkit-scrollbar {
+  height: 6px;
+}
+
+.hierarki-table-area::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.hierarki-table-area::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.hierarki-table-area::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .hierarki-opd-toolbar {
@@ -712,6 +744,7 @@
 
 table.hierarki-table {
   width: 100%;
+  min-width: 680px;
   border-collapse: collapse;
   font-size: 0.875rem;
 }

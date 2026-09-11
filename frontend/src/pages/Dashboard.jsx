@@ -8,7 +8,6 @@ import JenisAsnCard from '../components/shared/JenisAsnCard';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
 import StatusPegawaiCards from '../components/dashboard/StatusPegawaiCards';
 import {
-  GenderDonutChart,
   OpdStackedBarChart,
   GolonganEselonSection,
 } from '../components/dashboard/DashboardCharts';
@@ -286,6 +285,7 @@ export default function Dashboard() {
             title="Dashboard Data ASN Kabupaten Bandung"
             description="Komposisi, status, sebaran OPD, dan statistik kepegawaian ASN<br />di lingkungan Pemerintah Kabupaten Bandung."
             badgeText="Sumber: SIMPEL BKPSDM Kab. Bandung"
+            showMenuLainnya={false}
           />
 
           {/* ── FILTER SATKER, BULAN, TAHUN ── */}
@@ -360,12 +360,8 @@ export default function Dashboard() {
             }}
           />
 
-          {/* ── CHARTS ROW: GENDER DONUT + SEBARAN KOMPOSISI OPD (HORIZONTAL) ── */}
-          <div className="charts-grid-row-1">
-            <GenderDonutChart
-              summaryData={summaryData}
-              genderChartData={genderChartData}
-            />
+          {/* ── CHARTS ROW: SEBARAN KOMPOSISI OPD (FULL WIDTH) ── */}
+          <div className="charts-grid-row-1 charts-grid-full">
             <OpdStackedBarChart
               paginatedStackedOpdData={paginatedStackedOpdData}
               stackedOpdPage={stackedOpdPage}
