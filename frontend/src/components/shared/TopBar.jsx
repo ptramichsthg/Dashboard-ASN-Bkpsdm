@@ -7,7 +7,14 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -43,6 +50,9 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
+  const userRole = (user?.role || '').toLowerCase().trim();
+  const isUserRole = userRole === 'user';
+
   const isDashboardPage = location.pathname === '/dashboard';
 
   return (
@@ -73,27 +83,38 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
             <div className="status"><span className="dot"></span> LIVE DATA</div>
           </div>
 
-          {/* Refresh */}
+          {/* Refresh Button */}
           {onRefresh && (
             <button
+              id="topbar-refresh-btn"
+              type="button"
               className="btn-refresh topbar-icon-btn"
               title="Muat Ulang Data"
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              style={{ cursor: isRefreshing ? 'not-allowed' : 'pointer', opacity: isRefreshing ? 0.7 : 1 }}
+              onClick={(e) => {
+                e.preventDefault();
+                if (typeof onRefresh === 'function') {
+                  onRefresh();
+                }
+              }}
+              style={{
+                cursor: isRefreshing ? 'wait' : 'pointer',
+              }}
             >
               <RefreshCw size={18} className={isRefreshing ? 'spinner' : ''} />
             </button>
           )}
 
-          {/* Notification */}
-          <button className="btn-notification topbar-icon-btn" title="Notifikasi">
-            <Bell size={20} />
-          </button>
+          {/* Notification - Sembunyikan untuk role user */}
+          {!isUserRole && (
+            <button type="button" className="btn-notification topbar-icon-btn" title="Notifikasi">
+              <Bell size={20} />
+            </button>
+          )}
 
           {/* Profile – avatar + name + dropdown */}
           <div className="profile-container" ref={dropdownRef}>
             <button
+              type="button"
               className="topbar-profile-btn"
               onClick={() => setProfileOpen(!profileOpen)}
               aria-expanded={profileOpen}
@@ -111,16 +132,19 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
                   <span>{user?.nip || '198001012010011001'}</span>
                 </div>
                 <hr className="dropdown-divider" />
-                <button
-                  className="dropdown-item"
-                  onClick={() => { navigate('/lainnya'); setProfileOpen(false); }}
-                >
-                  <Menu size={16} /> Menu Lainnya
-                </button>
-                <button className="dropdown-item">
+                {!isUserRole && (
+                  <button
+                    type="button"
+                    className="dropdown-item"
+                    onClick={() => { navigate('/lainnya'); setProfileOpen(false); }}
+                  >
+                    <Menu size={16} /> Menu Lainnya
+                  </button>
+                )}
+                <button type="button" className="dropdown-item">
                   <Settings size={16} /> Pengaturan Akun
                 </button>
-                <button onClick={handleLogout} className="dropdown-item logout-text">
+                <button type="button" onClick={handleLogout} className="dropdown-item logout-text">
                   <LogOut size={16} /> Logout
                 </button>
               </div>

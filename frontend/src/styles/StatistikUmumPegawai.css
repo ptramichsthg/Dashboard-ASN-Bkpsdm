@@ -245,14 +245,29 @@
   }
 }
 
-.stat-category-card {
+.statistik-grid-container .stat-category-card {
   background: #ffffff;
   border-radius: 16px;
   border: 2px solid #000000; /* Outline tegas sesuai request */
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-  overflow: visible; /* Allow horizontal scroll inside children */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 330px; /* Ukuran presisi dan seragam untuk semua 6 kartu */
+  min-height: 330px;
+  box-sizing: border-box;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-category-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px solid #000000;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -262,18 +277,24 @@
 }
 
 .stat-card-header {
-  padding: 1rem 1.25rem;
+  padding: 0.85rem 1.25rem;
   background: #f8fafc;
   border-bottom: 2px solid #000000; /* Garis batas bawah header tegas */
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 64px;
+  max-height: 64px;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .stat-card-header-left {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .stat-card-icon-wrap {
@@ -292,12 +313,18 @@
   font-weight: 800;
   color: #0f172a;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-card-sub {
   font-size: 0.75rem;
   color: #64748b;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-card-badge {
@@ -579,12 +606,14 @@
 
 /* ── 3. MODE GRAFIK PIE / DONUT (6 KARTU) ── */
 .stat-pie-body {
-  padding: 1.1rem 1.25rem 1.25rem;
+  padding: 0.85rem 1.25rem 1.1rem;
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 1.25rem;
   flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 @media (max-width: 640px) {
@@ -598,7 +627,7 @@
 .stat-pie-chart-wrap {
   position: relative;
   width: 190px;
-  height: 210px;
+  height: 200px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -639,11 +668,17 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  max-height: 210px;
+  gap: 0.35rem;
+  height: 200px;
+  max-height: 200px;
   overflow-y: auto;
   padding-right: 0.35rem;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.stat-pie-legend-list.few-items {
+  justify-content: center;
 }
 
 .stat-pie-legend-list::-webkit-scrollbar {

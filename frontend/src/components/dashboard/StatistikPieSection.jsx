@@ -57,7 +57,7 @@ function CustomDonutTooltip({ active, payload }) {
   return null;
 }
 
-export default function StatistikPieSection({ satker }) {
+export default function StatistikPieSection({ satker, refreshTrigger, children }) {
   // Filter Status Pegawai (Semua ASN, PNS, PPPK, PPPK PW, CPNS)
   const [filterStatusPegawai, setFilterStatusPegawai] = useState('Semua');
 
@@ -103,7 +103,7 @@ export default function StatistikPieSection({ satker }) {
 
   useEffect(() => {
     fetchStatistics();
-  }, [fetchStatistics]);
+  }, [fetchStatistics, refreshTrigger]);
 
   const totalFiltered = statsData?.total_pegawai || 0;
 
@@ -330,6 +330,13 @@ export default function StatistikPieSection({ satker }) {
         )}
       </div>
 
+      {/* Konten yang disisipkan tepat di bawah teks info badge (misal: Sebaran Komposisi ASN per OPD) */}
+      {children && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          {children}
+        </div>
+      )}
+
       {/* Loading Spinner */}
       {loading ? (
         <div
@@ -416,7 +423,7 @@ export default function StatistikPieSection({ satker }) {
                 ) : (
                   <div className="stat-pie-body">
                     <div className="stat-pie-chart-wrap">
-                      <ResponsiveContainer width="100%" height={210}>
+                      <ResponsiveContainer width="100%" height={200}>
                         <RechartsPie>
                           <Pie
                             data={activeItems}
@@ -424,8 +431,8 @@ export default function StatistikPieSection({ satker }) {
                             nameKey="name"
                             cx="50%"
                             cy="50%"
-                            innerRadius={50}
-                            outerRadius={78}
+                            innerRadius={48}
+                            outerRadius={75}
                             paddingAngle={2}
                           >
                             {activeItems.map((entry, idx) => (
@@ -450,7 +457,7 @@ export default function StatistikPieSection({ satker }) {
                     </div>
 
                     {/* Legenda: Warna, Label, Jumlah & Persentase */}
-                    <div className="stat-pie-legend-list">
+                    <div className={`stat-pie-legend-list ${cat.items.length <= 3 ? 'few-items' : ''}`}>
                       {cat.items.map((item) => (
                         <div key={item.name} className="stat-pie-legend-item">
                           <div className="stat-pie-legend-left">

@@ -194,14 +194,19 @@ export default function Profil() {
   // Handlers Modal 1: Detail Selisih Formasi
   const handleOpenModal = async (row) => {
     setSelectedModalRow(row);
-    if (activeTab === 'non-manajerial') {
-      setModalJabatanLoading(true);
-      try {
-        const params = {
-          klasifikasi_utama: 'NON MANAJERIAL',
-          hanya_kosong: 1,
-          per_page: 1000,
-        };
+    setModalJabatanLoading(true);
+    try {
+      const params = {
+        hanya_kosong: 1,
+        per_page: 1000,
+      };
+      if (activeTab === 'manajerial') {
+        params.klasifikasi_utama = 'MANAJERIAL';
+        if (row.jenis_eselon) {
+          params.jenis_eselon = row.jenis_eselon;
+        }
+      } else {
+        params.klasifikasi_utama = 'NON MANAJERIAL';
         if (row.subklasifikasi === 'Jabatan Pelaksana' || row.kategori_label === 'Jabatan Pelaksana') {
           params.subklasifikasi = 'Jabatan Pelaksana';
         } else {
@@ -211,20 +216,18 @@ export default function Profil() {
             params.jenjang_jf = jenjang;
           }
         }
-        const res = await api.get('/klasifikasi-jabatan', { params });
-        if (res.data?.success && res.data?.data?.data) {
-          setModalJabatanServerList(res.data.data.data);
-        } else {
-          setModalJabatanServerList([]);
-        }
-      } catch (err) {
-        console.error('Gagal mengambil detail modal jabatan kosong:', err);
-        setModalJabatanServerList([]);
-      } finally {
-        setModalJabatanLoading(false);
       }
-    } else {
+      const res = await api.get('/klasifikasi-jabatan', { params });
+      if (res.data?.success && res.data?.data?.data) {
+        setModalJabatanServerList(res.data.data.data);
+      } else {
+        setModalJabatanServerList(null);
+      }
+    } catch (err) {
+      console.error('Gagal mengambil detail modal jabatan kosong:', err);
       setModalJabatanServerList(null);
+    } finally {
+      setModalJabatanLoading(false);
     }
   };
 

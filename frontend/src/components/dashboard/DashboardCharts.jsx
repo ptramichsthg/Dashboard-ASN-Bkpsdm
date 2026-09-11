@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import '../../styles/DashboardCharts.css';
+import '../../styles/StatistikUmumPegawai.css';
 
 // ─── Reusable Chart Elements ──────────────────────────────────────────────────
 export const CustomBarLabel = (props) => {
@@ -197,16 +198,19 @@ export function OpdStackedBarChart({
   };
 
   return (
-    <div className="chart-card">
-      <div className="chart-card-header" style={{ justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div className="chart-icon-box" style={{ background: '#eff6ff', color: '#3b82f6' }}>
-            <BarChart2 size={16} />
+    <div className="stat-category-card opd-stacked-card">
+      <div className="stat-card-header" style={{ justifyContent: 'space-between' }}>
+        <div className="stat-card-header-left">
+          <div className="stat-card-icon-wrap" style={{ background: '#eff6ff', color: '#2563eb' }}>
+            <BarChart2 size={20} />
           </div>
-          <span className="chart-card-title">Sebaran Komposisi ASN (PNS, CPNS, PPPK) per OPD</span>
+          <div>
+            <div className="stat-card-title">Sebaran Komposisi ASN (PNS, CPNS, PPPK) per OPD</div>
+            <div className="stat-card-sub">Distribusi jenis kepegawaian ASN per Satuan Kerja Perangkat Daerah</div>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginRight: '0.25rem' }}>
+        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          <span className="stat-card-badge" style={{ marginRight: '0.25rem' }}>
             {stackedOpdPage + 1} / {totalStackedOpdPages}
           </span>
           <button
@@ -229,48 +233,50 @@ export function OpdStackedBarChart({
           </button>
         </div>
       </div>
-      <div style={{ width: '100%', height: 260, position: 'relative' }}>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart
-            data={paginatedStackedOpdData}
-            layout="vertical"
-            margin={{ top: 5, right: 65, left: 10, bottom: 0 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-            <XAxis
-              type="number"
-              domain={[0, (dataMax) => Math.ceil(dataMax * 1.18)]}
-              tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={165}
-              tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 700 }}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(v) => (v.length > 22 ? v.slice(0, 20) + '…' : v)}
-            />
-            <Tooltip
-              formatter={(val, name) => [`${Number(val).toLocaleString('id-ID')} orang`, name]}
-              labelFormatter={(label, payload) => payload?.[0]?.payload?.rawName || label}
-              contentStyle={{ fontSize: 13, borderRadius: 8, border: '1px solid #e5e7eb', fontWeight: 600 }}
-              cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-            />
-            <Legend
-              verticalAlign="top"
-              align="right"
-              wrapperStyle={{ fontSize: '12px', paddingBottom: '8px', fontWeight: 600 }}
-            />
-            <Bar dataKey="PNS" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} barSize={20} animationDuration={500} />
-            <Bar dataKey="CPNS" stackId="a" fill="#f59e0b" radius={[0, 0, 0, 0]} barSize={20} animationDuration={500} />
-            <Bar dataKey="PPPK" stackId="a" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} animationDuration={500}>
-              <LabelList dataKey="total" content={renderOpdTotalLabel} />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+      <div style={{ padding: '1.25rem 1.25rem 0.75rem 1.25rem' }}>
+        <div style={{ width: '100%', height: 260, position: 'relative' }}>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart
+              data={paginatedStackedOpdData}
+              layout="vertical"
+              margin={{ top: 5, right: 65, left: 10, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+              <XAxis
+                type="number"
+                domain={[0, (dataMax) => Math.ceil(dataMax * 1.18)]}
+                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={165}
+                tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 700 }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v) => (v.length > 22 ? v.slice(0, 20) + '…' : v)}
+              />
+              <Tooltip
+                formatter={(val, name) => [`${Number(val).toLocaleString('id-ID')} orang`, name]}
+                labelFormatter={(label, payload) => payload?.[0]?.payload?.rawName || label}
+                contentStyle={{ fontSize: 13, borderRadius: 8, border: '1px solid #e5e7eb', fontWeight: 600 }}
+                cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+              />
+              <Legend
+                verticalAlign="top"
+                align="right"
+                wrapperStyle={{ fontSize: '12px', paddingBottom: '8px', fontWeight: 600 }}
+              />
+              <Bar dataKey="PNS" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} barSize={20} animationDuration={500} />
+              <Bar dataKey="CPNS" stackId="a" fill="#f59e0b" radius={[0, 0, 0, 0]} barSize={20} animationDuration={500} />
+              <Bar dataKey="PPPK" stackId="a" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} animationDuration={500}>
+                <LabelList dataKey="total" content={renderOpdTotalLabel} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
