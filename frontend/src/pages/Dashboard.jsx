@@ -406,7 +406,8 @@ export default function Dashboard() {
           <KelompokAsnSection
             data={kelompokAsnData}
             loading={isRefreshing}
-            onCardClick={(card, currentStatus) => {
+            isUserRole={isUserRole}
+            onCardClick={isUserRole ? undefined : (card, currentStatus) => {
               setSelectedKelompokModal(card);
               setKelompokModalStatus(currentStatus || 'Semua');
             }}

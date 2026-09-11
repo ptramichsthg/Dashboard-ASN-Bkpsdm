@@ -285,3 +285,15 @@
     align-items: flex-start;
   }
 }
+
+/* User Role Specific Card Outlines */
+.kelompok-asn-card.user-role-outline {
+  border: 2px solid #000000 !important;
+  outline: none;
+}
+
+.kelompok-asn-card.user-role-outline:hover {
+  border-color: #000000 !important;
+}
+
+

@@ -4,7 +4,7 @@ import '../../styles/KelompokAsnSection.css';
 
 const STATUS_OPTIONS = ['Semua', 'PNS', 'CPNS', 'PPPK', 'PPPK PW'];
 
-export default function KelompokAsnSection({ data = {}, loading = false, onCardClick }) {
+export default function KelompokAsnSection({ data = {}, loading = false, isUserRole = false, onCardClick }) {
   const [activeStatus, setActiveStatus] = useState('Semua');
 
   const currentData = data[activeStatus] || {
@@ -101,7 +101,7 @@ export default function KelompokAsnSection({ data = {}, loading = false, onCardC
             return (
               <div
                 key={card.id}
-                className={`kelompok-asn-card ${card.className} ${isClickable ? 'clickable' : ''}`}
+                className={`kelompok-asn-card ${card.className} ${isClickable ? 'clickable' : ''} ${isUserRole ? 'user-role-outline' : ''}`}
                 onClick={isClickable ? () => onCardClick(card, activeStatus) : undefined}
                 role={isClickable ? 'button' : undefined}
                 tabIndex={isClickable ? 0 : undefined}
