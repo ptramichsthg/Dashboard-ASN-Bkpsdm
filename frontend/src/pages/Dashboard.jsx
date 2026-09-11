@@ -306,7 +306,7 @@ export default function Dashboard() {
           </div>
 
           {profilLoading ? (
-            <div className="skeleton-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
+            <div className="skeleton-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="skeleton-block" style={{ height: 100 }} />
               ))}

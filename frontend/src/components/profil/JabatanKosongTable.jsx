@@ -85,7 +85,7 @@ export default function JabatanKosongTable({
       </div>
 
       {/* Table */}
-      <div style={{ overflowX: 'auto' }}>
+      <div className="jabatan-kosong-table-area">
         <table className="jabatan-kosong-table">
           <thead>
             <tr>

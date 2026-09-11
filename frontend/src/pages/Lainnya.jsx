@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/shared/TopBar';
 import HeroBanner from '../components/shared/HeroBanner';
+import '../styles/Lainnya.css';
 
 import {
   Users,
@@ -121,106 +122,56 @@ export default function Lainnya() {
             showMenuLainnya={false}
           />
 
-          {/* ── MENU GRID ── */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '1.5rem',
-              marginTop: '1.5rem',
-            }}
-          >
+          {/* ── MENU GRID (Responsive 2 Kolom di Mobile) ── */}
+          <div className="menu-layanan-grid">
             {MENU_ITEMS.map((item) => (
               <div
                 key={item.path}
+                className="menu-layanan-card"
                 onClick={() => navigate(item.path)}
                 style={{
-                  background: '#ffffff',
                   border: `1.5px solid ${item.border}`,
-                  borderRadius: '16px',
-                  padding: '1.75rem 1.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '1rem',
-                  transition: 'all 0.22s ease',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                  position: 'relative',
-                  overflow: 'hidden',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
                   e.currentTarget.style.boxShadow = `0 12px 24px -4px ${item.border}33`;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+                  e.currentTarget.style.boxShadow = '';
                 }}
               >
                 {/* Accent strip top */}
                 <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: item.color,
-                  }}
+                  className="menu-card-accent"
+                  style={{ background: item.color }}
                 />
 
                 {/* Icon box */}
                 <div
+                  className="menu-card-icon-box"
                   style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '14px',
                     background: item.bg,
                     color: item.color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                   }}
                 >
                   {item.icon}
                 </div>
 
                 {/* Text */}
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      fontSize: '1.25rem',
-                      fontWeight: 800,
-                      color: '#0f172a',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
+                <div className="menu-card-content">
+                  <div className="menu-card-title">
                     {item.label}
                   </div>
-                  <div
-                    style={{
-                      fontSize: '0.95rem',
-                      color: '#64748b',
-                      lineHeight: 1.45,
-                    }}
-                  >
+                  <div className="menu-card-desc">
                     {item.description}
                   </div>
                 </div>
 
                 {/* Footer link */}
                 <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                    fontSize: '0.95rem',
-                    fontWeight: 700,
-                    color: item.color,
-                    marginTop: '0.5rem',
-                  }}
+                  className="menu-card-footer"
+                  style={{ color: item.color }}
                 >
-                  Buka Menu <ChevronRight size={14} />
+                  <span>Buka Menu</span> <ChevronRight size={14} />
                 </div>
               </div>
             ))}

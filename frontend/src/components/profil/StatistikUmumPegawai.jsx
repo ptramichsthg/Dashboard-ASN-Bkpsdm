@@ -402,45 +402,47 @@ export default function StatistikUmumPegawai() {
                 </div>
 
                 {/* Mini Tabel Rapi */}
-                <table className="stat-mini-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '45%' }}>Indikator / Kelompok</th>
-                      <th style={{ width: '25%', textAlign: 'center' }}>Jumlah</th>
-                      <th style={{ width: '30%', textAlign: 'right' }}>Persentase</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cat.items.map((item) => (
-                      <tr key={item.name}>
-                        <td>
-                          <div className="stat-mini-name">
-                            <span className={`badge-indicator ${item.badgeClass || ''}`}>
-                              {item.badge}
-                            </span>
-                            <span>{item.name}</span>
-                          </div>
-                        </td>
-                        <td className="stat-mini-count">
-                          {item.count.toLocaleString('id-ID')}
-                        </td>
-                        <td>
-                          <div className="stat-mini-bar-wrap">
-                            <div className="stat-mini-progress">
-                              <div
-                                className="stat-mini-fill"
-                                style={{ width: `${Math.min(100, Math.max(0, item.percent))}%` }}
-                              />
-                            </div>
-                            <span className="stat-mini-pct">
-                              {item.percent.toFixed(1)}%
-                            </span>
-                          </div>
-                        </td>
+                <div className="stat-mini-table-wrap">
+                  <table className="stat-mini-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '45%' }}>Indikator / Kelompok</th>
+                        <th style={{ width: '25%', textAlign: 'center' }}>Jumlah</th>
+                        <th style={{ width: '30%', textAlign: 'right' }}>Persentase</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {cat.items.map((item) => (
+                        <tr key={item.name}>
+                          <td>
+                            <div className="stat-mini-name">
+                              <span className={`badge-indicator ${item.badgeClass || ''}`}>
+                                {item.badge}
+                              </span>
+                              <span>{item.name}</span>
+                            </div>
+                          </td>
+                          <td className="stat-mini-count">
+                            {item.count.toLocaleString('id-ID')}
+                          </td>
+                          <td>
+                            <div className="stat-mini-bar-wrap">
+                              <div className="stat-mini-progress">
+                                <div
+                                  className="stat-mini-fill"
+                                  style={{ width: `${Math.min(100, Math.max(0, item.percent))}%` }}
+                                />
+                              </div>
+                              <span className="stat-mini-pct">
+                                {item.percent.toFixed(1)}%
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             );
           })}

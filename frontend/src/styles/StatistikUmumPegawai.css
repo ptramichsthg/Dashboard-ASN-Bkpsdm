@@ -250,7 +250,7 @@
   border-radius: 16px;
   border: 2px solid #000000; /* Outline tegas sesuai request */
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
+  overflow: visible; /* Allow horizontal scroll inside children */
   display: flex;
   flex-direction: column;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -310,10 +310,18 @@
   border: 1.5px solid #cbd5e1;
 }
 
+.stat-mini-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 0 0 14px 14px;
+}
+
 .stat-mini-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  min-width: 340px;
 }
 
 .stat-mini-table th {
@@ -405,6 +413,7 @@
 .statistik-table-responsive {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .statistik-table {

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Activity, Bell, RefreshCw, Settings, LogOut, Menu } from 'lucide-react';
+import { Activity, Bell, RefreshCw, Settings, LogOut, Menu, ChevronDown } from 'lucide-react';
 import LiveDateTime from '../shared/LiveDateTime';
 
 export default function TopBar({ onRefresh, isRefreshing = false }) {
@@ -8,6 +8,7 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
   const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const raw = localStorage.getItem('user');
@@ -19,6 +20,17 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
       }
     }
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    if (profileOpen) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [profileOpen]);
 
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
@@ -36,13 +48,15 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
+
+        {/* ── Left: Brand ── */}
         <div className="topbar-left">
           <div
             className="topbar-brand"
             onClick={() => !isDashboardPage && navigate('/dashboard')}
             style={{ cursor: isDashboardPage ? 'default' : 'pointer' }}
           >
-            <Activity size={28} className="brand-icon" />
+            <Activity size={26} className="brand-icon" />
             <div className="brand-text">
               <h2>BKPSDM PANEL</h2>
               <span>SISTEM INFORMASI ASN</span>
@@ -50,15 +64,19 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
           </div>
         </div>
 
+        {/* ── Right: Actions + Profile ── */}
         <div className="topbar-right">
+
+          {/* Live DateTime – hidden on mobile */}
           <div className="live-data-indicator">
             <LiveDateTime />
             <div className="status"><span className="dot"></span> LIVE DATA</div>
           </div>
 
+          {/* Refresh */}
           {onRefresh && (
             <button
-              className="btn-refresh"
+              className="btn-refresh topbar-icon-btn"
               title="Muat Ulang Data"
               onClick={onRefresh}
               disabled={isRefreshing}
@@ -68,26 +86,26 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
             </button>
           )}
 
-          <button className="btn-notification">
+          {/* Notification */}
+          <button className="btn-notification topbar-icon-btn" title="Notifikasi">
             <Bell size={20} />
           </button>
 
-          <div className="profile-container" style={{ position: 'relative' }}>
-            <div
-              className="user-profile"
+          {/* Profile – avatar + name + dropdown */}
+          <div className="profile-container" ref={dropdownRef}>
+            <button
+              className="topbar-profile-btn"
               onClick={() => setProfileOpen(!profileOpen)}
-              style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius)', transition: 'background-color 0.2s' }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--input-bg)'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              aria-expanded={profileOpen}
+              aria-label="Menu profil pengguna"
             >
-              <div className="user-info">
-                <div className="user-name">{user?.name || 'Administrator'}</div>
-              </div>
               <div className="avatar">{getInitials(user?.name)}</div>
-            </div>
+              <span className="topbar-username">{user?.name || 'Administrator'}</span>
+              <ChevronDown size={14} className={`topbar-chevron${profileOpen ? ' open' : ''}`} />
+            </button>
 
             {profileOpen && (
-              <div className="profile-dropdown">
+              <div className="profile-dropdown topbar-dropdown">
                 <div className="dropdown-header">
                   <strong>{user?.name || 'Administrator'}</strong>
                   <span>{user?.nip || '198001012010011001'}</span>

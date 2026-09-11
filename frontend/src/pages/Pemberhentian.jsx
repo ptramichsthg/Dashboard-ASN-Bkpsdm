@@ -298,7 +298,7 @@ export default function Pemberhentian() {
             </div>
 
             {/* ── Grafik ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
               {/* Bar Chart */}
               <div style={{
                 background: 'white', borderRadius: 16, padding: '20px 24px',

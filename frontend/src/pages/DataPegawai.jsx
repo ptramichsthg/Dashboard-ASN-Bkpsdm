@@ -654,7 +654,7 @@ export default function DataPegawai() {
                 </div>
               </div>
 
-              <div className="pegawai-table-container">
+              <div className="pegawai-table-container table-responsive-wrapper">
                 <table className="pegawai-table">
                   <thead>
                     <tr>
@@ -887,7 +887,7 @@ export default function DataPegawai() {
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                 <div className="pegawai-detail-item">
                   <span className="pegawai-detail-label">Usia & Generasi</span>
                   <span className="pegawai-detail-val" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -925,7 +925,7 @@ export default function DataPegawai() {
                 <span className="pegawai-detail-val">{selectedPegawai.satuan_kerja || '-'}</span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                 <div className="pegawai-detail-item">
                   <span className="pegawai-detail-label">Golongan Akhir</span>
                   <span className="pegawai-detail-val">

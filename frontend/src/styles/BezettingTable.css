@@ -4,9 +4,19 @@
   border: 2px solid #000000;
   border-radius: 16px;
   box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
-  overflow: hidden;
+  /* overflow:hidden dihapus — digantikan oleh .bezetting-table-area untuk scroll tabel */
+  overflow: visible;
   transition: box-shadow 0.3s ease;
   margin-bottom: 2rem;
+}
+
+/* Area scroll khusus tabel Bezetting */
+.bezetting-table-area {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
 }
 
 .bezetting-table-card:hover {
@@ -94,6 +104,7 @@ table.bezetting-table {
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.875rem;
+  min-width: 480px;
 }
 
 table.bezetting-table thead tr {
@@ -148,6 +159,33 @@ table.bezetting-table tbody td.text-center {
   table.bezetting-table th,
   table.bezetting-table td {
     white-space: nowrap;
+  }
+
+  .bezetting-table-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .manajerial-filter-wrapper {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .bezetting-kpi-row {
+    grid-template-columns: 1fr;
+    border-bottom: 1.5px solid #000000;
+  }
+
+  .bezetting-kpi-item {
+    border-right: none;
+    border-bottom: 1.5px solid #000000;
+    padding: 1rem;
+  }
+
+  .bezetting-kpi-item:last-child {
+    border-bottom: none;
   }
 }
 

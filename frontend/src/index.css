@@ -386,8 +386,9 @@ body {
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
   background-color: var(--primary);
   color: white;
   border-radius: 50%;
@@ -395,7 +396,81 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+/* ── TopBar Hamburger (mobile toggle) ── */
+.topbar-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.topbar-hamburger:hover {
+  background: var(--input-bg, #f1f5f9);
+}
+
+/* ── TopBar Profile Button ── */
+.topbar-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: none;
+  background: transparent;
+  padding: 0.35rem 0.5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--text-main);
+  max-width: 200px;
+}
+
+.topbar-profile-btn:hover {
+  background: var(--input-bg, #f1f5f9);
+}
+
+.topbar-username {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.topbar-chevron {
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.topbar-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* ── Ensure profile-container is relative for dropdown ── */
+.profile-container {
+  position: relative;
+}
+
+/* ── TopBar dropdown: ensure it doesn't go off-screen on mobile ── */
+.topbar-dropdown {
+  right: 0;
+  left: auto;
+  min-width: 210px;
+  max-width: 90vw;
+  z-index: 1000;
 }
 
 /* Profile Dropdown */
@@ -1283,16 +1358,16 @@ body {
 
   .topbar {
     justify-content: space-between;
-    padding: 0 1rem;
+    padding: 0;
   }
 
   .topbar-inner {
-    padding: 0 1rem;
-    height: 70px;
+    padding: 0 0.85rem;
+    height: 60px;
   }
 
   .topbar-right {
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
   .live-data-indicator {
@@ -1301,6 +1376,26 @@ body {
 
   .brand-text span {
     display: none;
+  }
+
+  .brand-text h2 {
+    font-size: 1rem;
+  }
+
+  /* Show hamburger on mobile */
+  .topbar-hamburger {
+    display: flex;
+  }
+
+  /* Hide username text on mobile – only show avatar */
+  .topbar-username,
+  .topbar-chevron {
+    display: none;
+  }
+
+  .topbar-profile-btn {
+    padding: 0.3rem;
+    gap: 0;
   }
 
   .sidebar-toggle-btn {
@@ -1374,7 +1469,63 @@ body {
   .data-card-gender-row {
     grid-template-columns: 1fr;
   }
+
+  /* Extra small: tighten topbar further */
+  .topbar-inner {
+    padding: 0 0.6rem;
+    height: 56px;
+  }
+
+  .brand-text h2 {
+    font-size: 0.85rem;
+    max-width: 130px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .brand-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .topbar-right {
+    gap: 0.3rem;
+  }
+
+  /* Hide notification bell on very small screens to prevent overflow */
+  .btn-notification {
+    display: none;
+  }
+
+  /* Ultra-small hero banner adjustments */
+  .hero-banner {
+    padding: 1.25rem 1rem;
+    border-radius: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .hero-banner-content h1 {
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.3;
+  }
+
+  .hero-banner-content p {
+    font-size: 0.8rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .hero-badges {
+    gap: 0.4rem;
+  }
+
+  .hero-badge-container {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+  }
 }
+
 
 /* Table Card Styles */
 .table-card {
