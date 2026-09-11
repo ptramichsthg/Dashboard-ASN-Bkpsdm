@@ -7,13 +7,15 @@ import HeroBanner from '../components/shared/HeroBanner';
 import JenisAsnCard from '../components/shared/JenisAsnCard';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
 import StatusPegawaiCards from '../components/dashboard/StatusPegawaiCards';
+import KelompokAsnSection from '../components/dashboard/KelompokAsnSection';
+import StatistikPieSection from '../components/dashboard/StatistikPieSection';
 import {
-  GenderDonutChart,
   OpdStackedBarChart,
   GolonganEselonSection,
 } from '../components/dashboard/DashboardCharts';
 import StrukturHierarkiTable from '../components/dashboard/StrukturHierarkiTable';
 import UnitJabatanModal from '../components/dashboard/UnitJabatanModal';
+import ModalKelompokAsn from '../components/dashboard/ModalKelompokAsn';
 import { formatOPDName } from '../utils/formatters';
 
 import {
@@ -28,8 +30,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   // Filters State
-  const [tahun, setTahun] = useState('Tahun');
-  const [bulan, setBulan] = useState('Bulan');
   const [satkerId, setSatkerId] = useState('');
   const [golonganPNSFilter, setGolonganPNSFilter] = useState('Semua');
   const [golonganPPPKFilter, setGolonganPPPKFilter] = useState('Semua');
@@ -48,16 +48,15 @@ export default function Dashboard() {
   const [profilData, setProfilData] = useState(null);
   const [profilLoading, setProfilLoading] = useState(true);
   const [hierarkiRawData, setHierarkiRawData] = useState([]);
+  const [kelompokAsnData, setKelompokAsnData] = useState({});
 
   // Modal State
   const [selectedUnitModal, setSelectedUnitModal] = useState(null);
+  const [selectedKelompokModal, setSelectedKelompokModal] = useState(null);
+  const [kelompokModalStatus, setKelompokModalStatus] = useState('Semua');
 
   // Pagination for Charts
   const [stackedOpdPage, setStackedOpdPage] = useState(0);
-
-  // Filter options from API
-  const [tahunOptions, setTahunOptions] = useState([]);
-  const [bulanOptions, setBulanOptions] = useState([]);
 
   // Label Satker aktif
   const satker = useMemo(() => {
@@ -72,12 +71,10 @@ export default function Dashboard() {
     setProfilLoading(true);
     setErrorMsg('');
     try {
-      const apiTahun = tahun === 'Tahun' ? 'Semua' : tahun;
-      const apiBulan = bulan === 'Bulan' ? 'Semua' : bulan;
       const apiSatkerId = satkerId ? satkerId : 'Semua Satuan Kerja';
 
       const [dashResult, satkerResult, hierarkiResult, profilResult] = await Promise.allSettled([
-        api.get('/dashboard', { params: { satker_id: apiSatkerId, tahun: apiTahun, bulan: apiBulan } }),
+        api.get('/dashboard', { params: { satker_id: apiSatkerId, tahun: 'Semua', bulan: 'Semua' } }),
         api.get('/satuan-kerja'),
         api.get('/struktur-hierarki-opd'),
         api.get('/profil', { params: { satker_id: apiSatkerId } }),
@@ -86,19 +83,10 @@ export default function Dashboard() {
       if (dashResult.status === 'fulfilled' && dashResult.value?.data) {
         const data = dashResult.value.data;
         setSummaryData(data.summary || INITIAL_SUMMARY);
+        setKelompokAsnData(data.kelompokAsn || {});
         setGolonganPNSData(data.golonganPNS || []);
         setGolonganPPPKData(data.golonganPPPK || []);
         setEselonData(data.eselonData || []);
-
-        if (data.tahunList) {
-          const tList = data.tahunList.map((t) => (t === 'Semua' ? 'Tahun' : t));
-          setTahunOptions(tList.includes('Tahun') ? tList : ['Tahun', ...tList]);
-        }
-
-        if (data.bulanList) {
-          const bList = data.bulanList.map((b) => (b === 'Semua' ? 'Bulan' : b));
-          setBulanOptions(bList.includes('Bulan') ? bList : ['Bulan', ...bList]);
-        }
       }
 
       if (satkerResult.status === 'fulfilled' && Array.isArray(satkerResult.value?.data)) {
@@ -124,7 +112,7 @@ export default function Dashboard() {
       setIsRefreshing(false);
       setProfilLoading(false);
     }
-  }, [satkerId, tahun, bulan]);
+  }, [satkerId]);
 
   useEffect(() => {
     loadData();
@@ -288,18 +276,12 @@ export default function Dashboard() {
             badgeText="Sumber: SIMPEL BKPSDM Kab. Bandung"
           />
 
-          {/* ── FILTER SATKER, BULAN, TAHUN ── */}
+          {/* ── FILTER SATUAN KERJA ── */}
           <div className="admin-kpi-filter-wrapper">
             <DashboardFilters
               satkerId={satkerId}
               setSatkerId={setSatkerId}
-              bulan={bulan}
-              setBulan={setBulan}
-              tahun={tahun}
-              setTahun={setTahun}
               satkerRawData={satkerRawData}
-              bulanOptions={bulanOptions}
-              tahunOptions={tahunOptions}
             />
           </div>
 
@@ -360,12 +342,21 @@ export default function Dashboard() {
             }}
           />
 
-          {/* ── CHARTS ROW: GENDER DONUT + SEBARAN KOMPOSISI OPD (HORIZONTAL) ── */}
-          <div className="charts-grid-row-1">
-            <GenderDonutChart
-              summaryData={summaryData}
-              genderChartData={genderChartData}
-            />
+          {/* ── SECTION: KELOMPOK ASN (TENAGA PENDIDIKAN, KESEHATAN, TEKNIS) ── */}
+          <KelompokAsnSection
+            data={kelompokAsnData}
+            loading={isRefreshing}
+            onCardClick={(card, currentStatus) => {
+              setSelectedKelompokModal(card);
+              setKelompokModalStatus(currentStatus || 'Semua');
+            }}
+          />
+
+          {/* ── SECTION: GRAFIK PIE STATISTIK UMUM PEGAWAI (DENGAN FILTER STATUS) ── */}
+          <StatistikPieSection satker={satker} />
+
+          {/* ── CHARTS: SEBARAN KOMPOSISI OPD (HORIZONTAL) ── */}
+          <div style={{ marginBottom: '1.5rem' }}>
             <OpdStackedBarChart
               paginatedStackedOpdData={paginatedStackedOpdData}
               stackedOpdPage={stackedOpdPage}
@@ -400,6 +391,16 @@ export default function Dashboard() {
           <UnitJabatanModal
             selectedUnitModal={selectedUnitModal}
             onClose={() => setSelectedUnitModal(null)}
+          />
+        )}
+
+        {/* ── POP-UP MODAL RINCIAN KELOMPOK ASN ── */}
+        {selectedKelompokModal && (
+          <ModalKelompokAsn
+            selectedKelompok={selectedKelompokModal}
+            activeStatus={kelompokModalStatus}
+            satker={satker}
+            onClose={() => setSelectedKelompokModal(null)}
           />
         )}
       </main>

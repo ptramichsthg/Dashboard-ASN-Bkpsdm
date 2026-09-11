@@ -175,7 +175,7 @@ export default function StatistikUmumPegawai() {
     // 5. Golongan (Badge 'Gol' seragam agar sejajar)
     const rawGolongan = statsData.sebaran_golongan_grouped || [];
     const golonganItems = rawGolongan.map((gol, idx) => ({
-      name: gol.name,
+      name: (gol.name || '').replace(/\s*\((Pembina|Penata|Pengatur|Juru)\)/gi, '').trim(),
       badge: 'Gol',
       badgeClass: 'badge-gol-tag',
       count: gol.value,

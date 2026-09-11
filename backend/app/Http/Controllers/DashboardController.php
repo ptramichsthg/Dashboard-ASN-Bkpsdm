@@ -353,10 +353,63 @@ class DashboardController extends Controller
             'cpns'    => (clone $pegawaiAktifQuery)->where('status_pegawai', 'CPNS')->count(),
         ];
 
+        // Klasifikasi Kelompok ASN: Tenaga Pendidikan, Tenaga Kesehatan, Tenaga Teknis
+        $distinctKlasifikasi = DB::table('klasifikasi_asn')
+            ->select('nama_jabatan', 'kategori')
+            ->distinct();
+
+        $kelompokQuery = DB::table('data_pegawai_aktif as p')
+            ->leftJoinSub($distinctKlasifikasi, 'k', function ($join) {
+                $join->on('p.jabatan_utama', '=', 'k.nama_jabatan');
+            });
+
+        if ($satker !== 'Semua Satuan Kerja') {
+            $kelompokQuery->where('p.satuan_kerja', $satker);
+        }
+
+        $kelompokRaw = $kelompokQuery
+            ->select([
+                'p.status_pegawai',
+                DB::raw("CASE 
+                    WHEN k.kategori = 'Pendidikan' THEN 'pendidikan'
+                    WHEN k.kategori = 'Kesehatan' THEN 'kesehatan'
+                    ELSE 'teknis'
+                END as kelompok"),
+                DB::raw('COUNT(*) as total')
+            ])
+            ->groupBy('p.status_pegawai', 'kelompok')
+            ->get();
+
+        $statuses = ['Semua', 'PNS', 'CPNS', 'PPPK', 'PPPK PW'];
+        $kelompokAsn = [];
+        foreach ($statuses as $st) {
+            $kelompokAsn[$st] = [
+                'pendidikan' => 0,
+                'kesehatan' => 0,
+                'teknis' => 0,
+                'total' => 0,
+            ];
+        }
+
+        foreach ($kelompokRaw as $row) {
+            $st = $row->status_pegawai;
+            $kel = $row->kelompok;
+            $cnt = (int) $row->total;
+
+            if (isset($kelompokAsn[$st])) {
+                $kelompokAsn[$st][$kel] += $cnt;
+                $kelompokAsn[$st]['total'] += $cnt;
+            }
+
+            $kelompokAsn['Semua'][$kel] += $cnt;
+            $kelompokAsn['Semua']['total'] += $cnt;
+        }
+
         return response()->json([
             'summary' => ['total' => $total, 'laki' => $totalLaki, 'perempuan' => $totalPerempuan],
             'statusPegawai' => $statusPegawai,
             'pegawai_aktif_summary' => $pegawaiAktifSummary,
+            'kelompokAsn' => $kelompokAsn,
             'jenisJabatan' => $jenisJabatan,
             'jenisJFT' => $jenisJFT,
             'golonganPNS' => $golonganPNS,
@@ -397,6 +450,80 @@ class DashboardController extends Controller
             'data'      => $data,
             'parameter' => ['tahun' => $tahun, 'bulan' => $bulan],
             'timestamp' => now()->toIso8601String() . 'Z',
+        ]);
+    }
+
+    /**
+     * Mengambil daftar rincian jabatan untuk modal Kelompok ASN (Pendidikan, Kesehatan, Teknis).
+     * Dikelompokkan per nama jabatan & unit kerja dengan aksi tautan pegawai.
+     */
+    public function kelompokAsnDetail(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $kelompok = strtolower($request->input('kelompok', 'pendidikan'));
+        $statusPegawai = $request->input('status_pegawai', 'Semua');
+        $satker = $request->input('satker_id', $request->input('satuan_kerja', 'Semua'));
+        $search = $request->input('search');
+        $perPage = min((int) $request->input('per_page', 10), 100);
+
+        $distinctKlasifikasi = DB::table('klasifikasi_asn')
+            ->select('nama_jabatan', 'kategori')
+            ->distinct();
+
+        $baseQuery = DB::table('data_pegawai_aktif as p')
+            ->leftJoinSub($distinctKlasifikasi, 'k', function ($join) {
+                $join->on('p.jabatan_utama', '=', 'k.nama_jabatan');
+            });
+
+        if ($kelompok === 'pendidikan') {
+            $baseQuery->where('k.kategori', 'Pendidikan');
+        } elseif ($kelompok === 'kesehatan') {
+            $baseQuery->where('k.kategori', 'Kesehatan');
+        } elseif ($kelompok === 'teknis') {
+            $baseQuery->where(function ($q) {
+                $q->whereNull('k.kategori')
+                  ->orWhereNotIn('k.kategori', ['Pendidikan', 'Kesehatan']);
+            });
+        }
+
+        if ($statusPegawai && $statusPegawai !== 'Semua') {
+            $baseQuery->where('p.status_pegawai', $statusPegawai);
+        }
+
+        if ($satker && $satker !== 'Semua' && $satker !== 'Semua Satuan Kerja') {
+            $baseQuery->where('p.satuan_kerja', $satker);
+        }
+
+        $totalPegawaiKeseluruhan = (clone $baseQuery)->count();
+
+        // Filter pencarian pada nama jabatan, satuan kerja, atau unit kerja
+        if ($search) {
+            $baseQuery->where(function ($q) use ($search) {
+                $q->where('p.jabatan_utama', 'like', "%{$search}%")
+                  ->orWhere('p.satuan_kerja', 'like', "%{$search}%")
+                  ->orWhere('p.unit_kerja', 'like', "%{$search}%");
+            });
+        }
+
+        $paginated = $baseQuery
+            ->select([
+                'p.jabatan_utama as jabatan',
+                'p.satuan_kerja as perangkat_daerah',
+                'p.unit_kerja',
+                DB::raw('COUNT(*) as total_pegawai')
+            ])
+            ->groupBy('p.jabatan_utama', 'p.satuan_kerja', 'p.unit_kerja')
+            ->orderBy('p.jabatan_utama', 'asc')
+            ->orderBy('p.unit_kerja', 'asc')
+            ->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'kelompok' => $kelompok,
+            'summary' => [
+                'total_pegawai' => $totalPegawaiKeseluruhan,
+                'total_jabatan' => $paginated->total(),
+            ],
+            'data' => $paginated,
         ]);
     }
 }
