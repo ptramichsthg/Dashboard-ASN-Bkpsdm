@@ -131,7 +131,7 @@ class DataPegawaiAktifController extends Controller
     public function statistics(Request $request): JsonResponse
     {
         try {
-            $cacheKey = 'pegawai_stats_v7_' . md5(json_encode($request->all()));
+            $cacheKey = 'pegawai_stats_v8_' . md5(json_encode($request->all()));
 
             $data = Cache::remember($cacheKey, 600, function () use ($request) {
                 // Global status counts (hanya difilter berdasarkan satuan_kerja bila ada, untuk badge Tab Cepat)
@@ -364,10 +364,10 @@ class DataPegawaiAktifController extends Controller
                 })->count();
 
                 $golonganGrouped = [
-                    ['name' => 'Golongan IV (Pembina)', 'value' => $golIV],
-                    ['name' => 'Golongan III (Penata)', 'value' => $golIII],
-                    ['name' => 'Golongan II (Pengatur)', 'value' => $golII],
-                    ['name' => 'Golongan I (Juru)', 'value' => $golI],
+                    ['name' => 'Golongan IV', 'value' => $golIV],
+                    ['name' => 'Golongan III', 'value' => $golIII],
+                    ['name' => 'Golongan II', 'value' => $golII],
+                    ['name' => 'Golongan I', 'value' => $golI],
                     ['name' => 'Golongan PPPK (V s/d XI)', 'value' => $golPppk],
                     ['name' => 'Non-Golongan (PPPK Paruh Waktu)', 'value' => $nonGol],
                 ];

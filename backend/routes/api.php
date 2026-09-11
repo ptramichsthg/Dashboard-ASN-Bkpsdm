@@ -13,6 +13,7 @@ Route::get('/user', function (Request $request) {
 Route::post('/main/bezetting-jenis-kelamin', [\App\Http\Controllers\DashboardController::class, 'bezettingJenisKelamin']);
 Route::get('/profil', [\App\Http\Controllers\DashboardController::class, 'profil']);
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
+Route::get('/dashboard/kelompok-asn-detail', [\App\Http\Controllers\DashboardController::class, 'kelompokAsnDetail']);
 
 Route::get('/satuan-kerja', [\App\Http\Controllers\SatuanKerjaController::class, 'index']);
 Route::get('/struktur-hierarki-opd', [\App\Http\Controllers\SatuanKerjaController::class, 'strukturHierarki']);

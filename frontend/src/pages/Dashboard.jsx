@@ -1,18 +1,22 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import apiCache from '../utils/apiCache';
 import '../styles/Dashboard.css';
 import TopBar from '../components/shared/TopBar';
 import HeroBanner from '../components/shared/HeroBanner';
 import JenisAsnCard from '../components/shared/JenisAsnCard';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
 import StatusPegawaiCards from '../components/dashboard/StatusPegawaiCards';
+import KelompokAsnSection from '../components/dashboard/KelompokAsnSection';
+import StatistikPieSection from '../components/dashboard/StatistikPieSection';
 import {
   OpdStackedBarChart,
   GolonganEselonSection,
 } from '../components/dashboard/DashboardCharts';
 import StrukturHierarkiTable from '../components/dashboard/StrukturHierarkiTable';
 import UnitJabatanModal from '../components/dashboard/UnitJabatanModal';
+import ModalKelompokAsn from '../components/dashboard/ModalKelompokAsn';
 import { formatOPDName } from '../utils/formatters';
 
 import {
@@ -26,9 +30,37 @@ const ITEMS_PER_STACKED_PAGE = 5;
 export default function Dashboard() {
   const navigate = useNavigate();
 
+  // Role detection: membedakan role user dan super admin / admin
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    const updateUser = () => {
+      const raw = localStorage.getItem('user');
+      if (raw) {
+        try {
+          setCurrentUser(JSON.parse(raw));
+        } catch {
+          setCurrentUser(null);
+        }
+      } else {
+        setCurrentUser(null);
+      }
+    };
+    window.addEventListener('storage', updateUser);
+    return () => window.removeEventListener('storage', updateUser);
+  }, []);
+
+  const userRole = (currentUser?.role || '').toLowerCase().trim();
+  const isUserRole = userRole === 'user';
+
   // Filters State
-  const [tahun, setTahun] = useState('Tahun');
-  const [bulan, setBulan] = useState('Bulan');
   const [satkerId, setSatkerId] = useState('');
   const [golonganPNSFilter, setGolonganPNSFilter] = useState('Semua');
   const [golonganPPPKFilter, setGolonganPPPKFilter] = useState('Semua');
@@ -47,16 +79,15 @@ export default function Dashboard() {
   const [profilData, setProfilData] = useState(null);
   const [profilLoading, setProfilLoading] = useState(true);
   const [hierarkiRawData, setHierarkiRawData] = useState([]);
+  const [kelompokAsnData, setKelompokAsnData] = useState({});
 
   // Modal State
   const [selectedUnitModal, setSelectedUnitModal] = useState(null);
+  const [selectedKelompokModal, setSelectedKelompokModal] = useState(null);
+  const [kelompokModalStatus, setKelompokModalStatus] = useState('Semua');
 
   // Pagination for Charts
   const [stackedOpdPage, setStackedOpdPage] = useState(0);
-
-  // Filter options from API
-  const [tahunOptions, setTahunOptions] = useState([]);
-  const [bulanOptions, setBulanOptions] = useState([]);
 
   // Label Satker aktif
   const satker = useMemo(() => {
@@ -65,18 +96,19 @@ export default function Dashboard() {
     return found ? found.satuan_kerja : 'Satuan Kerja';
   }, [satkerId, satkerRawData]);
 
+  // State trigger refresh untuk komponen anak (StatistikPieSection)
+  const [refreshKey, setRefreshKey] = useState(0);
+
   // Load All Data
-  const loadData = useCallback(async () => {
-    setIsRefreshing(true);
+  const loadData = useCallback(async (isManualRefresh = false) => {
+    if (!isManualRefresh) setIsRefreshing(true);
     setProfilLoading(true);
     setErrorMsg('');
     try {
-      const apiTahun = tahun === 'Tahun' ? 'Semua' : tahun;
-      const apiBulan = bulan === 'Bulan' ? 'Semua' : bulan;
       const apiSatkerId = satkerId ? satkerId : 'Semua Satuan Kerja';
 
       const [dashResult, satkerResult, hierarkiResult, profilResult] = await Promise.allSettled([
-        api.get('/dashboard', { params: { satker_id: apiSatkerId, tahun: apiTahun, bulan: apiBulan } }),
+        api.get('/dashboard', { params: { satker_id: apiSatkerId, tahun: 'Semua', bulan: 'Semua' } }),
         api.get('/satuan-kerja'),
         api.get('/struktur-hierarki-opd'),
         api.get('/profil', { params: { satker_id: apiSatkerId } }),
@@ -85,19 +117,10 @@ export default function Dashboard() {
       if (dashResult.status === 'fulfilled' && dashResult.value?.data) {
         const data = dashResult.value.data;
         setSummaryData(data.summary || INITIAL_SUMMARY);
+        setKelompokAsnData(data.kelompokAsn || {});
         setGolonganPNSData(data.golonganPNS || []);
         setGolonganPPPKData(data.golonganPPPK || []);
         setEselonData(data.eselonData || []);
-
-        if (data.tahunList) {
-          const tList = data.tahunList.map((t) => (t === 'Semua' ? 'Tahun' : t));
-          setTahunOptions(tList.includes('Tahun') ? tList : ['Tahun', ...tList]);
-        }
-
-        if (data.bulanList) {
-          const bList = data.bulanList.map((b) => (b === 'Semua' ? 'Bulan' : b));
-          setBulanOptions(bList.includes('Bulan') ? bList : ['Bulan', ...bList]);
-        }
       }
 
       if (satkerResult.status === 'fulfilled' && Array.isArray(satkerResult.value?.data)) {
@@ -120,13 +143,34 @@ export default function Dashboard() {
       console.error('Error fetching dashboard data:', error);
       setErrorMsg('Gagal memuat beberapa data dashboard.');
     } finally {
-      setIsRefreshing(false);
+      if (!isManualRefresh) setIsRefreshing(false);
       setProfilLoading(false);
     }
-  }, [satkerId, tahun, bulan]);
+  }, [satkerId]);
+
+  // Handler khusus untuk tombol refresh di TopBar
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    setErrorMsg('');
+    apiCache.clear();
+    setRefreshKey((k) => k + 1);
+
+    const minSpin = new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      await Promise.allSettled([
+        loadData(true),
+        minSpin,
+      ]);
+    } catch (err) {
+      console.error('Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, loadData]);
 
   useEffect(() => {
-    loadData();
+    loadData(false);
   }, [loadData]);
 
   // Reset pagination saat filter satker berubah
@@ -258,7 +302,7 @@ export default function Dashboard() {
     <div className="dashboard-layout">
       <main className="main-content" style={{ marginLeft: 0 }}>
         {/* Topbar */}
-        <TopBar onRefresh={loadData} isRefreshing={isRefreshing} />
+        <TopBar onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
         {/* Content Area */}
         <div className="content-area">
@@ -285,21 +329,15 @@ export default function Dashboard() {
             title="Dashboard Data ASN Kabupaten Bandung"
             description="Komposisi, status, sebaran OPD, dan statistik kepegawaian ASN<br />di lingkungan Pemerintah Kabupaten Bandung."
             badgeText="Sumber: SIMPEL BKPSDM Kab. Bandung"
-            showMenuLainnya={false}
+            showMenuLainnya={!isUserRole}
           />
 
-          {/* ── FILTER SATKER, BULAN, TAHUN ── */}
+          {/* ── FILTER SATUAN KERJA ── */}
           <div className="admin-kpi-filter-wrapper">
             <DashboardFilters
               satkerId={satkerId}
               setSatkerId={setSatkerId}
-              bulan={bulan}
-              setBulan={setBulan}
-              tahun={tahun}
-              setTahun={setTahun}
               satkerRawData={satkerRawData}
-              bulanOptions={bulanOptions}
-              tahunOptions={tahunOptions}
             />
           </div>
 
@@ -336,6 +374,10 @@ export default function Dashboard() {
                   key={item.label}
                   label={item.label}
                   value={item.value}
+                  onClick={isUserRole ? undefined : () => {
+                    const statusParam = item.label === 'PPPK PW' ? 'PPPK' : item.label;
+                    navigate(`/sebaran-pegawai?status=${encodeURIComponent(statusParam)}`);
+                  }}
                 />
               ))}
             </div>
@@ -354,21 +396,46 @@ export default function Dashboard() {
 
           <StatusPegawaiCards
             statusPegawaiData={computedStatusPegawai}
-            onCardClick={(d) => {
+            onCardClick={isUserRole ? undefined : (d) => {
               const statusParam = d.title === 'PPPK PW' ? 'PPPK' : d.title;
               navigate(`/sebaran-pegawai?status=${encodeURIComponent(statusParam)}`);
             }}
           />
 
-          {/* ── CHARTS ROW: SEBARAN KOMPOSISI OPD (FULL WIDTH) ── */}
-          <div className="charts-grid-row-1 charts-grid-full">
-            <OpdStackedBarChart
-              paginatedStackedOpdData={paginatedStackedOpdData}
-              stackedOpdPage={stackedOpdPage}
-              setStackedOpdPage={setStackedOpdPage}
-              totalStackedOpdPages={totalStackedOpdPages}
-            />
-          </div>
+          {/* ── SECTION: KELOMPOK ASN (TENAGA PENDIDIKAN, KESEHATAN, TEKNIS) ── */}
+          <KelompokAsnSection
+            data={kelompokAsnData}
+            loading={isRefreshing}
+            onCardClick={(card, currentStatus) => {
+              setSelectedKelompokModal(card);
+              setKelompokModalStatus(currentStatus || 'Semua');
+            }}
+          />
+
+          {/* ── SECTION: GRAFIK PIE STATISTIK UMUM PEGAWAI (DENGAN FILTER STATUS) ── */}
+          <StatistikPieSection satker={satker} refreshTrigger={refreshKey}>
+            {/* Pada role user, Sebaran Komposisi ASN per OPD diposisikan di bawah teks total & rata-rata usia */}
+            {isUserRole && (
+              <OpdStackedBarChart
+                paginatedStackedOpdData={paginatedStackedOpdData}
+                stackedOpdPage={stackedOpdPage}
+                setStackedOpdPage={setStackedOpdPage}
+                totalStackedOpdPages={totalStackedOpdPages}
+              />
+            )}
+          </StatistikPieSection>
+
+          {/* ── CHARTS: SEBARAN KOMPOSISI OPD (HORIZONTAL) - UNTUK NON-USER ROLE ── */}
+          {!isUserRole && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <OpdStackedBarChart
+                paginatedStackedOpdData={paginatedStackedOpdData}
+                stackedOpdPage={stackedOpdPage}
+                setStackedOpdPage={setStackedOpdPage}
+                totalStackedOpdPages={totalStackedOpdPages}
+              />
+            </div>
+          )}
 
           {/* ── CHARTS ROW 3: GOLONGAN & ESELONERING ── */}
           <GolonganEselonSection
@@ -396,6 +463,16 @@ export default function Dashboard() {
           <UnitJabatanModal
             selectedUnitModal={selectedUnitModal}
             onClose={() => setSelectedUnitModal(null)}
+          />
+        )}
+
+        {/* ── POP-UP MODAL RINCIAN KELOMPOK ASN ── */}
+        {selectedKelompokModal && (
+          <ModalKelompokAsn
+            selectedKelompok={selectedKelompokModal}
+            activeStatus={kelompokModalStatus}
+            satker={satker}
+            onClose={() => setSelectedKelompokModal(null)}
           />
         )}
       </main>

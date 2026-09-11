@@ -51,10 +51,19 @@ export default function ModalDetailSelisih({
         (j.unit_kerja && j.unit_kerja.toLowerCase().includes(q));
 
       if (activeTab === 'manajerial') {
-        const eselonMatch =
-          j.jenis_eselon === selectedModalRow.jenis_eselon &&
-          j.subklasifikasi === selectedModalRow.subklasifikasi;
-        return matchSearch && eselonMatch;
+        const rowEselon = (selectedModalRow.jenis_eselon || '').toLowerCase().trim();
+        const jEselon = (j.jenis_eselon || '').toLowerCase().trim();
+        const eselonMatch = !rowEselon || !jEselon || jEselon === rowEselon;
+
+        const rowSub = (selectedModalRow.subklasifikasi || '').toLowerCase().trim();
+        const jSub = (j.subklasifikasi || '').toLowerCase().trim();
+        const subMatch =
+          !rowSub ||
+          !jSub ||
+          jSub === 'jabatan manajerial' ||
+          jSub === rowSub;
+
+        return matchSearch && eselonMatch && subMatch;
       }
       return matchSearch;
     });
