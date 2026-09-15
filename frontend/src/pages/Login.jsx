@@ -17,24 +17,11 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Jika sudah memiliki token aktif, alihkan berdasarkan role
+  // Jika sudah memiliki token aktif, alihkan ke dashboard
   React.useEffect(() => {
     const token = localStorage.getItem('auth_token');
     if (token) {
-      const userStr = localStorage.getItem('user');
-      let role = 'admin';
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          role = user.role;
-        } catch (e) {}
-      }
-      
-      if (role === 'admin' || role === 'user') {
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/profil', { replace: true });
-      }
+      navigate('/dashboard', { replace: true });
     }
   }, [navigate]);
 
@@ -67,11 +54,7 @@ const Login = () => {
         }
 
         setIsLoading(false);
-        if (response.data.user && (response.data.user.role === 'admin' || response.data.user.role === 'user')) {
-          navigate('/dashboard', { replace: true });
-        } else {
-          navigate('/profil', { replace: true });
-        }
+        navigate('/dashboard', { replace: true });
       }
     } catch (err) {
       // Hitung waktu yang sudah berlalu

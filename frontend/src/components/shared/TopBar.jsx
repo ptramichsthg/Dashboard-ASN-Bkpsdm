@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Activity, Bell, RefreshCw, Settings, LogOut, Menu, ChevronDown } from 'lucide-react';
+import { Activity, Bell, RefreshCw, Settings, LogOut, ChevronDown } from 'lucide-react';
 import LiveDateTime from '../shared/LiveDateTime';
+import PengaturanAkunModal from './PengaturanAkunModal';
 
 export default function TopBar({ onRefresh, isRefreshing = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [pengaturanOpen, setPengaturanOpen] = useState(false);
   const [user, setUser] = useState(() => {
     try {
       const raw = localStorage.getItem('user');
@@ -27,6 +29,11 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
       }
     }
   }, []);
+
+  // Sinkronkan user state saat modal pengaturan berhasil update
+  const handleProfileUpdated = (updatedUser) => {
+    setUser(updatedUser);
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -51,11 +58,12 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
   };
 
   const userRole = (user?.role || '').toLowerCase().trim();
-  const isUserRole = userRole === 'user';
+  const isUserRole = userRole === 'umum';
 
   const isDashboardPage = location.pathname === '/dashboard';
 
   return (
+    <>
     <header className="topbar">
       <div className="topbar-inner">
 
@@ -132,18 +140,13 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
                   <span>{user?.nip || '198001012010011001'}</span>
                 </div>
                 <hr className="dropdown-divider" />
-                {!isUserRole && (
-                  <button
+                <button
                     type="button"
                     className="dropdown-item"
-                    onClick={() => { navigate('/lainnya'); setProfileOpen(false); }}
+                    onClick={() => { setPengaturanOpen(true); setProfileOpen(false); }}
                   >
-                    <Menu size={16} /> Menu Lainnya
+                    <Settings size={16} /> Pengaturan Akun
                   </button>
-                )}
-                <button type="button" className="dropdown-item">
-                  <Settings size={16} /> Pengaturan Akun
-                </button>
                 <button type="button" onClick={handleLogout} className="dropdown-item logout-text">
                   <LogOut size={16} /> Logout
                 </button>
@@ -153,5 +156,13 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
         </div>
       </div>
     </header>
+
+      {/* ── MODAL PENGATURAN AKUN ── */}
+      <PengaturanAkunModal
+        isOpen={pengaturanOpen}
+        onClose={() => setPengaturanOpen(false)}
+        onProfileUpdated={handleProfileUpdated}
+      />
+    </>
   );
 }

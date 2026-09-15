@@ -30,7 +30,7 @@ const ITEMS_PER_STACKED_PAGE = 5;
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  // Role detection: membedakan role user dan super admin / admin
+  // Role detection: membedakan role umum dan admin
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const raw = localStorage.getItem('user');
@@ -58,7 +58,7 @@ export default function Dashboard() {
   }, []);
 
   const userRole = (currentUser?.role || '').toLowerCase().trim();
-  const isUserRole = userRole === 'user';
+  const isUserRole = userRole === 'umum';
 
   // Filters State
   const [satkerId, setSatkerId] = useState('');
@@ -329,7 +329,6 @@ export default function Dashboard() {
             title="Dashboard Data ASN Kabupaten Bandung"
             description="Komposisi, status, sebaran OPD, dan statistik kepegawaian ASN<br />di lingkungan Pemerintah Kabupaten Bandung."
             badgeText="Sumber: SIMPEL BKPSDM Kab. Bandung"
-            showMenuLainnya={!isUserRole}
           />
 
           {/* ── FILTER SATUAN KERJA ── */}
@@ -415,28 +414,14 @@ export default function Dashboard() {
 
           {/* ── SECTION: GRAFIK PIE STATISTIK UMUM PEGAWAI (DENGAN FILTER STATUS) ── */}
           <StatistikPieSection satker={satker} refreshTrigger={refreshKey}>
-            {/* Pada role user, Sebaran Komposisi ASN per OPD diposisikan di bawah teks total & rata-rata usia */}
-            {isUserRole && (
-              <OpdStackedBarChart
-                paginatedStackedOpdData={paginatedStackedOpdData}
-                stackedOpdPage={stackedOpdPage}
-                setStackedOpdPage={setStackedOpdPage}
-                totalStackedOpdPages={totalStackedOpdPages}
-              />
-            )}
+            {/* Sebaran Komposisi ASN per OPD diposisikan di bawah teks total & rata-rata usia */}
+            <OpdStackedBarChart
+              paginatedStackedOpdData={paginatedStackedOpdData}
+              stackedOpdPage={stackedOpdPage}
+              setStackedOpdPage={setStackedOpdPage}
+              totalStackedOpdPages={totalStackedOpdPages}
+            />
           </StatistikPieSection>
-
-          {/* ── CHARTS: SEBARAN KOMPOSISI OPD (HORIZONTAL) - UNTUK NON-USER ROLE ── */}
-          {!isUserRole && (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <OpdStackedBarChart
-                paginatedStackedOpdData={paginatedStackedOpdData}
-                stackedOpdPage={stackedOpdPage}
-                setStackedOpdPage={setStackedOpdPage}
-                totalStackedOpdPages={totalStackedOpdPages}
-              />
-            </div>
-          )}
 
           {/* ── CHARTS ROW 3: GOLONGAN & ESELONERING ── */}
           <GolonganEselonSection

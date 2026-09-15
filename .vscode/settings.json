@@ -1,5 +1,0 @@
-{
-    "intelephense.diagnostics.exclude": [
-        "**/vendor/**"
-    ]
-}

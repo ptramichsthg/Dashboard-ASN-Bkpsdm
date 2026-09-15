@@ -29,24 +29,13 @@ class DatabaseSeeder extends Seeder
         );
 
         User::updateOrCreate(
-            ['username' => 'superadmin_bkpsdm'],
-            [
-                'name' => 'Super Admin BKPSDM',
-                'email' => 'superadmin@bkpsdm.com',
-                'nip' => '198001012010011002',
-                'password' => 'password123',
-                'role' => 'super admin',
-            ]
-        );
-
-        User::updateOrCreate(
             ['username' => 'user_bkpsdm'],
             [
                 'name' => 'User BKPSDM',
                 'email' => 'user@bkpsdm.com',
                 'nip' => '198001012010011003',
                 'password' => 'password123',
-                'role' => 'user',
+                'role' => 'umum',
             ]
         );
     }
