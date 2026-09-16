@@ -352,9 +352,7 @@ export default function DataPegawai() {
             <div className="pegawai-stats-grid">
               <div
                 className="pegawai-stat-card"
-                style={{ '--stat-color': '#0f172a', '--stat-bg': '#f8fafc', cursor: 'pointer' }}
-                onClick={() => { setFilterStatusPegawai('Semua'); setPage(1); }}
-                title="Klik untuk tampilkan semua ASN"
+                style={{ '--stat-color': '#0f172a', '--stat-bg': '#f8fafc' }}
               >
                 <div className="pegawai-stat-icon" style={{ background: '#f1f5f9', color: '#0f172a' }}>
                   <Users size={26} />
@@ -368,9 +366,7 @@ export default function DataPegawai() {
 
               <div
                 className="pegawai-stat-card"
-                style={{ '--stat-color': '#10b981', '--stat-bg': '#ecfdf5', cursor: 'pointer' }}
-                onClick={() => { setFilterStatusPegawai('PNS'); setPage(1); }}
-                title="Klik untuk filter hanya PNS"
+                style={{ '--stat-color': '#10b981', '--stat-bg': '#ecfdf5' }}
               >
                 <div className="pegawai-stat-icon">
                   <Award size={26} />
@@ -386,9 +382,7 @@ export default function DataPegawai() {
 
               <div
                 className="pegawai-stat-card"
-                style={{ '--stat-color': '#0284c7', '--stat-bg': '#f0f9ff', cursor: 'pointer' }}
-                onClick={() => { setFilterStatusPegawai('PPPK'); setPage(1); }}
-                title="Klik untuk filter hanya PPPK"
+                style={{ '--stat-color': '#0284c7', '--stat-bg': '#f0f9ff' }}
               >
                 <div className="pegawai-stat-icon">
                   <Briefcase size={26} />
@@ -404,9 +398,7 @@ export default function DataPegawai() {
 
               <div
                 className="pegawai-stat-card"
-                style={{ '--stat-color': '#6366f1', '--stat-bg': '#eef2ff', cursor: 'pointer' }}
-                onClick={() => { setFilterStatusPegawai('PPPK PW'); setPage(1); }}
-                title="Klik untuk filter hanya PPPK Paruh Waktu"
+                style={{ '--stat-color': '#6366f1', '--stat-bg': '#eef2ff' }}
               >
                 <div className="pegawai-stat-icon" style={{ background: '#e0e7ff', color: '#4f46e5' }}>
                   <UserCheck size={26} />

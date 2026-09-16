@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Activity, Bell, RefreshCw, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Activity, Bell, RefreshCw, Settings, LogOut, ChevronDown, Menu } from 'lucide-react';
 import LiveDateTime from '../shared/LiveDateTime';
 import PengaturanAkunModal from './PengaturanAkunModal';
 
@@ -140,6 +140,15 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
                   <span>{user?.nip || '198001012010011001'}</span>
                 </div>
                 <hr className="dropdown-divider" />
+                {!isUserRole && (
+                  <button
+                    type="button"
+                    className="dropdown-item"
+                    onClick={() => { navigate('/lainnya'); setProfileOpen(false); }}
+                  >
+                    <Menu size={16} /> Menu Lainnya
+                  </button>
+                )}
                 <button
                     type="button"
                     className="dropdown-item"
@@ -161,6 +170,7 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
       <PengaturanAkunModal
         isOpen={pengaturanOpen}
         onClose={() => setPengaturanOpen(false)}
+        userData={user}
         onProfileUpdated={handleProfileUpdated}
       />
     </>

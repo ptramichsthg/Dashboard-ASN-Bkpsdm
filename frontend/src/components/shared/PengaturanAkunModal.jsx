@@ -62,6 +62,21 @@ export default function PengaturanAkunModal({ isOpen, onClose, onProfileUpdated 
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
+  // Disable body scroll saat modal terbuka dengan class CSS yang lebih strict
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open-no-scroll');
+      document.documentElement.classList.add('modal-open-no-scroll');
+    } else {
+      document.body.classList.remove('modal-open-no-scroll');
+      document.documentElement.classList.remove('modal-open-no-scroll');
+    }
+    return () => {
+      document.body.classList.remove('modal-open-no-scroll');
+      document.documentElement.classList.remove('modal-open-no-scroll');
+    };
+  }, [isOpen]);
+
   const clearFeedback = () => { setSuccess(''); setError(''); setFieldErrors({}); };
 
   // Submit ubah profil

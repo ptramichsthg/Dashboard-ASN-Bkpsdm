@@ -38,6 +38,13 @@ html {
   padding: 0;
 }
 
+/* Helper class to strictly prevent background scrolling when a modal is open */
+.modal-open-no-scroll {
+  overflow: hidden !important;
+  height: 100vh !important;
+  width: 100vw !important;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-color);

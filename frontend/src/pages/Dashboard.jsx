@@ -329,6 +329,7 @@ export default function Dashboard() {
             title="Dashboard Data ASN Kabupaten Bandung"
             description="Komposisi, status, sebaran OPD, dan statistik kepegawaian ASN<br />di lingkungan Pemerintah Kabupaten Bandung."
             badgeText="Sumber: SIMPEL BKPSDM Kab. Bandung"
+            showMenuLainnya={!isUserRole}
           />
 
           {/* ── FILTER SATUAN KERJA ── */}
