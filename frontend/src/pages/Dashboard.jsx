@@ -276,15 +276,15 @@ export default function Dashboard() {
   // Filtered Golongan & Eselon Data
   const filteredGolonganPNSData = useMemo(() => {
     if (golonganPNSFilter === 'Semua') return golonganPNSData;
-    return golonganPNSData.filter((item) => item.name.includes(golonganPNSFilter.replace('Gol ', '')));
+    const prefix = golonganPNSFilter.replace('Gol ', '');
+    return golonganPNSData.filter((item) => item.name && (item.name.startsWith(prefix + '/') || item.name.split('/')[0] === prefix));
   }, [golonganPNSData, golonganPNSFilter]);
 
   const filteredGolonganPPPKData = useMemo(() => {
     if (golonganPPPKFilter === 'Semua') return golonganPPPKData;
     return golonganPPPKData.filter((item) => {
-      const parts = item.name.split(' ');
-      const gol = parts[1] || '';
-      return gol.toUpperCase() === golonganPPPKFilter.toUpperCase();
+      const cleanName = item.name ? item.name.replace(/^golongan\s*/i, '').trim().toUpperCase() : '';
+      return cleanName === golonganPPPKFilter.toUpperCase();
     });
   }, [golonganPPPKData, golonganPPPKFilter]);
 
