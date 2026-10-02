@@ -7,14 +7,6 @@ const Profil = lazy(() => import('./pages/Profil'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const DataPegawai = lazy(() => import('./pages/DataPegawai'));
 
-const Lainnya = lazy(() => import('./pages/Lainnya'));
-const Layanan = lazy(() => import('./pages/Layanan'));
-const Perencanaan = lazy(() => import('./pages/Perencanaan'));
-const PengembanganKompetensi = lazy(() => import('./pages/PengembanganKompetensi'));
-const Pemberhentian = lazy(() => import('./pages/Pemberhentian'));
-const Tracking = lazy(() => import('./pages/Tracking'));
-const Perpustakaan = lazy(() => import('./pages/Perpustakaan'));
-
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
   
@@ -116,15 +108,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* ── RESTORED ROUTES ── */}
-          <Route path="/lainnya" element={<ProtectedRoute><Lainnya /></ProtectedRoute>} />
-          <Route path="/layanan" element={<ProtectedRoute><Layanan /></ProtectedRoute>} />
-          <Route path="/perencanaan" element={<ProtectedRoute><Perencanaan /></ProtectedRoute>} />
-          <Route path="/pengembangan-kompetensi" element={<ProtectedRoute><PengembanganKompetensi /></ProtectedRoute>} />
-          <Route path="/pemberhentian" element={<ProtectedRoute><Pemberhentian /></ProtectedRoute>} />
-          <Route path="/tracking" element={<ProtectedRoute><Tracking /></ProtectedRoute>} />
-          <Route path="/perpustakaan" element={<ProtectedRoute><Perpustakaan /></ProtectedRoute>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

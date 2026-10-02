@@ -7,6 +7,7 @@ import bgCard from '../assets/bg-card.png';
 import '../styles/Profil.css';
 
 import TopBar from '../components/shared/TopBar';
+import SubNavMenu from '../components/shared/SubNavMenu';
 import JenisAsnCard from '../components/shared/JenisAsnCard';
 import StatistikUmumPegawai from '../components/profil/StatistikUmumPegawai';
 import BezettingTable from '../components/profil/BezettingTable';
@@ -21,7 +22,6 @@ import {
   Award,
   AlertCircle,
   BarChart2,
-  Menu,
   Database,
 } from 'lucide-react';
 
@@ -583,8 +583,6 @@ export default function Profil() {
           <div className="app-breadcrumb">
             <span className="app-breadcrumb-link" onClick={() => navigate('/dashboard')}>Dashboard</span>
             <span className="app-breadcrumb-separator">/</span>
-            <span className="app-breadcrumb-link" onClick={() => navigate('/lainnya')}>Lainnya</span>
-            <span className="app-breadcrumb-separator">/</span>
             <span className="app-breadcrumb-current">Profil ASN</span>
           </div>
 
@@ -605,34 +603,15 @@ export default function Profil() {
                   <BarChart2 size={14} className="badge-icon-svg" />
                   <span className="badge-prefix">Analitik Real-time</span>
                 </div>
-                <div
-                  className="hero-badge-container static-badge"
-                  onClick={() => navigate('/lainnya')}
-                  style={{
-                    cursor: 'pointer',
-                    background: 'rgba(255, 255, 255, 0.18)',
-                    border: '1px solid rgba(255, 255, 255, 0.35)',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                  title="Buka Menu Layanan Lainnya"
-                >
-                  <Menu size={14} className="badge-icon-svg" />
-                  <span className="badge-prefix" style={{ fontWeight: 600 }}>Menu Lainnya</span>
-                </div>
               </div>
             </div>
             <div className="hero-banner-decor">
               <img src={bgCard} alt="Logo Kabupaten Bandung" className="hero-banner-logo" />
             </div>
           </div>
+
+          {/* ── QUICK NAV MENU (KOTAK & CENTER) ── */}
+          <SubNavMenu />
 
           {/* ═══════════════════════════════════════════════
               SECTION 1 — JENIS ASN
@@ -680,8 +659,8 @@ export default function Profil() {
               SECTION 2 — STATISTIK UMUM PEGAWAI
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header">
-            <div className="profil-section-icon" style={{ background: '#eff6ff', border: '1px solid #bfdbfe', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)' }}>
-              <BarChart2 size={22} color="#2563eb" />
+            <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+              <BarChart2 size={22} color="#059669" />
             </div>
             <div className="profil-section-title-wrap">
               <h2 className="profil-section-title">Statistik Umum</h2>

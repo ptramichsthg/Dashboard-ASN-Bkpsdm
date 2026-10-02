@@ -167,9 +167,9 @@
 }
 
 .bezetting-modal-search:focus-within {
-  border-color: #3b82f6;
+  border-color: #10b981;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .bezetting-modal-search input {

@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Activity, Bell, RefreshCw, Settings, LogOut, ChevronDown, Menu } from 'lucide-react';
+import {
+  Activity,
+  Bell,
+  RefreshCw,
+  Settings,
+  LogOut,
+  ChevronDown,
+  LayoutDashboard,
+  UserCheck,
+  Users,
+} from 'lucide-react';
 import LiveDateTime from '../shared/LiveDateTime';
 import PengaturanAkunModal from './PengaturanAkunModal';
 
@@ -140,15 +150,28 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
                   <span>{user?.nip || '198001012010011001'}</span>
                 </div>
                 <hr className="dropdown-divider" />
-                {!isUserRole && (
-                  <button
-                    type="button"
-                    className="dropdown-item"
-                    onClick={() => { navigate('/lainnya'); setProfileOpen(false); }}
-                  >
-                    <Menu size={16} /> Menu Lainnya
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className={`dropdown-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                  onClick={() => { navigate('/dashboard'); setProfileOpen(false); }}
+                >
+                  <LayoutDashboard size={16} /> Dashboard
+                </button>
+                <button
+                  type="button"
+                  className={`dropdown-item ${location.pathname === '/profil' ? 'active' : ''}`}
+                  onClick={() => { navigate('/profil'); setProfileOpen(false); }}
+                >
+                  <UserCheck size={16} /> Profil ASN
+                </button>
+                <button
+                  type="button"
+                  className={`dropdown-item ${location.pathname === '/sebaran-pegawai' ? 'active' : ''}`}
+                  onClick={() => { navigate('/sebaran-pegawai'); setProfileOpen(false); }}
+                >
+                  <Users size={16} /> Direktori Pegawai
+                </button>
+                <hr className="dropdown-divider" />
                 <button
                     type="button"
                     className="dropdown-item"

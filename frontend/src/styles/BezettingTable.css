@@ -246,11 +246,11 @@ table.bezetting-table tbody td.text-center {
 }
 
 .eselon-btn:hover {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #1d4ed8;
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #059669;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.18);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.18);
 }
 
 .eselon-btn:active {

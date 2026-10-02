@@ -270,12 +270,12 @@ export default function StatistikPieSection({ satker, refreshTrigger, children }
           <div
             className="profil-section-icon"
             style={{
-              background: '#eff6ff',
-              border: '1px solid #bfdbfe',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)',
+              background: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
             }}
           >
-            <PieChartIcon size={22} color="#2563eb" />
+            <PieChartIcon size={22} color="#059669" />
           </div>
           <div className="profil-section-title-wrap">
             <h2 className="profil-section-title">Statistik Umum Pegawai</h2>

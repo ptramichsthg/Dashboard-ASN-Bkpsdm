@@ -303,11 +303,7 @@ img {
   }
   
   /* KPI Cards - Stack vertically */
-  .kpi-grid-4,
-  .pk-kpi-grid,
-  .tr-kpi-grid,
-  .pr-kpi-grid,
-  .layanan-kpi-grid {
+  .kpi-grid-4 {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }

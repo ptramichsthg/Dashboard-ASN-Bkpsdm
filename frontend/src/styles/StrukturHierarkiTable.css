@@ -86,9 +86,9 @@
 }
 
 .hierarki-search:focus-within {
-  border-color: #1d4ed8;
+  border-color: #10b981;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .hierarki-search input {
@@ -117,7 +117,8 @@
 }
 
 .hierarki-filter select:focus {
-  border-color: #1d4ed8;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .hierarki-count {

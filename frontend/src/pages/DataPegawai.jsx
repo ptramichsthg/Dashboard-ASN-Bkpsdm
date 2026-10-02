@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import TopBar from '../components/shared/TopBar';
 import HeroBanner from '../components/shared/HeroBanner';
+import SubNavMenu from '../components/shared/SubNavMenu';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import '../styles/DataPegawai.css';
 
@@ -335,8 +336,6 @@ export default function DataPegawai() {
           <div className="app-breadcrumb">
             <span className="app-breadcrumb-link" onClick={() => navigate('/dashboard')}>Dashboard</span>
             <span className="app-breadcrumb-separator">/</span>
-            <span className="app-breadcrumb-link" onClick={() => navigate('/lainnya')}>Lainnya</span>
-            <span className="app-breadcrumb-separator">/</span>
             <span className="app-breadcrumb-current">Direktori Pegawai</span>
           </div>
 
@@ -346,6 +345,9 @@ export default function DataPegawai() {
             description="Informasi nominatif pegawai ASN Kabupaten Bandung berdasarkan unit kerja, golongan, dan kualifikasi pendidikan."
             badgeText="Terkoneksi Database Pegawai Aktif"
           />
+
+          {/* ── QUICK NAV MENU (KOTAK & CENTER) ── */}
+          <SubNavMenu />
 
           <div className="pegawai-container">
             {/* ── STAT CARDS ── */}

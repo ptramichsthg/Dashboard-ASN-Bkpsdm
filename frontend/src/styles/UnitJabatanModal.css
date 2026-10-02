@@ -160,9 +160,9 @@
 }
 
 .unit-modal-search:focus-within {
-  border-color: #1d4ed8;
+  border-color: #10b981;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .unit-modal-search input {
@@ -186,9 +186,9 @@
 }
 
 .unit-modal-filter:focus-within {
-  border-color: #1d4ed8;
+  border-color: #10b981;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .unit-modal-filter select {

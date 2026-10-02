@@ -5,6 +5,7 @@ import apiCache from '../utils/apiCache';
 import '../styles/Dashboard.css';
 import TopBar from '../components/shared/TopBar';
 import HeroBanner from '../components/shared/HeroBanner';
+import SubNavMenu from '../components/shared/SubNavMenu';
 import JenisAsnCard from '../components/shared/JenisAsnCard';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
 import StatusPegawaiCards from '../components/dashboard/StatusPegawaiCards';
@@ -329,8 +330,10 @@ export default function Dashboard() {
             title="Dashboard Data ASN Kabupaten Bandung"
             description="Komposisi, status, sebaran OPD, dan statistik kepegawaian ASN<br />di lingkungan Pemerintah Kabupaten Bandung."
             badgeText="Sumber: SIMPEL BKPSDM Kab. Bandung"
-            showMenuLainnya={!isUserRole}
           />
+
+          {/* ── QUICK NAV MENU (KOTAK & CENTER) ── */}
+          <SubNavMenu />
 
           {/* ── FILTER SATUAN KERJA ── */}
           <div className="admin-kpi-filter-wrapper">
@@ -342,7 +345,7 @@ export default function Dashboard() {
           </div>
 
           {/* ── SECTION: JENIS ASN ── */}
-          <div className="profil-section-header" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }}>
+          <div className="profil-section-header" style={{ marginTop: '0.75rem', marginBottom: '1rem' }}>
             <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
               <Users size={22} color="#059669" />
             </div>
