@@ -7,11 +7,19 @@ const Profil = lazy(() => import('./pages/Profil'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const DataPegawai = lazy(() => import('./pages/DataPegawai'));
 
-const ProtectedRoute = ({ children }) => {
+const AdminRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
-  
-  if (!token) {
-    return <Navigate to="/" replace />;
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem('user') || '{}');
+  } catch {
+    user = null;
+  }
+  const role = (user?.role || '').toLowerCase().trim();
+
+  // Hanya admin yang berhak mengakses halaman khusus (Profil & Direktori)
+  if (!token || role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -73,45 +81,47 @@ function App() {
       <ErrorBoundary>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-          <Route
-            path="/"
-            element={
-              <GuestRoute>
-                <Login />
-              </GuestRoute>
-            }
-          />
+            {/* Akses awal langsung diarahkan ke Dashboard tanpa login */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          <Route
-            path="/profil"
-            element={
-              <ProtectedRoute>
-                <Profil />
-              </ProtectedRoute>
-            }
-          />
+            {/* Halaman Login untuk Admin */}
+            <Route
+              path="/login"
+              element={
+                <GuestRoute>
+                  <Login />
+                </GuestRoute>
+              }
+            />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Dashboard dapat diakses langsung oleh user/publik */}
+            <Route
+              path="/dashboard"
+              element={<Dashboard />}
+            />
 
-          <Route
-            path="/sebaran-pegawai"
-            element={
-              <ProtectedRoute>
-                <DataPegawai />
-              </ProtectedRoute>
-            }
-          />
+            {/* Profil ASN & Direktori Pegawai khusus untuk Admin */}
+            <Route
+              path="/profil"
+              element={
+                <AdminRoute>
+                  <Profil />
+                </AdminRoute>
+              }
+            />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+            <Route
+              path="/sebaran-pegawai"
+              element={
+                <AdminRoute>
+                  <DataPegawai />
+                </AdminRoute>
+              }
+            />
+
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Suspense>
       </ErrorBoundary>
     </Router>
   );

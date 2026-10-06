@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   UserCheck,
   Users,
+  LogIn,
 } from 'lucide-react';
 import LiveDateTime from '../shared/LiveDateTime';
 import PengaturanAkunModal from './PengaturanAkunModal';
@@ -30,19 +31,30 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem('user');
-    if (raw) {
-      try {
-        setUser(JSON.parse(raw));
-      } catch {
+    const syncUser = () => {
+      const raw = localStorage.getItem('user');
+      if (raw) {
+        try {
+          setUser(JSON.parse(raw));
+        } catch {
+          setUser(null);
+        }
+      } else {
         setUser(null);
       }
-    }
+    };
+    window.addEventListener('storage', syncUser);
+    window.addEventListener('auth_change', syncUser);
+    return () => {
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener('auth_change', syncUser);
+    };
   }, []);
 
   // Sinkronkan user state saat modal pengaturan berhasil update
   const handleProfileUpdated = (updatedUser) => {
     setUser(updatedUser);
+    window.dispatchEvent(new Event('auth_change'));
   };
 
   // Close dropdown when clicking outside
@@ -59,7 +71,10 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
-    navigate('/');
+    setUser(null);
+    setProfileOpen(false);
+    window.dispatchEvent(new Event('auth_change'));
+    navigate('/dashboard');
   };
 
   const getInitials = (name) => {
@@ -68,7 +83,8 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
   };
 
   const userRole = (user?.role || '').toLowerCase().trim();
-  const isUserRole = userRole === 'umum';
+  const isAdmin = userRole === 'admin';
+  const isUserRole = !isAdmin;
 
   const isDashboardPage = location.pathname === '/dashboard';
 
@@ -122,69 +138,88 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
             </button>
           )}
 
-          {/* Notification - Sembunyikan untuk role user */}
-          {!isUserRole && (
+          {/* Notification - Hanya untuk admin */}
+          {isAdmin && (
             <button type="button" className="btn-notification topbar-icon-btn" title="Notifikasi">
               <Bell size={20} />
             </button>
           )}
 
-          {/* Profile – avatar + name + dropdown */}
-          <div className="profile-container" ref={dropdownRef}>
+          {/* Login Button (jika belum login) atau Profile Menu (jika login) */}
+          {!user ? (
             <button
               type="button"
-              className="topbar-profile-btn"
-              onClick={() => setProfileOpen(!profileOpen)}
-              aria-expanded={profileOpen}
-              aria-label="Menu profil pengguna"
+              className="topbar-login-btn"
+              onClick={() => navigate('/login')}
+              title="Masuk sebagai Administrator"
             >
-              <div className="avatar">{getInitials(user?.name)}</div>
-              <span className="topbar-username">{user?.name || 'Administrator'}</span>
-              <ChevronDown size={14} className={`topbar-chevron${profileOpen ? ' open' : ''}`} />
+              <LogIn size={16} />
+              <span>Masuk Admin</span>
             </button>
+          ) : (
+            <div className="profile-container" ref={dropdownRef}>
+              <button
+                type="button"
+                className="topbar-profile-btn"
+                onClick={() => setProfileOpen(!profileOpen)}
+                aria-expanded={profileOpen}
+                aria-label="Menu profil pengguna"
+              >
+                <div className="avatar">{getInitials(user?.name)}</div>
+                <span className="topbar-username">{user?.name || 'Administrator'}</span>
+                <ChevronDown size={14} className={`topbar-chevron${profileOpen ? ' open' : ''}`} />
+              </button>
 
-            {profileOpen && (
-              <div className="profile-dropdown topbar-dropdown">
-                <div className="dropdown-header">
-                  <strong>{user?.name || 'Administrator'}</strong>
-                  <span>{user?.nip || '198001012010011001'}</span>
-                </div>
-                <hr className="dropdown-divider" />
-                <button
-                  type="button"
-                  className={`dropdown-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
-                  onClick={() => { navigate('/dashboard'); setProfileOpen(false); }}
-                >
-                  <LayoutDashboard size={16} /> Dashboard
-                </button>
-                <button
-                  type="button"
-                  className={`dropdown-item ${location.pathname === '/profil' ? 'active' : ''}`}
-                  onClick={() => { navigate('/profil'); setProfileOpen(false); }}
-                >
-                  <UserCheck size={16} /> Profil ASN
-                </button>
-                <button
-                  type="button"
-                  className={`dropdown-item ${location.pathname === '/sebaran-pegawai' ? 'active' : ''}`}
-                  onClick={() => { navigate('/sebaran-pegawai'); setProfileOpen(false); }}
-                >
-                  <Users size={16} /> Direktori Pegawai
-                </button>
-                <hr className="dropdown-divider" />
-                <button
+              {profileOpen && (
+                <div className="profile-dropdown topbar-dropdown">
+                  <div className="dropdown-header">
+                    <strong>{user?.name || 'User'}</strong>
+                    <span>{isAdmin ? (user?.nip || 'Administrator') : 'Pengguna Dashboard'}</span>
+                  </div>
+                  <hr className="dropdown-divider" />
+                  <button
                     type="button"
-                    className="dropdown-item"
-                    onClick={() => { setPengaturanOpen(true); setProfileOpen(false); }}
+                    className={`dropdown-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                    onClick={() => { navigate('/dashboard'); setProfileOpen(false); }}
                   >
-                    <Settings size={16} /> Pengaturan Akun
+                    <LayoutDashboard size={16} /> Dashboard
                   </button>
-                <button type="button" onClick={handleLogout} className="dropdown-item logout-text">
-                  <LogOut size={16} /> Logout
-                </button>
-              </div>
-            )}
-          </div>
+
+                  {isAdmin && (
+                    <>
+                      <button
+                        type="button"
+                        className={`dropdown-item ${location.pathname === '/profil' ? 'active' : ''}`}
+                        onClick={() => { navigate('/profil'); setProfileOpen(false); }}
+                      >
+                        <UserCheck size={16} /> Profil ASN
+                      </button>
+                      <button
+                        type="button"
+                        className={`dropdown-item ${location.pathname === '/sebaran-pegawai' ? 'active' : ''}`}
+                        onClick={() => { navigate('/sebaran-pegawai'); setProfileOpen(false); }}
+                      >
+                        <Users size={16} /> Direktori Pegawai
+                      </button>
+                      <hr className="dropdown-divider" />
+                      <button
+                        type="button"
+                        className="dropdown-item"
+                        onClick={() => { setPengaturanOpen(true); setProfileOpen(false); }}
+                      >
+                        <Settings size={16} /> Pengaturan Akun
+                      </button>
+                    </>
+                  )}
+
+                  <hr className="dropdown-divider" />
+                  <button type="button" onClick={handleLogout} className="dropdown-item logout-text">
+                    <LogOut size={16} /> Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>

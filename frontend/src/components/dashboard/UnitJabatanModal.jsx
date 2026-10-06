@@ -42,6 +42,7 @@ export default function UnitJabatanModal({ selectedUnitModal, onClose }) {
       .get('/klasifikasi-jabatan', {
         params: {
           unit_kerja_id: selectedUnitModal.id,
+          unit_kerja: selectedUnitModal.nama_unit_kerja,
           per_page: 1000,
         },
       })

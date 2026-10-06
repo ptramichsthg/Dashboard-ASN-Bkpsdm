@@ -56,8 +56,24 @@ class KlasifikasiJabatanController extends Controller
                 $query->where('perangkat_daerah', 'like', '%' . $request->perangkat_daerah . '%');
             }
 
-            // Filter by unit_kerja (or match perangkat_daerah)
-            if ($request->has('unit_kerja')) {
+            // Filter by unit_kerja_id (dari tabel struktur_hierarki_opd)
+            if ($request->filled('unit_kerja_id')) {
+                $hierarki = DB::table('struktur_hierarki_opd')->where('id', $request->unit_kerja_id)->first();
+                if ($hierarki) {
+                    $namaUnit = $hierarki->nama_unit_kerja;
+                    $query->where(function ($q) use ($namaUnit) {
+                        $q->where('unit_kerja', $namaUnit)
+                          ->orWhere('perangkat_daerah', $namaUnit)
+                          ->orWhere('unit_kerja', 'like', '%' . $namaUnit . '%')
+                          ->orWhere('perangkat_daerah', 'like', '%' . $namaUnit . '%');
+
+                        if (stripos($namaUnit, 'Dewan Perwakilan Rakyat Daerah') !== false) {
+                            $q->orWhere('perangkat_daerah', 'like', '%DPRD%')
+                              ->orWhere('unit_kerja', 'like', '%DPRD%');
+                        }
+                    });
+                }
+            } elseif ($request->has('unit_kerja')) {
                 $unit = $request->unit_kerja;
                 $query->where(function ($q) use ($unit) {
                     $q->where('unit_kerja', 'like', '%' . $unit . '%')
@@ -91,7 +107,7 @@ class KlasifikasiJabatanController extends Controller
 
             // Pagination
             $perPage = (int) $request->input('per_page', 15);
-            if ($perPage <= 0 || $perPage > 200) {
+            if ($perPage <= 0 || $perPage > 1000) {
                 $perPage = 15;
             }
             $data = $query->paginate($perPage);

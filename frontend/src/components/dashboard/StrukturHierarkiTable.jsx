@@ -17,6 +17,7 @@ import '../../styles/StrukturHierarkiTable.css';
 export default function StrukturHierarkiTable({
   hierarkiRawData = [],
   isRefreshing = false,
+  isUserRole = false,
   onOpenUnitModal,
 }) {
   const [searchHierarki, setSearchHierarki] = useState('');
@@ -199,6 +200,7 @@ export default function StrukturHierarkiTable({
               currentHierarkiData.map((row, idx) => {
                 const absoluteIndex = (pageHierarki - 1) * itemsPerPageHierarki + idx + 1;
                 const hasInduk = row.opd_induk && row.opd_induk.trim() !== '';
+                const canOpenModal = !isUserRole && typeof onOpenUnitModal === 'function';
                 return (
                   <tr key={row.id || idx}>
                     <td className="text-center" style={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 600 }}>
@@ -206,14 +208,17 @@ export default function StrukturHierarkiTable({
                     </td>
                     <td>
                       <div
-                        className="hierarki-unit-main clickable-unit"
-                        onClick={() => onOpenUnitModal && onOpenUnitModal(row)}
-                        title="Klik untuk melihat rincian jabatan di unit kerja ini"
+                        className={`hierarki-unit-main ${canOpenModal ? 'clickable-unit' : ''}`}
+                        onClick={canOpenModal ? () => onOpenUnitModal(row) : undefined}
+                        title={canOpenModal ? "Klik untuk melihat rincian jabatan di unit kerja ini" : undefined}
+                        style={{ cursor: canOpenModal ? 'pointer' : 'default' }}
                       >
                         <span>{row.nama_unit_kerja}</span>
-                        <span className="unit-detail-btn-pill">
-                          Lihat Jabatan &rsaquo;
-                        </span>
+                        {canOpenModal && (
+                          <span className="unit-detail-btn-pill">
+                            Lihat Jabatan &rsaquo;
+                          </span>
+                        )}
                       </div>
                       {hasInduk && (
                         <div className="hierarki-opd-sub">

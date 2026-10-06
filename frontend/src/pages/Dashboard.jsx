@@ -55,11 +55,16 @@ export default function Dashboard() {
       }
     };
     window.addEventListener('storage', updateUser);
-    return () => window.removeEventListener('storage', updateUser);
+    window.addEventListener('auth_change', updateUser);
+    return () => {
+      window.removeEventListener('storage', updateUser);
+      window.removeEventListener('auth_change', updateUser);
+    };
   }, []);
 
   const userRole = (currentUser?.role || '').toLowerCase().trim();
-  const isUserRole = userRole === 'umum';
+  const isAdmin = userRole === 'admin';
+  const isUserRole = !isAdmin;
 
   // Filters State
   const [satkerId, setSatkerId] = useState('');
@@ -76,6 +81,7 @@ export default function Dashboard() {
   const [golonganPNSData, setGolonganPNSData] = useState([]);
   const [golonganPPPKData, setGolonganPPPKData] = useState([]);
   const [eselonData, setEselonData] = useState([]);
+  const [sebaranOPDData, setSebaranOPDData] = useState([]);
   const [satkerRawData, setSatkerRawData] = useState([]);
   const [profilData, setProfilData] = useState(null);
   const [profilLoading, setProfilLoading] = useState(true);
@@ -122,6 +128,7 @@ export default function Dashboard() {
         setGolonganPNSData(data.golonganPNS || []);
         setGolonganPPPKData(data.golonganPPPK || []);
         setEselonData(data.eselonData || []);
+        setSebaranOPDData(data.sebaranOPD || []);
       }
 
       if (satkerResult.status === 'fulfilled' && Array.isArray(satkerResult.value?.data)) {
@@ -249,23 +256,20 @@ export default function Dashboard() {
     { name: 'Perempuan', value: summaryData.perempuan },
   ], [summaryData]);
 
-  // Stacked OPD Bar Chart Data & Pagination
+  // Stacked OPD Bar Chart Data & Pagination (dari 10.000 data_pegawai_aktif)
   const stackedOpdDistributionData = useMemo(() => {
-    return filteredSatkerData.map((d) => {
-      const pns = (parseInt(d.pns_l, 10) || 0) + (parseInt(d.pns_p, 10) || 0);
-      const cpns = (parseInt(d.cpns_l, 10) || 0) + (parseInt(d.cpns_p, 10) || 0);
-      const pppk = (parseInt(d.pppk_l, 10) || 0) + (parseInt(d.pppk_p, 10) || 0);
-      const total = parseInt(d.total, 10) || (pns + cpns + pppk);
-      return {
-        name: formatOPDName(d.satuan_kerja),
-        rawName: d.satuan_kerja,
-        total,
-        PNS: pns,
-        CPNS: cpns,
-        PPPK: pppk,
-      };
-    }).sort((a, b) => b.total - a.total);
-  }, [filteredSatkerData]);
+    if (Array.isArray(sebaranOPDData) && sebaranOPDData.length > 0) {
+      return sebaranOPDData.map((d) => ({
+        name: formatOPDName(d.satuan_kerja || d.name),
+        rawName: d.satuan_kerja || d.name,
+        total: Number(d.total || 0),
+        PNS: Number(d.PNS || 0),
+        CPNS: Number(d.CPNS || 0),
+        PPPK: Number(d.PPPK || 0),
+      })).sort((a, b) => b.total - a.total);
+    }
+    return [];
+  }, [sebaranOPDData]);
 
   const totalStackedOpdPages = Math.ceil(stackedOpdDistributionData.length / ITEMS_PER_STACKED_PAGE) || 1;
   const paginatedStackedOpdData = useMemo(() => {
@@ -332,8 +336,8 @@ export default function Dashboard() {
             badgeText="Sumber: SIMPEL BKPSDM Kab. Bandung"
           />
 
-          {/* ── QUICK NAV MENU (KOTAK & CENTER) ── */}
-          <SubNavMenu />
+          {/* ── QUICK NAV MENU (KOTAK & CENTER) - Hanya untuk Admin ── */}
+          {isAdmin && <SubNavMenu />}
 
           {/* ── FILTER SATUAN KERJA ── */}
           <div className="admin-kpi-filter-wrapper">
@@ -399,10 +403,6 @@ export default function Dashboard() {
 
           <StatusPegawaiCards
             statusPegawaiData={computedStatusPegawai}
-            onCardClick={isUserRole ? undefined : (d) => {
-              const statusParam = d.title === 'PPPK PW' ? 'PPPK' : d.title;
-              navigate(`/sebaran-pegawai?status=${encodeURIComponent(statusParam)}`);
-            }}
           />
 
           {/* ── SECTION: KELOMPOK ASN (TENAGA PENDIDIKAN, KESEHATAN, TEKNIS) ── */}
@@ -444,20 +444,21 @@ export default function Dashboard() {
           <StrukturHierarkiTable
             hierarkiRawData={hierarkiRawData}
             isRefreshing={isRefreshing}
-            onOpenUnitModal={(unit) => setSelectedUnitModal(unit)}
+            isUserRole={isUserRole}
+            onOpenUnitModal={isUserRole ? undefined : (unit) => setSelectedUnitModal(unit)}
           />
         </div>
 
-        {/* ── POP-UP MODAL RINCIAN JABATAN PER UNIT KERJA ── */}
-        {selectedUnitModal && (
+        {/* ── POP-UP MODAL RINCIAN JABATAN PER UNIT KERJA (HANYA ADMIN) ── */}
+        {!isUserRole && selectedUnitModal && (
           <UnitJabatanModal
             selectedUnitModal={selectedUnitModal}
             onClose={() => setSelectedUnitModal(null)}
           />
         )}
 
-        {/* ── POP-UP MODAL RINCIAN KELOMPOK ASN ── */}
-        {selectedKelompokModal && (
+        {/* ── POP-UP MODAL RINCIAN KELOMPOK ASN (HANYA ADMIN) ── */}
+        {!isUserRole && selectedKelompokModal && (
           <ModalKelompokAsn
             selectedKelompok={selectedKelompokModal}
             activeStatus={kelompokModalStatus}

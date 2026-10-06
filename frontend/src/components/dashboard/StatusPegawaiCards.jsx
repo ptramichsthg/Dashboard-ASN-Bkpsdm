@@ -4,26 +4,13 @@ import '../../styles/StatusPegawaiCards.css';
 /**
  * Kartu per Status Pegawai (CPNS, PNS, PPPK, PPPK PW) dengan komposisi gender.
  */
-function DataCard({ title, laki, perempuan, total: customTotal, onClick }) {
+function DataCard({ title, laki, perempuan, total: customTotal }) {
   const total = customTotal !== undefined ? customTotal : ((Number(laki) || 0) + (Number(perempuan) || 0));
-  const isClickable = typeof onClick === 'function';
 
   return (
-    <div
-      className={`data-card ${isClickable ? 'clickable' : ''}`}
-      onClick={onClick}
-      role={isClickable ? 'button' : undefined}
-      tabIndex={isClickable ? 0 : undefined}
-      onKeyDown={isClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}
-      title={isClickable ? `Klik untuk melihat data pegawai ${title} di Direktori Pegawai` : undefined}
-    >
+    <div className="data-card">
       <div className="data-card-title">
         <span>{title}</span>
-        {isClickable && (
-          <span className="data-card-action-hint">
-            Lihat ↗
-          </span>
-        )}
       </div>
       <div className="data-card-gender-row">
         <div className="gender-col laki">
@@ -46,14 +33,13 @@ function DataCard({ title, laki, perempuan, total: customTotal, onClick }) {
 /**
  * Grid 4 kartu Status Pegawai (CPNS, PNS, PPPK, PPPK PW)
  */
-export default function StatusPegawaiCards({ statusPegawaiData = [], onCardClick }) {
+export default function StatusPegawaiCards({ statusPegawaiData = [] }) {
   return (
     <div className="status-pegawai-grid">
       {statusPegawaiData.map((d) => (
         <DataCard
           key={d.title}
           {...d}
-          onClick={onCardClick ? () => onCardClick(d) : undefined}
         />
       ))}
     </div>

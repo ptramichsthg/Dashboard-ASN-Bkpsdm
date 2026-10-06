@@ -380,25 +380,37 @@ class DashboardController extends Controller
             }
         }
 
-        // Sebaran ASN per OPD (Bar Chart) - Top 12
-        $sebaranOPDQuery = DB::table('satuan_kerja')
-            ->select('satuan_kerja', 'total', 'pns_l', 'pns_p', 'cpns_l', 'cpns_p', 'pppk_l', 'pppk_p')
-            ->orderBy('total', 'desc')
-            ->limit(12);
+        // Sebaran ASN per OPD (PNS, CPNS, PPPK) dari data_pegawai_aktif (10.000 data nominatif)
+        $sebaranOPDQuery = DB::table('data_pegawai_aktif')
+            ->select(
+                'satuan_kerja',
+                DB::raw('COUNT(id) as total'),
+                DB::raw("SUM(CASE WHEN status_pegawai = 'PNS' THEN 1 ELSE 0 END) as pns"),
+                DB::raw("SUM(CASE WHEN status_pegawai = 'CPNS' THEN 1 ELSE 0 END) as cpns"),
+                DB::raw("SUM(CASE WHEN status_pegawai IN ('PPPK', 'PPPK PW') THEN 1 ELSE 0 END) as pppk")
+            )
+            ->whereNotNull('satuan_kerja')
+            ->where('satuan_kerja', '!=', '');
 
         if ($satker !== 'Semua Satuan Kerja') {
             $sebaranOPDQuery->where('satuan_kerja', $satker);
         }
 
-        $sebaranOPD = $sebaranOPDQuery->get()->map(function($row) {
-            return [
-                'name' => $row->satuan_kerja, 
-                'total' => (int) $row->total,
-                'PNS' => (int) $row->pns_l + (int) $row->pns_p,
-                'CPNS' => (int) $row->cpns_l + (int) $row->cpns_p,
-                'PPPK' => (int) $row->pppk_l + (int) $row->pppk_p,
-            ];
-        })->toArray();
+        $sebaranOPD = $sebaranOPDQuery
+            ->groupBy('satuan_kerja')
+            ->orderBy('total', 'desc')
+            ->get()
+            ->map(function($row) {
+                return [
+                    'satuan_kerja' => $row->satuan_kerja,
+                    'name' => $row->satuan_kerja,
+                    'total' => (int) $row->total,
+                    'PNS' => (int) $row->pns,
+                    'CPNS' => (int) $row->cpns,
+                    'PPPK' => (int) $row->pppk,
+                ];
+            })
+            ->toArray();
 
 
 

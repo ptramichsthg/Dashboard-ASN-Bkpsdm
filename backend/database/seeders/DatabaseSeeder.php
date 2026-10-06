@@ -35,7 +35,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'user@bkpsdm.com',
                 'nip' => '198001012010011003',
                 'password' => 'password123',
-                'role' => 'umum',
+                'role' => 'user',
             ]
         );
     }

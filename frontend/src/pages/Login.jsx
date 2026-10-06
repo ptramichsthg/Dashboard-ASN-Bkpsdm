@@ -43,6 +43,7 @@ const Login = () => {
       if (response.data.access_token) {
         localStorage.setItem('auth_token', response.data.access_token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+        window.dispatchEvent(new Event('auth_change'));
         
         // Hitung waktu yang sudah berlalu
         const elapsedTime = Date.now() - startTime;
