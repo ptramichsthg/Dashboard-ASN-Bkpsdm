@@ -193,9 +193,6 @@ class DashboardController extends Controller
                 'statusPegawai' => [],
                 'jenisJabatan' => [],
                 'jenisJFT' => [],
-                'golonganPNS' => [],
-                'golonganPPPK' => [],
-                'eselonData' => [],
                 'distribusiGender' => [],
                 'sebaranOPD' => [],
                 'satuanKerjaList' => $satuanKerjaList,
@@ -231,74 +228,6 @@ class DashboardController extends Controller
         if ($satker !== 'Semua Satuan Kerja') {
             $pegawaiAktifQuery->where('satuan_kerja', $satker);
         }
-
-        // 1. Distribusi Golongan PNS (PNS & CPNS) dari data_pegawai_aktif (10.000 data nominatif)
-        $golonganPNS = (clone $pegawaiAktifQuery)
-            ->whereIn('status_pegawai', ['PNS', 'CPNS'])
-            ->whereNotNull('golongan_akhir')
-            ->where('golongan_akhir', '!=', '')
-            ->select('golongan_akhir as name', DB::raw('count(*) as value'))
-            ->groupBy('golongan_akhir')
-            ->orderBy('golongan_akhir')
-            ->get()
-            ->map(function($row) {
-                return ['name' => $row->name, 'value' => (int) $row->value];
-            })
-            ->toArray();
-        
-        // 2. Distribusi Golongan PPPK dari data_pegawai_aktif
-        $pppkRomanOrder = [
-            'I' => 1, 'II' => 2, 'III' => 3, 'IV' => 4, 'V' => 5,
-            'VI' => 6, 'VII' => 7, 'VIII' => 8, 'IX' => 9, 'X' => 10,
-            'XI' => 11, 'XII' => 12, 'XIII' => 13, 'XIV' => 14, 'XV' => 15,
-            'XVI' => 16, 'XVII' => 17
-        ];
-
-        $golonganPPPK = (clone $pegawaiAktifQuery)
-            ->where('status_pegawai', 'PPPK')
-            ->whereNotNull('golongan_akhir')
-            ->where('golongan_akhir', '!=', '')
-            ->select('golongan_akhir as name', DB::raw('count(*) as value'))
-            ->groupBy('golongan_akhir')
-            ->get()
-            ->sortBy(function($item) use ($pppkRomanOrder) {
-                $trimmed = trim(str_ireplace('Golongan', '', $item->name));
-                return $pppkRomanOrder[$trimmed] ?? 99;
-            })
-            ->values()
-            ->map(function($row) {
-                return ['name' => $row->name, 'value' => (int) $row->value];
-            })
-            ->toArray();
-        
-        // 3. Distribusi Eselonering dari data_pegawai_aktif
-        $eselonOrder = [
-            'I.a' => 1, 'I.b' => 2,
-            'II.a' => 3, 'II.b' => 4,
-            'III.a' => 5, 'III.b' => 6,
-            'IV.a' => 7, 'IV.b' => 8,
-            'V.a' => 9, 'V.b' => 10,
-            'Non Eselon' => 11
-        ];
-
-        $eselonData = (clone $pegawaiAktifQuery)
-            ->select(
-                DB::raw("CASE 
-                    WHEN eselon IS NOT NULL AND eselon != '' AND eselon != '-' THEN eselon 
-                    ELSE 'Non Eselon' 
-                END as name"),
-                DB::raw('count(*) as value')
-            )
-            ->groupBy('name')
-            ->get()
-            ->sortBy(function($item) use ($eselonOrder) {
-                return $eselonOrder[$item->name] ?? 99;
-            })
-            ->values()
-            ->map(function($row) {
-                return ['name' => $row->name, 'value' => (int) $row->value];
-            })
-            ->toArray();
 
         $totalLaki = array_reduce($statusPegawai, function($carry, $item) { return $carry + $item['laki']; }, 0);
         $totalPerempuan = array_reduce($statusPegawai, function($carry, $item) { return $carry + $item['perempuan']; }, 0);
@@ -482,9 +411,6 @@ class DashboardController extends Controller
             'kelompokAsn' => $kelompokAsn,
             'jenisJabatan' => $jenisJabatan,
             'jenisJFT' => $jenisJFT,
-            'golonganPNS' => $golonganPNS,
-            'golonganPPPK' => $golonganPPPK,
-            'eselonData' => $eselonData,
             'distribusiGender' => $distribusiGender,
             'sebaranOPD' => $sebaranOPD,
             'satuanKerjaList' => $satuanKerjaList,

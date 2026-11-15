@@ -13,7 +13,6 @@ import KelompokAsnSection from '../components/dashboard/KelompokAsnSection';
 import StatistikPieSection from '../components/dashboard/StatistikPieSection';
 import {
   OpdStackedBarChart,
-  GolonganEselonSection,
 } from '../components/dashboard/DashboardCharts';
 import StrukturHierarkiTable from '../components/dashboard/StrukturHierarkiTable';
 import UnitJabatanModal from '../components/dashboard/UnitJabatanModal';
@@ -69,9 +68,6 @@ export default function Dashboard() {
 
   // Filters State
   const [satkerId, setSatkerId] = useState('');
-  const [golonganPNSFilter, setGolonganPNSFilter] = useState('Semua');
-  const [golonganPPPKFilter, setGolonganPPPKFilter] = useState('Semua');
-  const [eselonFilter, setEselonFilter] = useState('Semua');
 
   // UI State
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -79,9 +75,6 @@ export default function Dashboard() {
 
   // Data State
   const [summaryData, setSummaryData] = useState(INITIAL_SUMMARY);
-  const [golonganPNSData, setGolonganPNSData] = useState([]);
-  const [golonganPPPKData, setGolonganPPPKData] = useState([]);
-  const [eselonData, setEselonData] = useState([]);
   const [sebaranOPDData, setSebaranOPDData] = useState([]);
   const [satkerRawData, setSatkerRawData] = useState([]);
   const [profilData, setProfilData] = useState(null);
@@ -126,9 +119,6 @@ export default function Dashboard() {
         const data = dashResult.value.data;
         setSummaryData(data.summary || INITIAL_SUMMARY);
         setKelompokAsnData(data.kelompokAsn || {});
-        setGolonganPNSData(data.golonganPNS || []);
-        setGolonganPPPKData(data.golonganPPPK || []);
-        setEselonData(data.eselonData || []);
         setSebaranOPDData(data.sebaranOPD || []);
       }
 
@@ -278,31 +268,6 @@ export default function Dashboard() {
     return stackedOpdDistributionData.slice(start, start + ITEMS_PER_STACKED_PAGE);
   }, [stackedOpdDistributionData, stackedOpdPage]);
 
-  // Filtered Golongan & Eselon Data
-  const filteredGolonganPNSData = useMemo(() => {
-    if (golonganPNSFilter === 'Semua') return golonganPNSData;
-    const prefix = golonganPNSFilter.replace('Gol ', '');
-    return golonganPNSData.filter((item) => item.name && (item.name.startsWith(prefix + '/') || item.name.split('/')[0] === prefix));
-  }, [golonganPNSData, golonganPNSFilter]);
-
-  const filteredGolonganPPPKData = useMemo(() => {
-    if (golonganPPPKFilter === 'Semua') return golonganPPPKData;
-    return golonganPPPKData.filter((item) => {
-      const cleanName = item.name ? item.name.replace(/^golongan\s*/i, '').trim().toUpperCase() : '';
-      return cleanName === golonganPPPKFilter.toUpperCase();
-    });
-  }, [golonganPPPKData, golonganPPPKFilter]);
-
-  const filteredEselonData = useMemo(() => {
-    if (eselonFilter === 'Semua') return eselonData;
-    if (eselonFilter === 'Non Eselon') {
-      return eselonData.filter((item) =>
-        item.name.toLowerCase().includes('non') || item.name.toLowerCase().includes('fungsional') || item.name.toLowerCase().includes('pelaksana')
-      );
-    }
-    const roman = eselonFilter.replace('Eselon ', '');
-    return eselonData.filter((item) => item.name.includes(roman));
-  }, [eselonData, eselonFilter]);
 
   return (
     <div className="dashboard-layout">
@@ -420,20 +385,7 @@ export default function Dashboard() {
           {/* ── SECTION: GRAFIK PIE STATISTIK UMUM PEGAWAI (DENGAN FILTER STATUS) ── */}
           <StatistikPieSection satker={satker} refreshTrigger={refreshKey} />
 
-          {/* ── CHARTS ROW 3: GOLONGAN & ESELONERING ── */}
-          <GolonganEselonSection
-            filteredGolonganPNSData={filteredGolonganPNSData}
-            golonganPNSFilter={golonganPNSFilter}
-            setGolonganPNSFilter={setGolonganPNSFilter}
-            filteredGolonganPPPKData={filteredGolonganPPPKData}
-            golonganPPPKFilter={golonganPPPKFilter}
-            setGolonganPPPKFilter={setGolonganPPPKFilter}
-            filteredEselonData={filteredEselonData}
-            eselonFilter={eselonFilter}
-            setEselonFilter={setEselonFilter}
-          />
-
-          {/* ── GRAFIK SEBARAN KOMPOSISI ASN PER OPD (DI BAWAH GOLONGAN & ESELONERING) ── */}
+          {/* ── GRAFIK SEBARAN KOMPOSISI ASN PER OPD ── */}
           <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
             <OpdStackedBarChart
               paginatedStackedOpdData={paginatedStackedOpdData}
