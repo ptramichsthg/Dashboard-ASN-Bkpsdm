@@ -6,25 +6,58 @@ import './index.css';
 const Profil = lazy(() => import('./pages/Profil'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const DataPegawai = lazy(() => import('./pages/DataPegawai'));
+const UserManagement = lazy(() => import('./pages/UserManagement'));
 
-const AdminRoute = ({ children }) => {
-  const token = localStorage.getItem('auth_token');
-  let user = null;
+/**
+ * Helper untuk mengambil info user aktif dari localStorage
+ */
+const getCurrentUser = () => {
   try {
-    user = JSON.parse(localStorage.getItem('user') || '{}');
+    return JSON.parse(localStorage.getItem('user') || '{}');
   } catch {
-    user = null;
+    return null;
   }
+};
+
+/**
+ * ProtectedRoute: Seluruh pengguna wajib login.
+ * Jika belum login, dialihkan ke /login.
+ */
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+/**
+ * RoleRoute: Membatasi akses berdasarkan peran pengguna (RBAC).
+ * Jika peran tidak sesuai, dialihkan ke /dashboard.
+ */
+const RoleRoute = ({ allowedRoles = [], children }) => {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const user = getCurrentUser();
   const role = (user?.role || '').toLowerCase().trim();
 
-  // Hanya admin yang berhak mengakses halaman khusus (Profil & Direktori)
-  if (!token || role !== 'admin') {
+  // Super Admin memiliki akses universal untuk route admin
+  const isAllowed = allowedRoles.includes(role) || (role === 'super_admin' && allowedRoles.includes('admin'));
+
+  if (!isAllowed) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return children;
 };
 
+/**
+ * GuestRoute: Halaman login hanya untuk pengguna yang belum terautentikasi.
+ * Jika sudah login, langsung diarahkan ke /dashboard.
+ */
 const GuestRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
@@ -55,10 +88,10 @@ class ErrorBoundary extends React.Component {
           <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '16px' }}>Silakan muat ulang halaman untuk mencoba kembali.</p>
           <button
             onClick={() => {
-              localStorage.removeItem('auth_token'); // optional if needing fresh login or just reload
+              localStorage.removeItem('auth_token');
               window.location.reload();
             }}
-            style={{ padding: '8px 18px', backgroundColor: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+            style={{ padding: '8px 18px', backgroundColor: '#4f46e5', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
           >
             Muat Ulang Halaman
           </button>
@@ -71,7 +104,7 @@ class ErrorBoundary extends React.Component {
 
 const LoadingFallback = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw', backgroundColor: '#f8fafc' }}>
-    <div className="spinner" style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#10b981', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+    <div className="spinner" style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
   </div>
 );
 
@@ -81,10 +114,10 @@ function App() {
       <ErrorBoundary>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* Akses awal langsung diarahkan ke Dashboard tanpa login */}
+            {/* Akses awal diarahkan ke Dashboard (akan diverifikasi oleh ProtectedRoute) */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-            {/* Halaman Login untuk Admin */}
+            {/* Halaman Login untuk seluruh pengguna */}
             <Route
               path="/login"
               element={
@@ -94,31 +127,46 @@ function App() {
               }
             />
 
-            {/* Dashboard dapat diakses langsung oleh user/publik */}
+            {/* Dashboard: Wajib Login (Dapat diakses oleh User, Admin, dan Super Admin) */}
             <Route
               path="/dashboard"
-              element={<Dashboard />}
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
             />
 
-            {/* Profil ASN & Direktori Pegawai khusus untuk Admin */}
+            {/* Profil ASN & Direktori Pegawai: Khusus Admin dan Super Admin */}
             <Route
               path="/profil"
               element={
-                <AdminRoute>
+                <RoleRoute allowedRoles={['admin', 'super_admin']}>
                   <Profil />
-                </AdminRoute>
+                </RoleRoute>
               }
             />
 
             <Route
               path="/sebaran-pegawai"
               element={
-                <AdminRoute>
+                <RoleRoute allowedRoles={['admin', 'super_admin']}>
                   <DataPegawai />
-                </AdminRoute>
+                </RoleRoute>
               }
             />
 
+            {/* Manajemen Pengguna: Khusus Super Admin */}
+            <Route
+              path="/users"
+              element={
+                <RoleRoute allowedRoles={['super_admin']}>
+                  <UserManagement />
+                </RoleRoute>
+              }
+            />
+
+            {/* Fallback route */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
