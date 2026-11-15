@@ -62,8 +62,9 @@ export default function Dashboard() {
     };
   }, []);
 
-  const userRole = (currentUser?.role || '').toLowerCase().trim();
-  const isAdmin = userRole === 'admin';
+  const rawRole = (currentUser?.role || '').toLowerCase().trim().replace(/[-_ ]/g, '');
+  const isSuperAdmin = rawRole === 'superadmin';
+  const isAdmin = rawRole === 'admin' || isSuperAdmin;
   const isUserRole = !isAdmin;
 
   // Filters State
@@ -336,8 +337,8 @@ export default function Dashboard() {
             badgeText="Sumber: SIMPEL BKPSDM Kab. Bandung"
           />
 
-          {/* ── QUICK NAV MENU (KOTAK & CENTER) - Hanya untuk Admin ── */}
-          {isAdmin && <SubNavMenu />}
+          {/* ── QUICK NAV MENU (KOTAK & CENTER) ── */}
+          <SubNavMenu />
 
           {/* ── FILTER SATUAN KERJA ── */}
           <div className="admin-kpi-filter-wrapper">

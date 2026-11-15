@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import api from '../api/axios';
 import TopBar from '../components/shared/TopBar';
+import HeroBanner from '../components/shared/HeroBanner';
 import SubNavMenu from '../components/shared/SubNavMenu';
 import '../styles/UserManagement.css';
 
@@ -250,16 +251,29 @@ export default function UserManagement() {
       <TopBar onRefresh={() => fetchUsers(pagination.current_page)} isRefreshing={loading} />
 
       <main className="user-mgmt-content">
+        {/* Breadcrumb */}
+        <div className="app-breadcrumb">
+          <span className="app-breadcrumb-current">Manajemen Pengguna</span>
+        </div>
+
+        {/* ── HERO BANNER ── */}
+        <HeroBanner
+          title="Manajemen Akun Pengguna"
+          description="Kelola akun pengguna, penugasan peran hak akses (Super Admin, Admin, User), dan reset kata sandi sistem."
+          badgeText="Akses Khusus Super Admin"
+        />
+
+        {/* ── QUICK NAV MENU (KOTAK & CENTER) ── */}
         <SubNavMenu />
 
         {/* Header Section */}
-        <div className="user-mgmt-header" style={{ marginTop: '20px' }}>
+        <div className="user-mgmt-header" style={{ marginTop: '16px' }}>
           <div className="user-mgmt-title">
-            <h1>
-              <Users size={26} color="#4f46e5" />
-              Manajemen Akun Pengguna
-            </h1>
-            <p>Kelola akun pengguna, peran hak akses (Super Admin, Admin, User), dan reset kata sandi sistem.</p>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Users size={22} color="#4f46e5" />
+              Daftar Akun Pengguna
+            </h2>
+            <p>Total {pagination.total} pengguna terdaftar di dalam sistem.</p>
           </div>
           <button type="button" className="btn-add-user" onClick={handleOpenCreate}>
             <UserPlus size={18} />
@@ -681,3 +695,4 @@ export default function UserManagement() {
     </div>
   );
 }
+

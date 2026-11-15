@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, UserCheck, Users, ShieldAlert } from 'lucide-react';
 
@@ -6,17 +6,35 @@ export default function SubNavMenu() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const user = (() => {
+  const [user, setUser] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('user') || '{}');
+      const raw = localStorage.getItem('user');
+      return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
     }
-  })();
+  });
 
-  const role = (user?.role || '').toLowerCase().trim();
-  const isSuperAdmin = role === 'super_admin';
-  const isAdmin = role === 'admin' || isSuperAdmin;
+  useEffect(() => {
+    const handleAuthChange = () => {
+      try {
+        const raw = localStorage.getItem('user');
+        setUser(raw ? JSON.parse(raw) : null);
+      } catch {
+        setUser(null);
+      }
+    };
+    window.addEventListener('storage', handleAuthChange);
+    window.addEventListener('auth_change', handleAuthChange);
+    return () => {
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('auth_change', handleAuthChange);
+    };
+  }, []);
+
+  const cleanRole = (user?.role || '').toLowerCase().trim().replace(/[-_ ]/g, '');
+  const isSuperAdmin = cleanRole === 'superadmin';
+  const isAdmin = cleanRole === 'admin' || isSuperAdmin;
 
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, visible: true },
