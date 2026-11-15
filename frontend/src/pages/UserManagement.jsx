@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
   UserPlus,
@@ -21,6 +22,7 @@ import SubNavMenu from '../components/shared/SubNavMenu';
 import '../styles/UserManagement.css';
 
 export default function UserManagement() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -247,27 +249,38 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="user-mgmt-container">
-      <TopBar onRefresh={() => fetchUsers(pagination.current_page)} isRefreshing={loading} />
+    <div className="dashboard-layout">
+      <main className="main-content" style={{ marginLeft: 0 }}>
+        {/* Topbar */}
+        <TopBar onRefresh={() => fetchUsers(pagination.current_page)} isRefreshing={loading} />
 
-      <main className="user-mgmt-content">
-        {/* Breadcrumb */}
-        <div className="app-breadcrumb">
-          <span className="app-breadcrumb-current">Manajemen Pengguna</span>
-        </div>
+        {/* Content Area */}
+        <div className="content-area">
+          {/* Breadcrumb */}
+          <div className="app-breadcrumb">
+            <span
+              className="app-breadcrumb-link"
+              onClick={() => navigate('/dashboard')}
+              style={{ cursor: 'pointer' }}
+            >
+              Dashboard
+            </span>
+            <span className="app-breadcrumb-separator">/</span>
+            <span className="app-breadcrumb-current">Kelola Pengguna</span>
+          </div>
 
-        {/* ── HERO BANNER ── */}
-        <HeroBanner
-          title="Manajemen Akun Pengguna"
-          description="Kelola akun pengguna, penugasan peran hak akses (Super Admin, Admin, User), dan reset kata sandi sistem."
-          badgeText="Akses Khusus Super Admin"
-        />
+          {/* ── HERO BANNER ── */}
+          <HeroBanner
+            title="Manajemen Akun Pengguna"
+            description="Kelola akun pengguna, penugasan peran hak akses (Super Admin, Admin, User), dan reset kata sandi sistem."
+            badgeText="Akses Khusus Super Admin"
+          />
 
-        {/* ── QUICK NAV MENU (KOTAK & CENTER) ── */}
-        <SubNavMenu />
+          {/* ── QUICK NAV MENU (KOTAK & CENTER) ── */}
+          <SubNavMenu />
 
-        {/* Header Section */}
-        <div className="user-mgmt-header" style={{ marginTop: '16px' }}>
+          {/* Header Section */}
+          <div className="user-mgmt-header">
           <div className="user-mgmt-title">
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Users size={22} color="#4f46e5" />
@@ -432,7 +445,8 @@ export default function UserManagement() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
+    </main>
 
       {/* ──────────────── MODAL: TAMBAH PENGGUNA ──────────────── */}
       {createModalOpen && (

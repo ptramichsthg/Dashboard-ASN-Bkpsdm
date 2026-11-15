@@ -1,31 +1,18 @@
 /* UserManagement.css */
 
-.user-mgmt-container {
-  min-height: 100vh;
-  background-color: #f8fafc;
-  display: flex;
-  flex-direction: column;
-}
-
-.user-mgmt-content {
-  flex: 1;
-  max-width: 1280px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 24px 20px 48px;
-}
-
 .user-mgmt-header {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 
-.user-mgmt-title h1 {
-  font-size: 1.5rem;
+.user-mgmt-title h1,
+.user-mgmt-title h2 {
+  font-size: 1.35rem;
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 4px;
@@ -67,7 +54,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 16px 20px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
@@ -127,6 +114,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2.5rem;
 }
 
 .table-responsive {
@@ -423,4 +411,30 @@
 .btn-danger-action:hover {
   background: #b91c1c;
 }
+
+@media (max-width: 768px) {
+  .user-mgmt-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .btn-add-user {
+    justify-content: center;
+    width: 100%;
+  }
+  .user-mgmt-filter-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .role-filter-select {
+    width: 100%;
+  }
+  .user-mgmt-pagination {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+}
+
 
