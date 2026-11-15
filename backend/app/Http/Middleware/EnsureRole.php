@@ -43,3 +43,4 @@ class EnsureRole
         return $next($request);
     }
 }
+
