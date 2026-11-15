@@ -305,25 +305,13 @@ export default function GapChartSection({
                   />
                   <Tooltip content={<CustomEselonTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }} />
                   <Legend wrapperStyle={{ paddingTop: 14, fontSize: 12, fontWeight: 600 }} />
-                  <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={28}>
-                    <LabelList dataKey="Total Bezetting" position="top" fill="#1d4ed8" fontSize={10} fontWeight={700} />
-                  </Bar>
-                  <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]} maxBarSize={28}>
+                  <Bar dataKey="Total Kebutuhan" name="Kebutuhan" fill="#059669" radius={[4, 4, 0, 0]} maxBarSize={32}>
                     <LabelList dataKey="Total Kebutuhan" position="top" fill="#047857" fontSize={10} fontWeight={700} />
                   </Bar>
-                  <Bar dataKey="Jabatan Kosong (Gap)" name="Gap" fill="#dc2626" radius={[4, 4, 0, 0]} maxBarSize={28}>
-                    <LabelList dataKey="Jabatan Kosong (Gap)" position="top" fill="#dc2626" fontSize={10} fontWeight={700} />
+                  <Bar dataKey="Total Bezetting" name="Bezetting" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={32}>
+                    <LabelList dataKey="Total Bezetting" position="top" fill="#1d4ed8" fontSize={10} fontWeight={700} />
                   </Bar>
 
-                  <Line
-                    type="monotone"
-                    dataKey="Total Bezetting"
-                    stroke="#2563eb"
-                    strokeWidth={2}
-                    dot={{ r: 3, fill: '#2563eb' }}
-                    activeDot={{ r: 5 }}
-                    legendType="none"
-                  />
                   <Line
                     type="monotone"
                     dataKey="Total Kebutuhan"
@@ -335,11 +323,10 @@ export default function GapChartSection({
                   />
                   <Line
                     type="monotone"
-                    dataKey="Jabatan Kosong (Gap)"
-                    stroke="#dc2626"
+                    dataKey="Total Bezetting"
+                    stroke="#2563eb"
                     strokeWidth={2}
-                    strokeDasharray="4 4"
-                    dot={{ r: 3, fill: '#dc2626' }}
+                    dot={{ r: 3, fill: '#2563eb' }}
                     activeDot={{ r: 5 }}
                     legendType="none"
                   />
