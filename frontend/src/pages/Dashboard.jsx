@@ -14,8 +14,6 @@ import StatistikPieSection from '../components/dashboard/StatistikPieSection';
 import {
   OpdStackedBarChart,
 } from '../components/dashboard/DashboardCharts';
-import StrukturHierarkiTable from '../components/dashboard/StrukturHierarkiTable';
-import UnitJabatanModal from '../components/dashboard/UnitJabatanModal';
 import ModalKelompokAsn from '../components/dashboard/ModalKelompokAsn';
 import { formatOPDName } from '../utils/formatters';
 
@@ -79,11 +77,9 @@ export default function Dashboard() {
   const [satkerRawData, setSatkerRawData] = useState([]);
   const [profilData, setProfilData] = useState(null);
   const [profilLoading, setProfilLoading] = useState(true);
-  const [hierarkiRawData, setHierarkiRawData] = useState([]);
   const [kelompokAsnData, setKelompokAsnData] = useState({});
 
   // Modal State
-  const [selectedUnitModal, setSelectedUnitModal] = useState(null);
   const [selectedKelompokModal, setSelectedKelompokModal] = useState(null);
   const [kelompokModalStatus, setKelompokModalStatus] = useState('Semua');
 
@@ -108,10 +104,9 @@ export default function Dashboard() {
     try {
       const apiSatkerId = satkerId ? satkerId : 'Semua Satuan Kerja';
 
-      const [dashResult, satkerResult, hierarkiResult, profilResult] = await Promise.allSettled([
+      const [dashResult, satkerResult, profilResult] = await Promise.allSettled([
         api.get('/dashboard', { params: { satker_id: apiSatkerId, tahun: 'Semua', bulan: 'Semua' } }),
         api.get('/satuan-kerja'),
-        api.get('/struktur-hierarki-opd'),
         api.get('/profil', { params: { satker_id: apiSatkerId } }),
       ]);
 
@@ -125,10 +120,6 @@ export default function Dashboard() {
       if (satkerResult.status === 'fulfilled' && Array.isArray(satkerResult.value?.data)) {
         const validData = satkerResult.value.data.filter((d) => Boolean(d.satuan_kerja));
         setSatkerRawData(validData);
-      }
-
-      if (hierarkiResult.status === 'fulfilled' && Array.isArray(hierarkiResult.value?.data)) {
-        setHierarkiRawData(hierarkiResult.value.data);
       }
 
       if (profilResult.status === 'fulfilled' && profilResult.value?.data) {
@@ -394,23 +385,7 @@ export default function Dashboard() {
               totalStackedOpdPages={totalStackedOpdPages}
             />
           </div>
-
-          {/* ── STRUKTUR HIERARKI SATUAN KERJA / OPD ── */}
-          <StrukturHierarkiTable
-            hierarkiRawData={hierarkiRawData}
-            isRefreshing={isRefreshing}
-            isUserRole={isUserRole}
-            onOpenUnitModal={isUserRole ? undefined : (unit) => setSelectedUnitModal(unit)}
-          />
         </div>
-
-        {/* ── POP-UP MODAL RINCIAN JABATAN PER UNIT KERJA (HANYA ADMIN) ── */}
-        {!isUserRole && selectedUnitModal && (
-          <UnitJabatanModal
-            selectedUnitModal={selectedUnitModal}
-            onClose={() => setSelectedUnitModal(null)}
-          />
-        )}
 
         {/* ── POP-UP MODAL RINCIAN KELOMPOK ASN (HANYA ADMIN) ── */}
         {!isUserRole && selectedKelompokModal && (

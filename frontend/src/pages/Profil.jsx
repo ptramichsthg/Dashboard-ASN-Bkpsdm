@@ -15,6 +15,8 @@ import GapChartSection from '../components/profil/GapChartSection';
 import JabatanKosongTable from '../components/profil/JabatanKosongTable';
 import ModalDetailSelisih from '../components/profil/ModalDetailSelisih';
 import ModalDaftarEselon from '../components/profil/ModalDaftarEselon';
+import StrukturHierarkiTable from '../components/dashboard/StrukturHierarkiTable';
+import UnitJabatanModal from '../components/dashboard/UnitJabatanModal';
 
 import {
   Users,
@@ -23,6 +25,7 @@ import {
   AlertCircle,
   BarChart2,
   Database,
+  Building2,
 } from 'lucide-react';
 
 export default function Profil() {
@@ -81,6 +84,11 @@ export default function Profil() {
   const [gapChartView, setGapChartView] = useState('total');
   const [gapChartViewNM, setGapChartViewNM] = useState('total');
 
+  // State Struktur Hierarki Satuan Kerja / OPD
+  const [hierarkiRawData, setHierarkiRawData] = useState([]);
+  const [hierarkiLoading, setHierarkiLoading] = useState(true);
+  const [selectedUnitModal, setSelectedUnitModal] = useState(null);
+
   // Auth Guard
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -102,9 +110,25 @@ export default function Profil() {
     }
   };
 
+  // Fetch Struktur Hierarki OPD
+  const fetchHierarki = useCallback(async () => {
+    setHierarkiLoading(true);
+    try {
+      const res = await api.get('/struktur-hierarki-opd');
+      if (Array.isArray(res.data)) {
+        setHierarkiRawData(res.data);
+      }
+    } catch (e) {
+      console.error('Gagal fetch struktur hierarki OPD:', e);
+    } finally {
+      setHierarkiLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchProfil();
-  }, []);
+    fetchHierarki();
+  }, [fetchHierarki]);
 
   // Debounce search input untuk Non-Manajerial Kosong
   useEffect(() => {
@@ -184,7 +208,7 @@ export default function Profil() {
     if (isRefreshing) return;
     setIsRefreshing(true);
     apiCache.clear();
-    await Promise.all([fetchProfil(), refetch(), refetchNM()]);
+    await Promise.all([fetchProfil(), fetchHierarki(), refetch(), refetchNM()]);
     if (activeTab === 'non-manajerial') {
       await fetchJabatanKosongNM();
     }
@@ -829,6 +853,26 @@ export default function Profil() {
               />
             </>
           )}
+
+          {/* ══════════════════════════════════════════════════════════════
+              SECTION 4 — STRUKTUR HIERARKI SATUAN KERJA / OPD
+          ══════════════════════════════════════════════════════════════ */}
+          <div className="profil-section-header" style={{ marginTop: '2.5rem' }}>
+            <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+              <Building2 size={22} color="#059669" />
+            </div>
+            <div className="profil-section-title-wrap">
+              <h2 className="profil-section-title">Struktur Hierarki Satuan Kerja / OPD</h2>
+            </div>
+            <div className="profil-section-line" />
+          </div>
+
+          <StrukturHierarkiTable
+            hierarkiRawData={hierarkiRawData}
+            isRefreshing={isRefreshing || hierarkiLoading}
+            isUserRole={false}
+            onOpenUnitModal={(unit) => setSelectedUnitModal(unit)}
+          />
         </div>
 
         {/* ── MODAL 1: DETAIL SELISIH / JABATAN KOSONG (+/-) ── */}
@@ -850,6 +894,14 @@ export default function Profil() {
             onClose={handleCloseEselonModal}
             eselonJabatanList={eselonJabatanList}
             loading={eselonJabatanLoading}
+          />
+        )}
+
+        {/* ── MODAL 3: POP-UP RINCIAN JABATAN PER UNIT KERJA ── */}
+        {selectedUnitModal && (
+          <UnitJabatanModal
+            selectedUnitModal={selectedUnitModal}
+            onClose={() => setSelectedUnitModal(null)}
           />
         )}
       </main>
