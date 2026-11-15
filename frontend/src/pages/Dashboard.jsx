@@ -418,15 +418,7 @@ export default function Dashboard() {
           />
 
           {/* ── SECTION: GRAFIK PIE STATISTIK UMUM PEGAWAI (DENGAN FILTER STATUS) ── */}
-          <StatistikPieSection satker={satker} refreshTrigger={refreshKey}>
-            {/* Sebaran Komposisi ASN per OPD diposisikan di bawah teks total & rata-rata usia */}
-            <OpdStackedBarChart
-              paginatedStackedOpdData={paginatedStackedOpdData}
-              stackedOpdPage={stackedOpdPage}
-              setStackedOpdPage={setStackedOpdPage}
-              totalStackedOpdPages={totalStackedOpdPages}
-            />
-          </StatistikPieSection>
+          <StatistikPieSection satker={satker} refreshTrigger={refreshKey} />
 
           {/* ── CHARTS ROW 3: GOLONGAN & ESELONERING ── */}
           <GolonganEselonSection
@@ -440,6 +432,16 @@ export default function Dashboard() {
             eselonFilter={eselonFilter}
             setEselonFilter={setEselonFilter}
           />
+
+          {/* ── GRAFIK SEBARAN KOMPOSISI ASN PER OPD (DI BAWAH GOLONGAN & ESELONERING) ── */}
+          <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+            <OpdStackedBarChart
+              paginatedStackedOpdData={paginatedStackedOpdData}
+              stackedOpdPage={stackedOpdPage}
+              setStackedOpdPage={setStackedOpdPage}
+              totalStackedOpdPages={totalStackedOpdPages}
+            />
+          </div>
 
           {/* ── STRUKTUR HIERARKI SATUAN KERJA / OPD ── */}
           <StrukturHierarkiTable
