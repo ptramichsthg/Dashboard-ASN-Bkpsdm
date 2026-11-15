@@ -26,12 +26,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/main/bezetting-jenis-kelamin', [DashboardController::class, 'bezettingJenisKelamin']);
     Route::get('/satuan-kerja', [SatuanKerjaController::class, 'index']);
     Route::get('/dashboard/kelompok-asn-detail', [DashboardController::class, 'kelompokAsnDetail']);
+    Route::get('/profil', [DashboardController::class, 'profil']);
+    Route::get('/struktur-hierarki-opd', [SatuanKerjaController::class, 'strukturHierarki']);
+    Route::get('/pegawai/statistics', [DataPegawaiAktifController::class, 'statistics']);
 
     // 3. Data Internal Kepegawaian & Analisis Formasi (Hanya Admin dan Super Admin)
     Route::middleware('role:admin,super_admin')->group(function () {
-        Route::get('/profil', [DashboardController::class, 'profil']);
-        Route::get('/struktur-hierarki-opd', [SatuanKerjaController::class, 'strukturHierarki']);
-
         // Klasifikasi Jabatan Routes (Anjab/ABK & Gap Formasi)
         Route::get('/klasifikasi-jabatan', [KlasifikasiJabatanController::class, 'index']);
         Route::get('/klasifikasi-jabatan/statistics', [KlasifikasiJabatanController::class, 'statistics']);
@@ -41,7 +41,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Data Pegawai Aktif Routes (Direktori Pegawai)
         Route::get('/pegawai', [DataPegawaiAktifController::class, 'index']);
-        Route::get('/pegawai/statistics', [DataPegawaiAktifController::class, 'statistics']);
         Route::get('/pegawai/filters', [DataPegawaiAktifController::class, 'filterOptions']);
         Route::get('/pegawai/by-jabatan', [DataPegawaiAktifController::class, 'byJabatan']);
     });
