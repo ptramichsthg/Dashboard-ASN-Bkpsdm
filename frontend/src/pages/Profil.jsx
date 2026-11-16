@@ -8,7 +8,6 @@ import '../styles/Profil.css';
 
 import TopBar from '../components/shared/TopBar';
 import SubNavMenu from '../components/shared/SubNavMenu';
-import JenisAsnCard from '../components/shared/JenisAsnCard';
 import StatistikUmumPegawai from '../components/profil/StatistikUmumPegawai';
 import BezettingTable from '../components/profil/BezettingTable';
 import GapChartSection from '../components/profil/GapChartSection';
@@ -31,10 +30,6 @@ import {
 export default function Profil() {
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Data profil (jenis ASN)
-  const [profilData, setProfilData] = useState(null);
-  const [profilLoading, setProfilLoading] = useState(true);
 
   // Tab Switcher ('manajerial' | 'non-manajerial')
   const [activeTab, setActiveTab] = useState('manajerial');
@@ -97,19 +92,6 @@ export default function Profil() {
     }
   }, [navigate]);
 
-  // Fetch Profil Data (Jenis ASN)
-  const fetchProfil = async () => {
-    setProfilLoading(true);
-    try {
-      const res = await api.get('/profil');
-      setProfilData(res.data);
-    } catch (e) {
-      console.error('Gagal fetch profil:', e);
-    } finally {
-      setProfilLoading(false);
-    }
-  };
-
   // Fetch Struktur Hierarki OPD
   const fetchHierarki = useCallback(async () => {
     setHierarkiLoading(true);
@@ -126,7 +108,6 @@ export default function Profil() {
   }, []);
 
   useEffect(() => {
-    fetchProfil();
     fetchHierarki();
   }, [fetchHierarki]);
 
@@ -208,7 +189,7 @@ export default function Profil() {
     if (isRefreshing) return;
     setIsRefreshing(true);
     apiCache.clear();
-    await Promise.all([fetchProfil(), fetchHierarki(), refetch(), refetchNM()]);
+    await Promise.all([fetchHierarki(), refetch(), refetchNM()]);
     if (activeTab === 'non-manajerial') {
       await fetchJabatanKosongNM();
     }
@@ -638,51 +619,9 @@ export default function Profil() {
           <SubNavMenu />
 
           {/* ═══════════════════════════════════════════════
-              SECTION 1 — JENIS ASN
+              SECTION 1 — STATISTIK UMUM PEGAWAI
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header first-section">
-            <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
-              <Users size={22} color="#059669" />
-            </div>
-            <div className="profil-section-title-wrap">
-              <h2 className="profil-section-title">Jenis ASN</h2>
-            </div>
-            <div className="profil-section-line" />
-          </div>
-
-          {profilLoading ? (
-            <div className="skeleton-row">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="skeleton-block" style={{ height: 120 }} />
-              ))}
-            </div>
-          ) : (
-            <div className="jenis-asn-grid">
-              {(profilData?.jenis_asn || []).map((item) => (
-                <JenisAsnCard
-                  key={item.label}
-                  label={item.label}
-                  value={item.value}
-                  onClick={() => {
-                    const st = item.label === 'PPPK PW' ? 'PPPK' : item.label;
-                    navigate(`/sebaran-pegawai?status=${encodeURIComponent(st)}`);
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
-          <div className="jenis-asn-total-bar">
-            <span className="jenis-asn-total-label">Total ASN Kabupaten Bandung</span>
-            <span className="jenis-asn-total-value">
-              {profilLoading ? '—' : `${(profilData?.total_asn || 0).toLocaleString('id-ID')} orang`}
-            </span>
-          </div>
-
-          {/* ═══════════════════════════════════════════════
-              SECTION 2 — STATISTIK UMUM PEGAWAI
-          ═══════════════════════════════════════════════ */}
-          <div className="profil-section-header">
             <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
               <BarChart2 size={22} color="#059669" />
             </div>
