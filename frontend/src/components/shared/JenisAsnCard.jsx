@@ -36,7 +36,7 @@ const ASN_CONFIG = {
  * @param {string} label - Label ASN ('CPNS' | 'PNS' | 'PPPK' | 'PPPK PW')
  * @param {number|string} value - Jumlah orang
  * @param {Function} [onClick] - Callback interaktif klik
- * @param {string} [actionText] - Teks aksi (misal 'Lihat Direktori ↗')
+ * @param {string} [actionText] - Teks aksi (misal 'Lihat Profil ASN ↗')
  */
 export default function JenisAsnCard({ label, value, onClick, actionText }) {
   const cfg = ASN_CONFIG[label] || ASN_CONFIG['PNS'];
@@ -61,7 +61,7 @@ export default function JenisAsnCard({ label, value, onClick, actionText }) {
         </div>
         {isClickable && (
           <div className="jenis-asn-card-action">
-            {actionText || 'Lihat Direktori ↗'}
+            {actionText || 'Lihat Profil ASN ↗'}
           </div>
         )}
       </div>

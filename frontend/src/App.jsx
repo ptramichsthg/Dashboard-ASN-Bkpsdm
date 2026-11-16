@@ -137,7 +137,7 @@ function App() {
               }
             />
 
-            {/* Profil ASN & Direktori Pegawai: Khusus Admin dan Super Admin */}
+            {/* Bezetting ASN & Profil ASN: Khusus Admin dan Super Admin */}
             <Route
               path="/profil"
               element={

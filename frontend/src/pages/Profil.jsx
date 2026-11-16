@@ -587,15 +587,15 @@ export default function Profil() {
           <div className="app-breadcrumb">
             <span className="app-breadcrumb-link" onClick={() => navigate('/dashboard')}>Dashboard</span>
             <span className="app-breadcrumb-separator">/</span>
-            <span className="app-breadcrumb-current">Profil ASN</span>
+            <span className="app-breadcrumb-current">Bezetting ASN</span>
           </div>
 
           {/* ── HERO BANNER ── */}
           <div className="hero-banner">
             <div className="hero-banner-content">
-              <h1>Profil ASN Kabupaten Bandung</h1>
+              <h1>Bezetting ASN Kabupaten Bandung</h1>
               <p>
-                Komposisi, status, dan analisis formasi jabatan ASN<br />
+                Analisis bezetting, perbandingan kebutuhan, dan formasi jabatan ASN<br />
                 di lingkungan Pemerintah Kabupaten Bandung.
               </p>
               <div className="hero-badges">

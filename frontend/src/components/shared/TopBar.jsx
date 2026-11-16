@@ -199,14 +199,14 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
                           className={`dropdown-item ${location.pathname === '/profil' ? 'active' : ''}`}
                           onClick={() => { navigate('/profil'); setProfileOpen(false); }}
                         >
-                          <UserCheck size={16} /> Profil ASN
+                          <UserCheck size={16} /> Bezetting ASN
                         </button>
                         <button
                           type="button"
                           className={`dropdown-item ${location.pathname === '/sebaran-pegawai' ? 'active' : ''}`}
                           onClick={() => { navigate('/sebaran-pegawai'); setProfileOpen(false); }}
                         >
-                          <Users size={16} /> Direktori Pegawai
+                          <Users size={16} /> Profil ASN
                         </button>
                       </>
                     )}

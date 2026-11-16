@@ -336,13 +336,13 @@ export default function DataPegawai() {
           <div className="app-breadcrumb">
             <span className="app-breadcrumb-link" onClick={() => navigate('/dashboard')}>Dashboard</span>
             <span className="app-breadcrumb-separator">/</span>
-            <span className="app-breadcrumb-current">Direktori Pegawai</span>
+            <span className="app-breadcrumb-current">Profil ASN</span>
           </div>
 
           {/* Hero Banner */}
           <HeroBanner
-            title="Direktori Data Pegawai ASN Aktif"
-            description="Informasi nominatif pegawai ASN Kabupaten Bandung berdasarkan unit kerja, golongan, dan kualifikasi pendidikan."
+            title="Profil Pegawai ASN Kabupaten Bandung"
+            description="Informasi profil dan nominatif pegawai ASN Kabupaten Bandung berdasarkan unit kerja, golongan, dan kualifikasi pendidikan."
             badgeText="Terkoneksi Database Pegawai Aktif"
           />
 

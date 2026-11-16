@@ -283,7 +283,7 @@ export default function UnitJabatanModal({ selectedUnitModal, onClose }) {
                               onClose();
                               navigate(`/sebaran-pegawai?search=${encodeURIComponent(j.jabatan || j.nama_jabatan)}`);
                             }}
-                            title="Cari pegawai pemegang jabatan di Direktori Pegawai"
+                            title="Cari pegawai pemegang jabatan di Profil ASN"
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',

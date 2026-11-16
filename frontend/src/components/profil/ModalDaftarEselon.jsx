@@ -176,7 +176,7 @@ export default function ModalDaftarEselon({
                               onClose();
                               navigate(`/sebaran-pegawai?search=${encodeURIComponent(j.jabatan)}`);
                             }}
-                            title="Cari pegawai pemegang jabatan di Direktori Pegawai"
+                            title="Cari pegawai pemegang jabatan di Profil ASN"
                           >
                             Pegawai ↗
                           </button>

@@ -515,7 +515,7 @@ export default function UserManagement() {
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   >
                     <option value="user">User / Pegawai (Dashboard Eksekutif)</option>
-                    <option value="admin">Administrator (Profil ASN & Direktori Pegawai)</option>
+                    <option value="admin">Administrator (Bezetting ASN & Profil ASN)</option>
                     <option value="super_admin">Super Admin (Akses Penuh & Kelola Pengguna)</option>
                   </select>
                 </div>
@@ -608,7 +608,7 @@ export default function UserManagement() {
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   >
                     <option value="user">User / Pegawai (Dashboard Eksekutif)</option>
-                    <option value="admin">Administrator (Profil ASN & Direktori Pegawai)</option>
+                    <option value="admin">Administrator (Bezetting ASN & Profil ASN)</option>
                     <option value="super_admin">Super Admin (Akses Penuh & Kelola Pengguna)</option>
                   </select>
                 </div>

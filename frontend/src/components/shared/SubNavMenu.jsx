@@ -38,8 +38,8 @@ export default function SubNavMenu() {
 
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, visible: true },
-    { label: 'Profil ASN', path: '/profil', icon: UserCheck, visible: isAdmin },
-    { label: 'Direktori Pegawai', path: '/sebaran-pegawai', icon: Users, visible: isAdmin },
+    { label: 'Bezetting ASN', path: '/profil', icon: UserCheck, visible: isAdmin },
+    { label: 'Profil ASN', path: '/sebaran-pegawai', icon: Users, visible: isAdmin },
     { label: 'Kelola Pengguna', path: '/users', icon: ShieldAlert, visible: isSuperAdmin },
   ].filter(item => item.visible);
 
