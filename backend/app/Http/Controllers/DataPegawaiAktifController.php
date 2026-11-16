@@ -393,6 +393,7 @@ class DataPegawaiAktifController extends Controller
                     'sebaran_jenis_kelamin' => $genderChart,
                     'sebaran_kelompok_usia' => $kelompokUsiaChart,
                     'jenjang_pendidikan' => $pendidikanChart,
+                    'sebaran_pendidikan' => $pendidikanChart,
                     'sebaran_golongan' => $golonganChart,
                     'sebaran_golongan_grouped' => $golonganGrouped,
                     'sebaran_eselon' => $eselonChart,

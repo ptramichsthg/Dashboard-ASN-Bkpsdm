@@ -198,38 +198,29 @@ export default function StatistikUmumPegawai({
     }));
 
     // 6. Pendidikan
-    const rawPendidikan = statsData.sebaran_pendidikan || [];
-    const orderedPendidikan = [
-      'S3 / DOKTOR',
-      'S2 / MAGISTER',
-      'S1 / SARJANA',
-      'DIPLOMA III / D3',
-      'SMA / SMK / SEDERAJAT',
-      'SMP / SEDERAJAT',
-      'SD / SEDERAJAT',
-    ];
-    const pendidikanItems = orderedPendidikan
-      .map((pendName, idx) => {
-        const found = rawPendidikan.find((p) => p.name?.toUpperCase() === pendName);
-        const count = found ? found.value : 0;
-        let shortBadge = 'S1';
-        if (pendName.includes('S3')) shortBadge = 'S3';
-        else if (pendName.includes('S2')) shortBadge = 'S2';
-        else if (pendName.includes('DIPLOMA')) shortBadge = 'D3';
-        else if (pendName.includes('SMA')) shortBadge = 'SMA';
-        else if (pendName.includes('SMP')) shortBadge = 'SMP';
-        else if (pendName.includes('SD')) shortBadge = 'SD';
+    const rawPendidikan = statsData.jenjang_pendidikan || statsData.sebaran_pendidikan || [];
+    const pendidikanItems = rawPendidikan.map((pend, idx) => {
+      const name = pend.name || '';
+      const upper = name.toUpperCase();
+      let shortBadge = 'S1';
+      if (upper.includes('S3') || upper.includes('DOKTOR')) shortBadge = 'S3';
+      else if (upper.includes('S2') || upper.includes('MAGISTER')) shortBadge = 'S2';
+      else if (upper.includes('S1') || upper.includes('D-IV') || upper.includes('SARJANA')) shortBadge = 'S1';
+      else if (upper.includes('D-III') || upper.includes('D3') || upper.includes('DIPLOMA')) shortBadge = 'D3';
+      else if (upper.includes('SMA') || upper.includes('SMK') || upper.includes('SLTA')) shortBadge = 'SMA';
+      else if (upper.includes('SMP') || upper.includes('SLTP')) shortBadge = 'SMP';
+      else if (upper.includes('SD')) shortBadge = 'SD';
+      else shortBadge = 'Lain';
 
-        return {
-          name: pendName.replace(' / SEDERAJAT', '').replace(' / DOKTOR', '').replace(' / MAGISTER', '').replace(' / SARJANA', ''),
-          badge: shortBadge,
-          badgeClass: `badge-pend-${shortBadge.toLowerCase()}`,
-          count,
-          percent: totalFiltered > 0 ? (count / totalFiltered) * 100 : 0,
-          color: CONSISTENT_7_COLORS[idx % CONSISTENT_7_COLORS.length],
-        };
-      })
-      .filter((it) => it.count > 0 || totalFiltered === 0);
+      return {
+        name,
+        badge: shortBadge,
+        badgeClass: `badge-pend-${shortBadge.toLowerCase()}`,
+        count: pend.value || 0,
+        percent: totalFiltered > 0 ? ((pend.value || 0) / totalFiltered) * 100 : 0,
+        color: CONSISTENT_7_COLORS[idx % CONSISTENT_7_COLORS.length],
+      };
+    });
 
     return [
       {
