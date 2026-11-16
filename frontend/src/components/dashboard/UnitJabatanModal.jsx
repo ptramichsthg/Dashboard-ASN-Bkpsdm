@@ -281,7 +281,7 @@ export default function UnitJabatanModal({ selectedUnitModal, onClose }) {
                             type="button"
                             onClick={() => {
                               onClose();
-                              navigate(`/sebaran-pegawai?search=${encodeURIComponent(j.jabatan || j.nama_jabatan)}`);
+                              navigate(`/profil?search=${encodeURIComponent(j.jabatan || j.nama_jabatan)}`);
                             }}
                             title="Cari pegawai pemegang jabatan di Profil ASN"
                             style={{
@@ -349,11 +349,11 @@ export default function UnitJabatanModal({ selectedUnitModal, onClose }) {
               className="unit-modal-btn-profil"
               onClick={() => {
                 onClose();
-                navigate('/profil');
+                navigate('/bezetting');
               }}
-              title="Buka Halaman Analisis Profil & Bezetting Jabatan"
+              title="Buka Halaman Analisis Bezetting Jabatan"
             >
-              <span>Analisis Profil Jabatan</span>
+              <span>Analisis Bezetting Jabatan</span>
               <ExternalLink size={14} />
             </button>
           </div>

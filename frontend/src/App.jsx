@@ -139,14 +139,30 @@ function App() {
 
             {/* Bezetting ASN & Profil ASN: Khusus Admin dan Super Admin */}
             <Route
-              path="/profil"
+              path="/bezetting"
               element={
                 <RoleRoute allowedRoles={['admin', 'super_admin']}>
                   <Profil />
                 </RoleRoute>
               }
             />
+            <Route
+              path="/bezetting-asn"
+              element={<Navigate to="/bezetting" replace />}
+            />
 
+            <Route
+              path="/profil"
+              element={
+                <RoleRoute allowedRoles={['admin', 'super_admin']}>
+                  <DataPegawai />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/profil-asn"
+              element={<Navigate to="/profil" replace />}
+            />
             <Route
               path="/sebaran-pegawai"
               element={

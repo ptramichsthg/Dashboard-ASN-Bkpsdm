@@ -174,7 +174,7 @@ export default function ModalDaftarEselon({
                             className="eselon-modal-btn-pegawai"
                             onClick={() => {
                               onClose();
-                              navigate(`/sebaran-pegawai?search=${encodeURIComponent(j.jabatan)}`);
+                              navigate(`/profil?search=${encodeURIComponent(j.jabatan)}`);
                             }}
                             title="Cari pegawai pemegang jabatan di Profil ASN"
                           >

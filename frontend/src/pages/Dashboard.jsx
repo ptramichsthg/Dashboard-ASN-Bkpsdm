@@ -340,7 +340,7 @@ export default function Dashboard() {
                   value={item.value}
                   onClick={isUserRole ? undefined : () => {
                     const statusParam = item.label === 'PPPK PW' ? 'PPPK' : item.label;
-                    navigate(`/sebaran-pegawai?status=${encodeURIComponent(statusParam)}`);
+                    navigate(`/profil?status=${encodeURIComponent(statusParam)}`);
                   }}
                 />
               ))}

@@ -196,15 +196,15 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
                       <>
                         <button
                           type="button"
-                          className={`dropdown-item ${location.pathname === '/profil' ? 'active' : ''}`}
-                          onClick={() => { navigate('/profil'); setProfileOpen(false); }}
+                          className={`dropdown-item ${location.pathname === '/bezetting' || location.pathname === '/bezetting-asn' ? 'active' : ''}`}
+                          onClick={() => { navigate('/bezetting'); setProfileOpen(false); }}
                         >
                           <UserCheck size={16} /> Bezetting ASN
                         </button>
                         <button
                           type="button"
-                          className={`dropdown-item ${location.pathname === '/sebaran-pegawai' ? 'active' : ''}`}
-                          onClick={() => { navigate('/sebaran-pegawai'); setProfileOpen(false); }}
+                          className={`dropdown-item ${location.pathname === '/profil' || location.pathname === '/sebaran-pegawai' ? 'active' : ''}`}
+                          onClick={() => { navigate('/profil'); setProfileOpen(false); }}
                         >
                           <Users size={16} /> Profil ASN
                         </button>
