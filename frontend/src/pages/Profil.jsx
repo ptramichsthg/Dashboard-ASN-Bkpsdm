@@ -52,8 +52,9 @@ export default function Profil() {
   const [debouncedSearchNM, setDebouncedSearchNM] = useState('');
   const [filterJenjangNM, setFilterJenjangNM] = useState('Semua');
   const [pageKosongNM, setPageKosongNM] = useState(1);
+  const itemsPerPageKosongNM = 10;
   const [jabatanKosongListNM, setJabatanKosongListNM] = useState([]);
-  const [paginationNM, setPaginationNM] = useState({ current_page: 1, last_page: 1, total: 0, per_page: 15 });
+  const [paginationNM, setPaginationNM] = useState({ current_page: 1, last_page: 1, total: 0, per_page: 10 });
   const [loadingKosongNM, setLoadingKosongNM] = useState(false);
 
   // State Modal Detail Selisih (+/-)
@@ -136,7 +137,7 @@ export default function Profil() {
         klasifikasi_utama: 'NON MANAJERIAL',
         hanya_kosong: 1,
         page: pageKosongNM,
-        per_page: itemsPerPageKosong,
+        per_page: itemsPerPageKosongNM,
       };
 
       if (debouncedSearchNM.trim()) {
@@ -164,11 +165,11 @@ export default function Profil() {
           total: pData.total || 0,
           current_page: pData.current_page || 1,
           last_page: pData.last_page || 1,
-          per_page: pData.per_page || itemsPerPageKosong,
+          per_page: pData.per_page || itemsPerPageKosongNM,
         });
       } else {
         setJabatanKosongListNM([]);
-        setPaginationNM({ total: 0, current_page: 1, last_page: 1, per_page: itemsPerPageKosong });
+        setPaginationNM({ total: 0, current_page: 1, last_page: 1, per_page: itemsPerPageKosongNM });
       }
     } catch (err) {
       console.error('Gagal memuat jabatan kosong non-manajerial:', err);
@@ -176,7 +177,7 @@ export default function Profil() {
     } finally {
       setLoadingKosongNM(false);
     }
-  }, [activeTab, pageKosongNM, debouncedSearchNM, filterJenjangNM, sortKosongNM, itemsPerPageKosong]);
+  }, [activeTab, pageKosongNM, debouncedSearchNM, filterJenjangNM, sortKosongNM, itemsPerPageKosongNM]);
 
   useEffect(() => {
     if (activeTab === 'non-manajerial') {
