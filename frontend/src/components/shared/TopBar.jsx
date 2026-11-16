@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Activity,
-  Bell,
   RefreshCw,
   Settings,
   LogOut,
@@ -138,13 +137,6 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
                 }}
               >
                 <RefreshCw size={18} className={isRefreshing ? 'spinner' : ''} />
-              </button>
-            )}
-
-            {/* Notification */}
-            {isAdmin && (
-              <button type="button" className="btn-notification topbar-icon-btn" title="Notifikasi">
-                <Bell size={20} />
               </button>
             )}
 
