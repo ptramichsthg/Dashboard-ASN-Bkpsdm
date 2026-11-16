@@ -45,7 +45,7 @@ export default function Profil() {
   const [searchKosong, setSearchKosong] = useState('');
   const [filterEselon, setFilterEselon] = useState('Semua');
   const [pageKosong, setPageKosong] = useState(1);
-  const itemsPerPageKosong = 15;
+  const itemsPerPageKosong = 10;
 
   // Filter & State Jabatan Kosong Non-Manajerial (Server-side)
   const [searchKosongNM, setSearchKosongNM] = useState('');
