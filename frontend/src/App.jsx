@@ -88,7 +88,6 @@ class ErrorBoundary extends React.Component {
           <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '16px' }}>Silakan muat ulang halaman untuk mencoba kembali.</p>
           <button
             onClick={() => {
-              localStorage.removeItem('auth_token');
               window.location.reload();
             }}
             style={{ padding: '8px 18px', backgroundColor: '#4f46e5', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}

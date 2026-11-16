@@ -9,7 +9,6 @@ import '../styles/DataPegawai.css';
 
 import {
   Users,
-  GraduationCap,
   Award,
   Search,
   X,
@@ -22,8 +21,6 @@ import {
   Check,
   Clock,
   UserCheck,
-  Calendar,
-  Sparkles,
 } from 'lucide-react';
 
 export default function DataPegawai() {
@@ -233,9 +230,14 @@ export default function DataPegawai() {
   };
 
   const copyToClipboard = (nip) => {
-    navigator.clipboard.writeText(nip);
-    setCopiedNip(nip);
-    setTimeout(() => setCopiedNip(null), 2000);
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(nip)
+        .then(() => {
+          setCopiedNip(nip);
+          setTimeout(() => setCopiedNip(null), 2000);
+        })
+        .catch((err) => console.warn('Clipboard write error:', err));
+    }
   };
 
   // Helper Initials

@@ -78,7 +78,6 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
 
   const userRole = (user?.role || '').toLowerCase().trim();
   const isSuperAdmin = userRole === 'super_admin';
-  const isAdmin = userRole === 'admin' || isSuperAdmin;
 
   const getRoleLabel = () => {
     if (isSuperAdmin) return 'Super Administrator';

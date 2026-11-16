@@ -232,12 +232,6 @@ export default function Dashboard() {
     ];
   }, [displayedJenisAsn, filteredSatkerData]);
 
-  // Gender Chart Data
-  const genderChartData = useMemo(() => [
-    { name: 'Laki-laki', value: summaryData.laki },
-    { name: 'Perempuan', value: summaryData.perempuan },
-  ], [summaryData]);
-
   // Ringkasan Gender Total untuk Banner Jenis ASN
   const displayedGender = useMemo(() => {
     let laki = computedStatusPegawai.reduce((acc, curr) => acc + (Number(curr.laki) || 0), 0);

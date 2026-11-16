@@ -597,7 +597,7 @@ export default function StatistikUmumPegawai({
                 </tr>
               </thead>
               <tbody>
-                {categories.map((cat, catIdx) => (
+                {categories.map((cat) => (
                   <React.Fragment key={cat.id}>
                     {/* Header Baris Kategori */}
                     <tr className="stat-table-group-header">

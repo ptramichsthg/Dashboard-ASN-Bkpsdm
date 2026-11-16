@@ -143,7 +143,7 @@ export default function StatistikPieSection({ satker, refreshTrigger, children }
     // 3. Jenis Kelamin
     const rawGender = statsData.sebaran_jenis_kelamin || [];
     const genderMap = { 'LAKI-LAKI': 'Laki-Laki', 'PEREMPUAN': 'Perempuan' };
-    const genderItems = ['LAKI-LAKI', 'PEREMPUAN'].map((gKey, idx) => {
+    const genderItems = ['LAKI-LAKI', 'PEREMPUAN'].map((gKey) => {
       const found = rawGender.find((g) => g.name?.toUpperCase() === gKey);
       const count = found ? found.value : 0;
       const mappedName = genderMap[gKey] || gKey;
