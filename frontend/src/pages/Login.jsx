@@ -14,7 +14,8 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccessLoading, setIsSuccessLoading] = useState(false);
   const navigate = useNavigate();
 
   // Jika sudah memiliki token aktif, alihkan ke dashboard
@@ -28,11 +29,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
-
-    // Catat waktu mulai loading
-    const startTime = Date.now();
-    const minimumLoadingTime = 5000; // 5 detik
+    setIsSubmitting(true);
 
     try {
       const response = await api.post('/login', {
@@ -44,28 +41,20 @@ const Login = () => {
         localStorage.setItem('auth_token', response.data.access_token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         window.dispatchEvent(new Event('auth_change'));
-        
-        // Hitung waktu yang sudah berlalu
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = minimumLoadingTime - elapsedTime;
 
-        // Jika belum mencapai 5 detik, tunggu sisa waktu
-        if (remainingTime > 0) {
-          await new Promise(resolve => setTimeout(resolve, remainingTime));
-        }
+        // Kredensial valid: aktifkan animasi transisi "Sedang Masuk" (2 ASN)
+        setIsSubmitting(false);
+        setIsSuccessLoading(true);
 
-        setIsLoading(false);
+        // Beri jeda transisi halus sebelum redirect ke dashboard
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+
         navigate('/dashboard', { replace: true });
       }
     } catch (err) {
-      // Hitung waktu yang sudah berlalu
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = minimumLoadingTime - elapsedTime;
-
-      // Tunggu minimum 5 detik bahkan saat error
-      if (remainingTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, remainingTime));
-      }
+      // Kredensial salah / gagal: langsung blokir di form login tanpa masuk ke animasi
+      setIsSubmitting(false);
+      setIsSuccessLoading(false);
 
       if (err.response && err.response.data) {
         if (err.response.data.errors) {
@@ -79,15 +68,13 @@ const Login = () => {
       } else {
         setError('Koneksi ke server backend gagal. Pastikan server aktif.');
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
     <>
-      {/* Full Screen Loading Overlay */}
-      {isLoading && <LoginLoadingState message="Sedang masuk..." />}
+      {/* Full Screen Loading Overlay - HANYA muncul saat kredensial valid dan berhasil login */}
+      {isSuccessLoading && <LoginLoadingState message="Sedang masuk..." />}
 
       <div
         className="loginContainer"
@@ -96,8 +83,8 @@ const Login = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          opacity: isLoading ? 0 : 1,
-          pointerEvents: isLoading ? 'none' : 'auto',
+          opacity: isSuccessLoading ? 0 : 1,
+          pointerEvents: isSuccessLoading ? 'none' : 'auto',
           transition: 'opacity 0.25s ease-in-out',
         }}
       >
@@ -165,8 +152,8 @@ const Login = () => {
           </div>
 
           <div className="submitWrapper">
-            <button type="submit" className="btnPrimary" disabled={isLoading}>
-              {isLoading ? 'Memproses...' : 'Masuk'}
+            <button type="submit" className="btnPrimary" disabled={isSubmitting || isSuccessLoading}>
+              {isSubmitting ? 'Memproses...' : isSuccessLoading ? 'Sedang Masuk...' : 'Masuk'}
             </button>
           </div>
         </form>
