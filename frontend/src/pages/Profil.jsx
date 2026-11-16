@@ -8,7 +8,6 @@ import '../styles/Profil.css';
 
 import TopBar from '../components/shared/TopBar';
 import SubNavMenu from '../components/shared/SubNavMenu';
-import StatistikUmumPegawai from '../components/profil/StatistikUmumPegawai';
 import BezettingTable from '../components/profil/BezettingTable';
 import GapChartSection from '../components/profil/GapChartSection';
 import JabatanKosongTable from '../components/profil/JabatanKosongTable';
@@ -619,24 +618,9 @@ export default function Profil() {
           <SubNavMenu />
 
           {/* ═══════════════════════════════════════════════
-              SECTION 1 — STATISTIK UMUM PEGAWAI
+              SECTION — JABATAN MANAJERIAL & NON-MANAJERIAL
           ═══════════════════════════════════════════════ */}
           <div className="profil-section-header first-section">
-            <div className="profil-section-icon" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
-              <BarChart2 size={22} color="#059669" />
-            </div>
-            <div className="profil-section-title-wrap">
-              <h2 className="profil-section-title">Statistik Umum</h2>
-            </div>
-            <div className="profil-section-line" />
-          </div>
-
-          <StatistikUmumPegawai />
-
-          {/* ═══════════════════════════════════════════════
-              SECTION 3 — JABATAN MANAJERIAL & NON-MANAJERIAL
-          ═══════════════════════════════════════════════ */}
-          <div className="profil-section-header">
             <div className="profil-section-icon" style={{ background: '#fdf4ff', border: '1px solid #f5d0fe', boxShadow: '0 4px 12px rgba(168, 85, 247, 0.15)' }}>
               <Award size={22} color="#7e22ce" />
             </div>

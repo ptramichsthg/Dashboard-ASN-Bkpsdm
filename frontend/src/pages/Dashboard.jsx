@@ -10,7 +10,7 @@ import JenisAsnCard from '../components/shared/JenisAsnCard';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
 import StatusPegawaiCards from '../components/dashboard/StatusPegawaiCards';
 import KelompokAsnSection from '../components/dashboard/KelompokAsnSection';
-import StatistikPieSection from '../components/dashboard/StatistikPieSection';
+import StatistikUmumPegawai from '../components/dashboard/StatistikUmumPegawai';
 import {
   OpdStackedBarChart,
 } from '../components/dashboard/DashboardCharts';
@@ -373,8 +373,8 @@ export default function Dashboard() {
             }}
           />
 
-          {/* ── SECTION: GRAFIK PIE STATISTIK UMUM PEGAWAI (DENGAN FILTER STATUS) ── */}
-          <StatistikPieSection satker={satker} refreshTrigger={refreshKey} />
+          {/* ── SECTION: STATISTIK UMUM PEGAWAI (3 MODE UNTUK ADMIN/SUPER ADMIN, GRAFIK PIE UNTUK USER) ── */}
+          <StatistikUmumPegawai satker={satker} refreshTrigger={refreshKey} isUserRole={isUserRole} defaultViewMode="pie" />
 
           {/* ── GRAFIK SEBARAN KOMPOSISI ASN PER OPD ── */}
           <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
