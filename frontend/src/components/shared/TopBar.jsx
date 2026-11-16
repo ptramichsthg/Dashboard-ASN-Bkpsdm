@@ -6,10 +6,6 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  LayoutDashboard,
-  UserCheck,
-  Users,
-  ShieldAlert,
   LogIn,
 } from 'lucide-react';
 import LiveDateTime from '../shared/LiveDateTime';
@@ -175,48 +171,6 @@ export default function TopBar({ onRefresh, isRefreshing = false }) {
                         {getRoleLabel()}
                       </span>
                     </div>
-                    <hr className="dropdown-divider" />
-                    <button
-                      type="button"
-                      className={`dropdown-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
-                      onClick={() => { navigate('/dashboard'); setProfileOpen(false); }}
-                    >
-                      <LayoutDashboard size={16} /> Dashboard
-                    </button>
-
-                    {isAdmin && (
-                      <>
-                        <button
-                          type="button"
-                          className={`dropdown-item ${location.pathname === '/bezetting' || location.pathname === '/bezetting-asn' ? 'active' : ''}`}
-                          onClick={() => { navigate('/bezetting'); setProfileOpen(false); }}
-                        >
-                          <UserCheck size={16} /> Bezetting ASN
-                        </button>
-                        <button
-                          type="button"
-                          className={`dropdown-item ${location.pathname === '/profil' || location.pathname === '/sebaran-pegawai' ? 'active' : ''}`}
-                          onClick={() => { navigate('/profil'); setProfileOpen(false); }}
-                        >
-                          <Users size={16} /> Profil ASN
-                        </button>
-                      </>
-                    )}
-
-                    {isSuperAdmin && (
-                      <>
-                        <hr className="dropdown-divider" />
-                        <button
-                          type="button"
-                          className={`dropdown-item ${location.pathname === '/users' ? 'active' : ''}`}
-                          style={{ color: '#6d28d9', fontWeight: 600 }}
-                          onClick={() => { navigate('/users'); setProfileOpen(false); }}
-                        >
-                          <ShieldAlert size={16} color="#6d28d9" /> Kelola Pengguna
-                        </button>
-                      </>
-                    )}
-
                     <hr className="dropdown-divider" />
                     <button
                       type="button"
