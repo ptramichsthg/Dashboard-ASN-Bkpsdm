@@ -549,14 +549,23 @@
 }
 
 .jenis-asn-total-bar {
-  background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
+  background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #10b981 100%);
   border-radius: var(--radius-sm);
   padding: 1.25rem 2rem;
+  margin-bottom: 1.25rem;
+  color: white;
+  box-shadow: 0 4px 16px rgba(6, 78, 59, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.jenis-asn-total-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
-  color: white;
+  width: 100%;
 }
 
 .jenis-asn-total-label {
@@ -569,6 +578,115 @@
 .jenis-asn-total-value {
   font-size: 2rem;
   font-weight: 800;
+}
+
+.jenis-asn-total-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.jenis-asn-total-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.jenis-asn-gender-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.jenis-asn-gender-items {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.jenis-asn-gender-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.jenis-asn-gender-badge:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.jenis-asn-gender-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.jenis-asn-gender-dot.laki {
+  background-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.85);
+}
+
+.jenis-asn-gender-dot.perempuan {
+  background-color: #f472b6;
+  box-shadow: 0 0 8px rgba(244, 114, 182, 0.85);
+}
+
+.jenis-asn-gender-name {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.jenis-asn-gender-val {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.jenis-asn-gender-pct {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.12rem 0.4rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.22);
+  color: #ffffff;
+}
+
+.jenis-asn-gender-ratio-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 99px;
+  overflow: hidden;
+  display: flex;
+}
+
+.jenis-asn-gender-ratio-fill-laki {
+  height: 100%;
+  background: #38bdf8;
+  transition: width 0.5s ease;
+}
+
+.jenis-asn-gender-ratio-fill-perempuan {
+  height: 100%;
+  background: #f472b6;
+  transition: width 0.5s ease;
 }
 
 .skeleton-block {
@@ -596,16 +714,32 @@
     grid-template-columns: 1fr;
   }
   .jenis-asn-total-bar {
+    padding: 1.15rem 1.25rem;
+    gap: 0.75rem;
+  }
+  .jenis-asn-total-top {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
-    padding: 1rem 1.25rem;
+    gap: 0.35rem;
   }
   .jenis-asn-total-label {
     font-size: 1.15rem;
   }
   .jenis-asn-total-value {
     font-size: 1.5rem;
+  }
+  .jenis-asn-total-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+  .jenis-asn-gender-items {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .jenis-asn-gender-badge {
+    justify-content: space-between;
   }
 }
 

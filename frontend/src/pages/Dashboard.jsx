@@ -238,6 +238,29 @@ export default function Dashboard() {
     { name: 'Perempuan', value: summaryData.perempuan },
   ], [summaryData]);
 
+  // Ringkasan Gender Total untuk Banner Jenis ASN
+  const displayedGender = useMemo(() => {
+    let laki = computedStatusPegawai.reduce((acc, curr) => acc + (Number(curr.laki) || 0), 0);
+    let perempuan = computedStatusPegawai.reduce((acc, curr) => acc + (Number(curr.perempuan) || 0), 0);
+
+    if (laki === 0 && perempuan === 0 && summaryData) {
+      laki = Number(summaryData.laki) || 0;
+      perempuan = Number(summaryData.perempuan) || 0;
+    }
+
+    const total = (laki + perempuan) > 0 ? (laki + perempuan) : (Number(displayedTotalAsn) || 0);
+    const pctLaki = total > 0 ? ((laki / total) * 100).toFixed(1) : '0';
+    const pctPerempuan = total > 0 ? ((perempuan / total) * 100).toFixed(1) : '0';
+
+    return {
+      laki,
+      perempuan,
+      total,
+      pctLaki,
+      pctPerempuan,
+    };
+  }, [computedStatusPegawai, summaryData, displayedTotalAsn]);
+
   // Stacked OPD Bar Chart Data & Pagination (dari 10.000 data_pegawai_aktif)
   const stackedOpdDistributionData = useMemo(() => {
     if (Array.isArray(sebaranOPDData) && sebaranOPDData.length > 0) {
@@ -317,12 +340,55 @@ export default function Dashboard() {
           </div>
 
           <div className="jenis-asn-total-bar">
-            <span className="jenis-asn-total-label">
-              Total ASN {satker && satker !== 'Satuan Kerja' ? `– ${satker}` : 'Kabupaten Bandung'}
-            </span>
-            <span className="jenis-asn-total-value">
-              {profilLoading ? '—' : `${Number(displayedTotalAsn || 0).toLocaleString('id-ID')} orang`}
-            </span>
+            <div className="jenis-asn-total-top">
+              <span className="jenis-asn-total-label">
+                Total ASN {satker && satker !== 'Satuan Kerja' ? `– ${satker}` : 'Kabupaten Bandung'}
+              </span>
+              <span className="jenis-asn-total-value">
+                {profilLoading ? '—' : `${Number(displayedTotalAsn || 0).toLocaleString('id-ID')} orang`}
+              </span>
+            </div>
+
+            <div className="jenis-asn-total-divider" />
+
+            <div className="jenis-asn-total-bottom">
+              <div className="jenis-asn-gender-title">
+                <Users size={15} style={{ opacity: 0.9 }} />
+                <span>Distribusi Gender</span>
+              </div>
+              <div className="jenis-asn-gender-items">
+                <div className="jenis-asn-gender-badge">
+                  <span className="jenis-asn-gender-dot laki" />
+                  <span className="jenis-asn-gender-name">Laki-laki:</span>
+                  <span className="jenis-asn-gender-val">
+                    {profilLoading ? '—' : `${Number(displayedGender.laki).toLocaleString('id-ID')} orang`}
+                  </span>
+                  <span className="jenis-asn-gender-pct">{displayedGender.pctLaki}%</span>
+                </div>
+                <div className="jenis-asn-gender-badge">
+                  <span className="jenis-asn-gender-dot perempuan" />
+                  <span className="jenis-asn-gender-name">Perempuan:</span>
+                  <span className="jenis-asn-gender-val">
+                    {profilLoading ? '—' : `${Number(displayedGender.perempuan).toLocaleString('id-ID')} orang`}
+                  </span>
+                  <span className="jenis-asn-gender-pct">{displayedGender.pctPerempuan}%</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="jenis-asn-gender-ratio-track"
+              title={`Laki-laki: ${displayedGender.pctLaki}%, Perempuan: ${displayedGender.pctPerempuan}%`}
+            >
+              <div
+                className="jenis-asn-gender-ratio-fill-laki"
+                style={{ width: `${displayedGender.pctLaki}%` }}
+              />
+              <div
+                className="jenis-asn-gender-ratio-fill-perempuan"
+                style={{ width: `${displayedGender.pctPerempuan}%` }}
+              />
+            </div>
           </div>
 
           {profilLoading ? (
