@@ -23,7 +23,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 
-export default function DataPegawai() {
+export default function ProfilASN() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 

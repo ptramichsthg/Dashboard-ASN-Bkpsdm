@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import './index.css';
 
-const Profil = lazy(() => import('./pages/Profil'));
+const BezettingASN = lazy(() => import('./pages/BezettingASN'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
-const DataPegawai = lazy(() => import('./pages/DataPegawai'));
+const ProfilASN = lazy(() => import('./pages/ProfilASN'));
 const UserManagement = lazy(() => import('./pages/UserManagement'));
 
 /**
@@ -113,8 +113,17 @@ function App() {
       <ErrorBoundary>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* Akses awal diarahkan ke Dashboard (akan diverifikasi oleh ProtectedRoute) */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Akses awal: jika belum login langsung diarahkan ke /login (sistem tertutup) */}
+            <Route
+              path="/"
+              element={
+                localStorage.getItem('auth_token') ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
 
             {/* Halaman Login untuk seluruh pengguna */}
             <Route
@@ -141,7 +150,7 @@ function App() {
               path="/bezetting"
               element={
                 <RoleRoute allowedRoles={['admin', 'super_admin']}>
-                  <Profil />
+                  <BezettingASN />
                 </RoleRoute>
               }
             />
@@ -154,7 +163,7 @@ function App() {
               path="/profil"
               element={
                 <RoleRoute allowedRoles={['admin', 'super_admin']}>
-                  <DataPegawai />
+                  <ProfilASN />
                 </RoleRoute>
               }
             />
@@ -164,11 +173,7 @@ function App() {
             />
             <Route
               path="/sebaran-pegawai"
-              element={
-                <RoleRoute allowedRoles={['admin', 'super_admin']}>
-                  <DataPegawai />
-                </RoleRoute>
-              }
+              element={<Navigate to="/profil" replace />}
             />
 
             {/* Manajemen Pengguna: Khusus Super Admin */}
@@ -181,8 +186,17 @@ function App() {
               }
             />
 
-            {/* Fallback route */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            {/* Fallback route: arahkan sesuai status autentikasi */}
+            <Route
+              path="*"
+              element={
+                localStorage.getItem('auth_token') ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
           </Routes>
         </Suspense>
       </ErrorBoundary>

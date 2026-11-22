@@ -26,7 +26,7 @@ import {
   Building2,
 } from 'lucide-react';
 
-export default function Profil() {
+export default function BezettingASN() {
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
