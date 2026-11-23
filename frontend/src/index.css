@@ -1,5 +1,8 @@
-/* ===== IMPORT RESPONSIVE IMPROVEMENTS ===== */
-@import './styles/responsive-improvements.css';
+/* Desktop Web Table Container */
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
 
 :root {
   --primary-dark: #064e3b;
