@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import TopBar from '../components/shared/TopBar';
 import HeroBanner from '../components/shared/HeroBanner';
 import SubNavMenu from '../components/shared/SubNavMenu';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
-import '../styles/DataPegawai.css';
+import '../styles/ProfilASN.css';
 
 import {
   Users,

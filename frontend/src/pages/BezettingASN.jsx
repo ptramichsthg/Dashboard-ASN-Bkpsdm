@@ -1,18 +1,18 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+﻿import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import apiCache from '../utils/apiCache';
 import useKlasifikasiJabatan, { useKlasifikasiJabatanNonManajerial } from '../hooks/useKlasifikasiJabatan';
 import bgCard from '../assets/bg-card.png';
-import '../styles/Profil.css';
+import '../styles/BezettingASN.css';
 
 import TopBar from '../components/shared/TopBar';
 import SubNavMenu from '../components/shared/SubNavMenu';
-import BezettingTable from '../components/profil/BezettingTable';
-import GapChartSection from '../components/profil/GapChartSection';
-import JabatanKosongTable from '../components/profil/JabatanKosongTable';
-import ModalDetailSelisih from '../components/profil/ModalDetailSelisih';
-import ModalDaftarEselon from '../components/profil/ModalDaftarEselon';
+import BezettingTable from '../components/bezetting/BezettingTable';
+import GapChartSection from '../components/bezetting/GapChartSection';
+import JabatanKosongTable from '../components/bezetting/JabatanKosongTable';
+import ModalDetailSelisih from '../components/bezetting/ModalDetailSelisih';
+import ModalDaftarEselon from '../components/bezetting/ModalDaftarEselon';
 import StrukturHierarkiTable from '../components/dashboard/StrukturHierarkiTable';
 import UnitJabatanModal from '../components/dashboard/UnitJabatanModal';
 
